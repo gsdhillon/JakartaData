@@ -1,0 +1,444 @@
+.grove-theme-light {
+    --grove-center-bg: rgba(255, 255, 255, 0.9);
+    --grove-surface: rgba(255, 255, 255, 0.86);
+    --grove-text: #1f2937;
+    --grove-muted: #64748b;
+    --grove-accent-soft: rgba(13, 110, 253, 0.12);
+}
+
+.grove-theme-dark {
+    --bs-body-color: #e5e7eb;
+    --bs-body-bg: #0f172a;
+    --bs-border-color: rgba(148, 163, 184, 0.35);
+    --grove-center-bg: rgba(15, 23, 42, 0.88);
+    --grove-surface: rgba(15, 23, 42, 0.82);
+    --grove-text: #e5e7eb;
+    --grove-muted: #cbd5e1;
+    --grove-accent-soft: rgba(13, 110, 253, 0.22);
+}
+
+.grove-app-shell {
+    height: 100vh;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    overflow: hidden;
+    background-position: center;
+    background-size: cover;
+    color: var(--grove-text);
+}
+
+.grove-app-shell-body {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) 12px;
+    overflow: hidden;
+}
+
+.grove-app-shell-center {
+    min-width: 0;
+    min-height: 0;
+    overflow: auto;
+    padding: 1rem;
+}
+
+.grove-app-shell-center-present {
+    background: var(--grove-center-bg);
+}
+
+.grove-app-shell-right-strip {
+    width: 12px;
+}
+
+.grove-header {
+    min-height: 90px;
+    display: grid;
+    grid-template-columns: minmax(64px, auto) minmax(0, 1fr) minmax(48px, auto);
+    gap: 1rem;
+    align-items: center;
+    padding: 10px 22px;
+}
+
+.grove-header-logo,
+.grove-header-avatar {
+    display: grid;
+    place-items: center;
+}
+
+.grove-header-logo-image {
+    max-width: 60px;
+    max-height: 60px;
+    object-fit: contain;
+}
+
+.grove-header-avatar-image {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.grove-header-title {
+    margin: 0;
+    font-size: clamp(1.5rem, 4vw, 2.375rem);
+    line-height: 1.1;
+}
+
+.grove-header-subtitle,
+.grove-rest-entry-sub,
+.grove-rest-empty {
+    color: var(--grove-muted);
+}
+
+.grove-footer {
+    position: relative;
+    height: 25px;
+    overflow: hidden;
+    color: var(--grove-text);
+    font-size: 12px;
+    line-height: 1;
+}
+
+.grove-footer-brand,
+.grove-footer-left,
+.grove-footer-right {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.grove-footer-brand {
+    left: 50%;
+    max-width: calc(100% - 240px);
+    overflow: hidden;
+    text-align: center;
+    text-overflow: ellipsis;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+}
+
+.grove-footer-left {
+    left: 10px;
+}
+
+.grove-footer-right {
+    right: 10px;
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.grove-theme-toggle,
+.grove-rest-toggle {
+    height: 20px;
+    padding: 0 8px;
+    font-size: 12px;
+    line-height: 18px;
+}
+
+.grove-footer-logo-button {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 50%;
+    background: transparent;
+}
+
+.grove-footer-logo-button:hover {
+    background: var(--grove-accent-soft);
+}
+
+.grove-rest-tap-has-entries .grove-footer-logo-button::after {
+    content: "";
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #dc3545;
+}
+
+.grove-footer-logo {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+.grove-menu {
+    padding: 14px 10px;
+}
+
+.grove-menu-links,
+.form-fields {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.grove-menu-link {
+    width: 100%;
+    text-align: left;
+    text-decoration: none;
+}
+
+.grove-menu-link-active {
+    background: var(--grove-accent-soft);
+}
+
+.form-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 240px;
+    gap: 1.25rem;
+    align-items: start;
+}
+
+.form-actions,
+.grove-table-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.grove-table-actions-cell {
+    vertical-align: middle;
+}
+
+.grove-table-actions {
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+.grove-field-label {
+    display: grid;
+    grid-template-columns: 129px 1fr;
+    gap: 0.625rem;
+    align-items: center;
+    font-weight: 700;
+}
+
+.grove-field-label > * {
+    font-weight: 400;
+}
+
+.grove-clearable-control {
+    position: relative;
+    display: block;
+}
+
+.grove-clearable-control .grove-control {
+    padding-right: 2rem;
+}
+
+.grove-clear-control {
+    position: absolute;
+    top: 50%;
+    right: 2rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    color: var(--bs-secondary-color);
+    line-height: 1;
+    text-decoration: none;
+    transform: translateY(-50%);
+}
+
+.grove-photo-picker {
+    display: grid;
+    gap: 0.75rem;
+    width: 240px;
+}
+
+.grove-photo-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.grove-photo-preview {
+    width: 240px;
+    height: 320px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border: 1px dashed var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+    background: var(--grove-surface);
+    color: var(--grove-muted);
+    font-weight: 700;
+}
+
+.grove-photo-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.grove-table-wrap,
+.grove-table-toolbar {
+    margin-bottom: 0.75rem;
+}
+
+.grove-table-sort {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: inherit;
+}
+
+.grove-rest-dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: grid;
+    place-items: center;
+    padding: 1.5rem;
+    background: rgba(15, 23, 42, 0.54);
+    pointer-events: none;
+}
+
+.grove-rest-error-toasts {
+    display: grid;
+    gap: 12px;
+    position: fixed;
+    right: 18px;
+    top: 18px;
+    width: min(420px, calc(100vw - 36px));
+    z-index: 1060;
+}
+
+.grove-rest-error-toast {
+    background: #fff5f5;
+    border: 1px solid #f1aeb5;
+    border-left: 5px solid #dc3545;
+    border-radius: 12px;
+    color: #58151c;
+    padding: 12px 14px;
+    pointer-events: auto;
+}
+
+.grove-rest-error-title {
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.grove-rest-error-list {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.grove-rest-dialog {
+    width: min(980px, calc(100vw - 48px));
+    height: min(720px, calc(100vh - 48px));
+    display: block;
+    overflow: hidden;
+    background: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    pointer-events: auto;
+}
+
+.grove-rest-dialog-body {
+    height: 100%;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+}
+
+.grove-rest-list,
+.grove-rest-payload {
+    overflow: auto;
+}
+
+.grove-rest-side-title {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--bs-body-bg);
+}
+
+.grove-rest-detail {
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+}
+
+.grove-rest-entry {
+    width: 100%;
+    display: grid;
+    gap: 4px;
+    padding: 10px 12px;
+    border: 0;
+    border-bottom: 1px solid var(--bs-border-color);
+    background: transparent;
+    color: inherit;
+    text-align: left;
+}
+
+.grove-rest-entry:hover,
+.grove-rest-entry-active {
+    background: var(--grove-accent-soft);
+}
+
+.grove-rest-entry-main {
+    overflow: hidden;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.grove-rest-payload {
+    min-height: 0;
+    margin: 0;
+    padding: 1rem;
+    background: #f8f5ef;
+    color: #212529;
+    font: 13px/1.45 Consolas, "Courier New", monospace;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+@media (max-width: 640px) {
+    .grove-app-shell-body,
+    .grove-rest-dialog-body,
+    .form-main {
+        grid-template-columns: 1fr;
+    }
+
+    .grove-menu {
+        width: auto !important;
+    }
+
+    .grove-menu-links {
+        grid-auto-flow: column;
+        grid-auto-columns: max-content;
+        overflow-x: auto;
+    }
+
+    .grove-app-shell-right-strip {
+        display: none;
+    }
+
+    .grove-header {
+        grid-template-columns: auto 1fr auto;
+        padding: 14px;
+    }
+
+    .grove-rest-list {
+        max-height: 180px;
+    }
+
+    .grove-photo-picker,
+    .grove-photo-preview {
+        width: min(240px, 100%);
+    }
+
+    .grove-photo-preview {
+        height: auto;
+        aspect-ratio: 3 / 4;
+    }
+}

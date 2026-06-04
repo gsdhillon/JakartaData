@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jakarta Data Person</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+            color: #1f2937;
+        }
+
+        main {
+            max-width: 860px;
+            margin: 32px auto;
+            padding: 0 16px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        section {
+            margin-bottom: 24px;
+            padding: 18px;
+            background: #ffffff;
+            border: 1px solid #d8dee9;
+            border-radius: 6px;
+        }
+
+        form {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        input {
+            flex: 1;
+            min-width: 220px;
+            padding: 10px;
+            border: 1px solid #b8c0cc;
+            border-radius: 4px;
+            font-size: 15px;
+        }
+
+        button {
+            padding: 10px 14px;
+            border: 0;
+            border-radius: 4px;
+            background: #2563eb;
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button.secondary {
+            background: #64748b;
+        }
+
+        button.danger {
+            background: #dc2626;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+        }
+
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        #message {
+            min-height: 20px;
+            margin-top: 12px;
+            color: #475569;
+        }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Jakarta Data Person</h1>
+
+    <section>
+        <form id="personForm">
+            <input type="hidden" id="personId">
+            <input type="text" id="personName" placeholder="Person name" required>
+            <button type="submit" id="saveButton">Create</button>
+            <button type="button" class="secondary" id="cancelButton" hidden>Cancel</button>
+        </form>
+        <div id="message"></div>
+    </section>
+
+    <section>
+        <table>
+            <thead>
+            <tr>
+                <th style="width: 90px;">Id</th>
+                <th>Name</th>
+                <th style="width: 170px;">Actions</th>
+            </tr>
+            </thead>
+            <tbody id="personRows">
+            </tbody>
+        </table>
+    </section>
+</main>
+
+<script>
+    const apiUrl = 'api/persons';
+    const form = document.getElementById('personForm');
+    const personId = document.getElementById('personId');
+    const personName = document.getElementById('personName');
+    const saveButton = document.getElementById('saveButton');
+    const cancelButton = document.getElementById('cancelButton');
+    const personRows = document.getElementById('personRows');
+    const message = document.getElementById('message');
+
+    async function loadPersons() {
+        const response = await fetch(apiUrl);
+        const persons = await response.json();
+
+        personRows.innerHTML = '';
+
+        for (const person of persons) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${person.id}</td>
+                <td>${person.name}</td>
+                <td>
+                    <div class="actions">
+                        <button type="button" class="secondary" onclick="startEdit(${person.id}, '${escapeText(person.name)}')">Edit</button>
+                        <button type="button" class="danger" onclick="deletePerson(${person.id})">Delete</button>
+                    </div>
+                </td>
+            `;
+            personRows.appendChild(row);
+        }
+    }
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const id = personId.value;
+        const person = {name: personName.value};
+        const method = id ? 'PUT' : 'POST';
+        const url = id ? `${apiUrl}/${id}` : apiUrl;
+
+        const response = await fetch(url, {
+            method,
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(person)
+        });
+
+        if (!response.ok) {
+            showMessage('Save failed.');
+            return;
+        }
+
+        resetForm();
+        showMessage(id ? 'Person updated.' : 'Person created.');
+        await loadPersons();
+    });
+
+    function startEdit(id, name) {
+        personId.value = id;
+        personName.value = name;
+        saveButton.textContent = 'Update';
+        cancelButton.hidden = false;
+        personName.focus();
+    }
+
+    async function deletePerson(id) {
+        const response = await fetch(`${apiUrl}/${id}`, {method: 'DELETE'});
+
+        if (!response.ok) {
+            showMessage('Delete failed.');
+            return;
+        }
+
+        resetForm();
+        showMessage('Person deleted.');
+        await loadPersons();
+    }
+
+    cancelButton.addEventListener('click', resetForm);
+
+    function resetForm() {
+        form.reset();
+        personId.value = '';
+        saveButton.textContent = 'Create';
+        cancelButton.hidden = true;
+    }
+
+    function showMessage(text) {
+        message.textContent = text;
+    }
+
+    function escapeText(text) {
+        return String(text).replaceAll('\\', '\\\\').replaceAll("'", "\\'");
+    }
+
+    loadPersons().catch(() => showMessage('Could not load persons.'));
+</script>
+</body>
+</html>

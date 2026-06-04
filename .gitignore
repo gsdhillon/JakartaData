@@ -1,0 +1,47 @@
+# Maven build output
+target/
+
+# Java compiled artifacts
+*.class
+*.war
+*.ear
+*.jar
+
+# IDE/editor local metadata
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+*.bak
+*.orig
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Node/frontend dependency output if added later
+node_modules/
+dist/
+build/
+coverage/
+
+# Payara/local server runtime noise
+domains/
+generated/
