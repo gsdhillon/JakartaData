@@ -21,7 +21,6 @@ const ensureGroveStyles = () => {
 
     const styleHrefs = [
         "./bootstrap.min.css",
-        "./bootstrap-icons.min.css",
         "./styles.css"
     ].map(path => new URL(path, import.meta.url).href);
 

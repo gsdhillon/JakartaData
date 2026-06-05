@@ -1,5 +1,6 @@
 import {
     Button,
+    formatInstantLocal,
     Table
 } from "../../lib/Grove.js";
 
@@ -16,16 +17,10 @@ const columns = [
         value: person => formatDate(person.dob)
     },
     {
-        key: "appointmentAt",
-        label: "Appointment",
-        render: person => formatDateTime(person.appointmentAt),
-        value: person => formatDateTime(person.appointmentAt)
-    },
-    {
         key: "updatedAt",
         label: "Updated At",
-        render: person => formatDateTime(person.updatedAt),
-        value: person => formatDateTime(person.updatedAt)
+        render: person => formatInstantLocal(person.updatedAt),
+        value: person => formatInstantLocal(person.updatedAt)
     },
     { key: "email", label: "EMail" },
     { key: "gender", label: "Gender" },
@@ -44,19 +39,6 @@ const formatDate = value => {
         : value;
 };
 
-const formatDateTime = value => {
-    if (!value) {
-        return "";
-    }
-
-    const normalized = String(value).replace("T", " ").slice(0, 16);
-    const [date, time] = normalized.split(" ");
-
-    return date
-        ? `${formatDate(date)}${time ? ` ${time}` : ""}`
-        : normalized;
-};
-
 const renderActions = props => (person, index) => [
     Button({
         id: `updatePerson-${index}`,
@@ -67,6 +49,17 @@ const renderActions = props => (person, index) => [
         type: "button",
         onClick() {
             props.onUpdate?.(person, index);
+        }
+    }),
+    Button({
+        id: `patchDesignation-${index}`,
+        label: "Patch Designation",
+        look: "sc",
+        name: "patchDesignation",
+        disabled: props.isBusy,
+        type: "button",
+        onClick() {
+            props.onPatchDesignation?.(person, index);
         }
     }),
     Button({

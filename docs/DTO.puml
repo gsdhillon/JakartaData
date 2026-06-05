@@ -1,0 +1,129 @@
+﻿@startuml
+title Task DTO - Mark Completed Request/Response Cycle
+
+autonumber
+
+actor User
+boundary "TaskTable.js" as TaskTable
+control "TaskController.js" as TaskController
+control "AppContext\nloggedInUserId" as AppContext
+boundary "TaskForm.js\nread-only view" as TaskForm
+control "Browser fetch API" as Fetch
+
+box "Payara / Jakarta REST"
+    boundary "JAX-RS Runtime\n/api/tasks/{id}/complete" as Jaxrs
+    control "TaskResource.markCompleted()" as Resource
+    control "HeaderParam\nX-User-Id" as HeaderParam
+    control "ExceptionMapper(s)" as Mapper
+    control "JSON-B\nTaskResponseDto -> JSON" as Jsonb
+end box
+
+box "Application"
+    control "TaskService.markCompleted()" as Service
+    entity "TaskRepository\nJakarta Data" as Repository
+    control "TaskResponseDto" as ResponseDto
+end box
+
+box "Persistence"
+    control "JPA Provider\nEclipseLink/Payara Data" as Jpa
+    database "MySQL\napp_task table" as Db
+end box
+
+User -> TaskTable: Click View
+TaskTable -> TaskController: onView(task)
+TaskController -> TaskController: setSelectedTask(task)\nmode = "view"
+TaskController -> AppContext: read loggedInUserId
+AppContext --> TaskController: current user id
+TaskController -> TaskController: canComplete =\nselectedTask.assignedTo == loggedInUserId\nand completedOn is empty
+TaskController -> TaskForm: render read-only fields\nshowMarkCompleted = canComplete
+TaskForm --> User: View form shows\nMark Completed button
+
+User -> TaskForm: Click Mark Completed
+TaskForm -> TaskController: onMarkCompleted(task)
+TaskController -> AppContext: read loggedInUserId
+AppContext --> TaskController: current user id
+TaskController -> Fetch: fetch("./api/tasks/{id}/complete",\nmethod PATCH,\nX-User-Id: loggedInUserId)
+Fetch -> Jaxrs: HTTP PATCH /api/tasks/{id}/complete\nX-User-Id: loggedInUserId
+
+Jaxrs -> Resource: markCompleted(id, loggedInUserId)
+Resource -> HeaderParam: requireUserId(loggedInUserId)
+
+alt Success
+    HeaderParam --> Resource: user id present
+    Resource -> Service: markCompleted(id, loggedInUserId)
+    Service -> Repository: findById(id)
+    Repository -> Jpa: query by id
+    Jpa -> Db: SELECT ... FROM app_task WHERE ID = ?
+    Db --> Jpa: task row
+    Jpa --> Repository: Optional<Task>
+    Repository --> Service: Task entity
+    Service -> Service: verify loggedInUserId == task.assignedTo
+    Service -> Service: task.setCompletedOn(Instant.now())
+    Service -> Repository: save(task)
+    Repository -> Jpa: persist/merge Task
+    Jpa -> Db: UPDATE app_task\nSET COMPLETEDON = ?\nWHERE ID = ?
+    Db --> Jpa: update count
+    Jpa --> Repository: saved Task
+    Repository --> Service: saved Task
+    Service -> ResponseDto: toResponse(saved Task)
+    ResponseDto --> Service: TaskResponseDto\nincluding completedOn
+    Service --> Resource: TaskResponseDto
+    Resource --> Jaxrs: TaskResponseDto response entity
+    Jaxrs -> Jsonb: serialize DTO
+    Jsonb --> Jaxrs: JSON with completedOn
+    Jaxrs --> Fetch: HTTP 200 OK\n{ id, taskName, ..., completedOn }
+    Fetch --> TaskController: response ok=true\nTaskResponseDto JSON
+    TaskController -> TaskController: loadTasks()
+    TaskController -> Fetch: fetch("./api/tasks")
+    Fetch -> Jaxrs: HTTP GET /api/tasks
+    Jaxrs -> Resource: findAll()
+    Resource -> Service: findAll()
+    Service -> Repository: findAll()
+    Repository -> Jpa: query all tasks
+    Jpa -> Db: SELECT ... FROM app_task
+    Db --> Jpa: rows with COMPLETEDON
+    Jpa --> Repository: Task entities
+    Repository --> Service: Task stream
+    Service -> ResponseDto: map each Task -> TaskResponseDto
+    ResponseDto --> Service: List<TaskResponseDto>
+    Service --> Resource: List<TaskResponseDto>
+    Resource --> Jaxrs: List response entity
+    Jaxrs -> Jsonb: serialize DTO list
+    Jsonb --> Jaxrs: JSON array
+    Jaxrs --> Fetch: HTTP 200 OK\n[ { completedOn: "..." } ]
+    Fetch --> TaskController: tasks JSON array
+    TaskController -> TaskController: normalizeTask(...), setTasks(...)
+    TaskController -> TaskController: update selectedTask.completedOn\nwith current instant
+    TaskController -> TaskForm: re-render view form\ncompletedOn read-only value
+    TaskController -> TaskTable: list re-renders
+    TaskForm --> User: Completed On field shows timestamp
+    TaskTable --> User: Completed On column shows timestamp
+
+else Missing X-User-Id
+    HeaderParam --> Resource: null user id
+    Resource -> Mapper: BadRequestException\n"X-User-Id header is required."
+    Mapper --> Jaxrs: HTTP 400 + JSON error
+    Jaxrs --> Fetch: HTTP 400 Bad Request
+    Fetch --> TaskController: throw Error("Bad Request")
+    TaskController -> TaskController: catch; keep view open
+    TaskForm --> User: Completed On remains empty
+
+else Logged-in user is not assignedTo
+    HeaderParam --> Resource: user id present
+    Resource -> Service: markCompleted(id, loggedInUserId)
+    Service -> Repository: findById(id)
+    Repository -> Jpa: query by id
+    Jpa -> Db: SELECT ... FROM app_task WHERE ID = ?
+    Db --> Jpa: task row
+    Jpa --> Repository: Optional<Task>
+    Repository --> Service: Task entity
+    Service -> Service: verify loggedInUserId == task.assignedTo
+    Service -> Mapper: ForbiddenException\n"Only the assigned user can mark this task completed."
+    Mapper --> Jaxrs: HTTP 403 + JSON error
+    Jaxrs --> Fetch: HTTP 403 Forbidden
+    Fetch --> TaskController: throw Error("Forbidden")
+    TaskController -> TaskController: catch; keep view open
+    TaskForm --> User: Completed On remains empty
+end
+
+@enduml

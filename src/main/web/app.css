@@ -26,11 +26,25 @@ body {
     gap: 1rem;
 }
 
+.task-form {
+    display: grid;
+    gap: 1rem;
+}
+
 .person-list-view {
     align-items: center;
 }
 
 .person-list-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.task-list-view {
+    align-items: center;
+}
+
+.task-list-actions {
     display: flex;
     gap: 0.5rem;
 }

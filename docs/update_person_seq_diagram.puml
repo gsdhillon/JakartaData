@@ -1,0 +1,114 @@
+@startuml
+title Update Person - Full Request/Response Cycle
+
+autonumber
+
+actor User
+boundary "PersonForm.js" as PersonForm
+control "PersonController.js" as PersonController
+control "Grove REST/fetch wrapper\nREST.js" as RestFetch
+boundary "Browser fetch API" as Fetch
+
+box "Payara / Jakarta REST" #F7F7F7
+    boundary "JAX-RS Runtime\n/api/persons/{id}" as Jaxrs
+    control "JSON-B\nJSON -> Person" as Jsonb
+    control "Bean Validation\n@Valid" as Validation
+    control "PersonResource.update()" as Resource
+    control "ExceptionMapper(s)" as Mapper
+end box
+
+box "Application" #F3FAFF
+    control "PersonService.update()" as Service
+    control "EditableFields.copyEditableFields()" as EditableFields
+    entity "PersonRepository\nJakarta Data" as Repository
+end box
+
+box "Persistence" #FFF8E8
+    control "JPA Provider\nEclipseLink/Payara Data" as Jpa
+    database "MySQL\nPERSON table" as Db
+end box
+
+User -> PersonForm: Press Submit on update form
+PersonForm -> PersonController: onSubmit(person)
+PersonController -> PersonController: personPayload(person)\nremove updatedAt from request body
+PersonController -> RestFetch: requestJson(\"./api/persons/{id}\",\nmethod PUT, JSON body)
+RestFetch -> Fetch: fetch(url, options)
+Fetch -> Jaxrs: HTTP PUT /api/persons/{id}\nContent-Type: application/json
+
+Jaxrs -> Jsonb: deserialize request body
+Jsonb --> Jaxrs: Person instance
+Jaxrs -> Validation: validate @Valid Person
+
+alt Success
+    Validation --> Jaxrs: valid
+    Jaxrs -> Resource: update(id, person)
+    Resource -> Service: update(id, person)
+    Service -> Repository: findById(id)
+    Repository -> Jpa: query by id
+    Jpa -> Db: SELECT ... WHERE ID = ?
+    Db --> Jpa: existing row
+    Jpa --> Repository: Optional<Person>
+    Repository --> Service: existing Person
+    Service -> EditableFields: copyEditableFields(requestPerson, existingPerson)
+    EditableFields --> Service: editable fields copied\nid/updatedAt not copied
+    Service -> Repository: save(existingPerson)
+    Repository -> Jpa: persist/merge
+    Jpa -> Jpa: @PreUpdate touchUpdatedAt()\nif present in entity
+    Jpa -> Db: UPDATE PERSON SET editable columns,\nupdated_at = ? WHERE ID = ?
+    Db --> Jpa: update count
+    Jpa --> Repository: saved Person
+    Repository --> Service: saved Person
+    Service --> Resource: Person
+    Resource --> Jaxrs: Person response entity
+    Jaxrs -> Jsonb: serialize Person -> JSON
+    Jsonb --> Jaxrs: JSON
+    Jaxrs --> Fetch: HTTP 200 OK\napplication/json\n{ person }
+    Fetch --> RestFetch: Response ok=true
+    RestFetch --> PersonController: updated Person JSON
+    PersonController -> RestFetch: requestJson(\"./api/persons\")\nreload list
+    RestFetch --> PersonController: persons JSON array
+    PersonController -> PersonController: setPersons(...), mode=\"list\"
+    PersonController --> PersonForm: form closes / list re-renders
+
+else Validation Error
+    Validation --> Jaxrs: ConstraintViolationException
+    Jaxrs -> Mapper: ValidationErrorsMapper.toResponse()
+    Mapper --> Jaxrs: HTTP 400 + JSON error list
+    Jaxrs --> Fetch: HTTP 400 Bad Request\napplication/json\n[\"Name must...\", \"...\"] 
+    Fetch --> RestFetch: Response ok=false
+    RestFetch -> RestFetch: parse JSON error list\nread response.status/statusText
+    RestFetch -> RestFetch: show popup\n\"HTTP 400 Bad Request\" + errors
+    RestFetch --> PersonController: throw Error(\"Bad Request\")
+    PersonController -> PersonController: catch; keep form/list state
+
+else JPA / Database Exception
+    Validation --> Jaxrs: valid
+    Jaxrs -> Resource: update(id, person)
+    Resource -> Service: update(id, person)
+    Service -> Repository: findById(id)
+    Repository -> Jpa: query by id
+    Jpa -> Db: SELECT ... WHERE ID = ?
+    Db --> Jpa: existing row
+    Jpa --> Repository: Optional<Person>
+    Repository --> Service: existing Person
+    Service -> EditableFields: copyEditableFields(requestPerson, existingPerson)
+    EditableFields --> Service: editable fields copied
+    Service -> Repository: save(existingPerson)
+    Repository -> Jpa: persist/merge
+    Jpa -> Db: UPDATE PERSON ...
+    Db --> Jpa: SQL exception
+    Jpa --> Repository: PersistenceException
+    Repository --> Service: PersistenceException
+    Service --> Resource: PersistenceException
+    Resource --> Jaxrs: PersistenceException
+    Jaxrs -> Mapper: PersistenceExceptionMapper.toResponse()
+    Mapper --> Jaxrs: HTTP 500 + JSON error list
+    Jaxrs --> Fetch: HTTP 500 Internal Server Error\napplication/json\n[\"Database operation failed...\"] 
+    Fetch --> RestFetch: Response ok=false
+    RestFetch -> RestFetch: parse JSON error list\nread response.status/statusText
+    RestFetch -> RestFetch: show popup\n\"HTTP 500 Internal Server Error\" + errors
+    RestFetch --> PersonController: throw Error(\"Internal Server Error\")
+    PersonController -> PersonController: catch; no local error rendering
+end
+
+@enduml

@@ -26,6 +26,18 @@ const instantToDateTimeLocal = value => {
     ].join(":");
 };
 
+export const dateTimeLocalToInstant = value => {
+    if (!value) {
+        return null;
+    }
+
+    const date = new Date(value);
+
+    return Number.isNaN(date.getTime())
+        ? null
+        : date.toISOString();
+};
+
 export const temporalValue = (type, value) => {
     if (!value) {
         return "";
@@ -42,11 +54,28 @@ export const temporalValue = (type, value) => {
         : text.slice(0, 16);
 };
 
+export const formatInstantLocal = value => {
+    const localValue = temporalValue("instant", value);
+
+    if (!localValue) {
+        return "";
+    }
+
+    const [date, time] = localValue.split("T");
+    const parts = (date || "").split("-");
+
+    const displayDate = parts.length === 3
+        ? `${parts[2]}/${parts[1]}/${parts[0]}`
+        : date;
+
+    return `${displayDate}${time ? ` ${time}` : ""}`;
+};
+
 export const Instant = (props = {}) =>
     Input({
-        readOnly: true,
         ...props,
         "data-grove-temporal": "instant",
+        readOnly: true,
         type: "datetime-local",
         value: temporalValue("instant", props.value)
     });

@@ -1,10 +1,12 @@
 package com.gurmeet.modules.person;
 
 import jakarta.inject.Inject;
+import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
@@ -55,6 +57,12 @@ public class PersonResource {
     // Method name is not used in the URL. @PUT and @Path decide the endpoint.
     public Person update(@PathParam("id") Long id, @Valid Person person) {
         return personService.update(id, person);
+    }
+
+    @PATCH
+    @Path("/{id}")
+    public Person patch(@PathParam("id") Long id, JsonObject patch) {
+        return personService.patch(id, patch);
     }
 
     @DELETE

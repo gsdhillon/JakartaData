@@ -21,9 +21,9 @@ const renderMenuLink = link => {
         ...linkProps
     } = link || {};
     const linkClassName = [
-        href ? "nav-link" : "btn btn-link",
+        href ? "nav-link" : active ? "btn btn-primary" : "btn btn-link",
         "grove-menu-link",
-        active ? "grove-menu-link-active" : "",
+        active ? "active grove-menu-link-active" : "",
         className
     ]
         .filter(Boolean)
@@ -63,7 +63,13 @@ export const Menu = (props = {}) => {
         width = "140px",
         ...menuProps
     } = props;
-    const menuClassName = ["grove-menu", className]
+    const menuClassName = [
+        "grove-menu",
+        "bg-body-tertiary",
+        "text-body",
+        "border-end",
+        className
+    ]
         .filter(Boolean)
         .join(" ");
 

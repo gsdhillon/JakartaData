@@ -323,6 +323,7 @@ export const RestTapToggle = () => {
 
     return Button({
         className: [
+            "btn-sm",
             "grove-rest-toggle",
             tapState.enabled ? "grove-rest-toggle-on" : ""
         ].filter(Boolean).join(" "),

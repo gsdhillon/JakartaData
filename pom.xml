@@ -119,8 +119,10 @@
                                         <argument>-NoProfile</argument>
                                         <argument>-ExecutionPolicy</argument>
                                         <argument>Bypass</argument>
-                                        <argument>-Command</argument>
-                                        <argument>asadmin list-applications | Out-Null; if ($LASTEXITCODE -eq 0) { Write-Host 'Payara admin is already available.' } else { asadmin start-domain ${payara.domain}; exit $LASTEXITCODE }</argument>
+                                        <argument>-File</argument>
+                                        <argument>${project.basedir}/scripts/start-payara.ps1</argument>
+                                        <argument>-Domain</argument>
+                                        <argument>${payara.domain}</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
@@ -168,15 +170,16 @@
                                     <goal>exec</goal>
                                 </goals>
                                 <configuration>
-                                    <executable>asadmin</executable>
+                                    <executable>powershell</executable>
                                     <arguments>
-                                        <argument>start-domain</argument>
+                                        <argument>-NoProfile</argument>
+                                        <argument>-ExecutionPolicy</argument>
+                                        <argument>Bypass</argument>
+                                        <argument>-File</argument>
+                                        <argument>${project.basedir}/scripts/start-payara.ps1</argument>
+                                        <argument>-Domain</argument>
                                         <argument>${payara.domain}</argument>
                                     </arguments>
-                                    <successCodes>
-                                        <successCode>0</successCode>
-                                        <successCode>1</successCode>
-                                    </successCodes>
                                 </configuration>
                             </execution>
                             <execution>

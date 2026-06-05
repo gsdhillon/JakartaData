@@ -33,7 +33,6 @@ const createEmptyPerson = () => ({
     name: "",
     designation: "",
     dob: null,
-    appointmentAt: null,
     updatedAt: null,
     email: "",
     gender: "",
@@ -153,6 +152,32 @@ const PersonController = () => {
         }
     };
 
+    const patchDesignation = async person => {
+        if (!person.id) {
+            setStatusMessage("Unable to patch person without id.");
+            return;
+        }
+
+        setIsBusy(true);
+        setStatusMessage("");
+
+        try {
+            await requestJson(
+                `${personsApiUrl}/${person.id}`,
+                {
+                    method: "PATCH",
+                    body: JSON.stringify({
+                        designation: `Patched ${new Date().toLocaleTimeString()}`
+                    })
+                }
+            );
+            await loadPersons();
+        } catch {
+        } finally {
+            setIsBusy(false);
+        }
+    };
+
     const closePersonForm = () => {
         setSelectedPerson(null);
         setSelectedPersonId(null);
@@ -185,6 +210,7 @@ const PersonController = () => {
         PersonTable({
             persons,
             onDelete: deletePerson,
+            onPatchDesignation: patchDesignation,
             onUpdate: showUpdatePersonForm,
             isBusy
         }),

@@ -28,7 +28,13 @@ export const Footer = (props = {}) => {
         themeMode = "light",
         ...footerProps
     } = props;
-    const footerClassName = ["grove-footer", className]
+    const footerClassName = [
+        "grove-footer",
+        "bg-body-tertiary",
+        "text-body",
+        "border-top",
+        className
+    ]
         .filter(Boolean)
         .join(" ");
     const normalizedTheme = themeMode === "dark"
@@ -57,7 +63,7 @@ export const Footer = (props = {}) => {
                 "button",
                 {
                     "aria-label": `Switch to ${normalizedTheme === "dark" ? "light" : "dark"} theme`,
-                    className: "btn btn-outline-secondary grove-theme-toggle",
+                    className: "btn btn-sm btn-outline-secondary grove-theme-toggle",
                     type: "button",
                     onClick: onThemeToggle
                 },

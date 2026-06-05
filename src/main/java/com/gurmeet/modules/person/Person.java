@@ -2,14 +2,16 @@ package com.gurmeet.modules.person;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
+import com.gurmeet.application.EditableField;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
@@ -19,34 +21,38 @@ public class Person {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EditableField(false)
     private Long id;
 
+    @EditableField
     @Size(min = 2, max = 25, message = "Name must be between 2 and 25 characters!")
     private String name;
 
+    @EditableField
     @NotBlank(message = "Designation can not be blank!")
     private String designation;
 
+    @EditableField
     @Past(message = "DOB must be in the past!")
     private LocalDate dob;
 
-    @Column(name = "appointment_at")
-    private LocalDateTime appointmentAt;
-
+    @EditableField(false)
     @Column(
             name = "updated_at",
-            insertable = false,
-            updatable = false,
             columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
     )
     private Instant updatedAt;
-    
+
+    @EditableField
     private String email;
 
+    @EditableField
     private String gender;
 
+    @EditableField
     private String mobileNo;
 
+    @EditableField
     @Lob
     @Column(columnDefinition = "LONGTEXT")
     private String photo;
@@ -56,6 +62,12 @@ public class Person {
 
     public Person(String name) {
         this.name = name;
+    }
+
+    @PrePersist
+    @PreUpdate
+    private void touchUpdatedAt() {
+        updatedAt = Instant.now();
     }
 
     public Long getId() {
@@ -88,14 +100,6 @@ public class Person {
 
     public void setDob(LocalDate dob) {
         this.dob = dob;
-    }
-
-    public LocalDateTime getAppointmentAt() {
-        return appointmentAt;
-    }
-
-    public void setAppointmentAt(LocalDateTime appointmentAt) {
-        this.appointmentAt = appointmentAt;
     }
 
     public Instant getUpdatedAt() {

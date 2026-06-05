@@ -4,7 +4,6 @@ import {
     Input,
     Instant,
     LocalDate,
-    LocalDateTime,
     Photo,
     Select,
     useState
@@ -15,7 +14,6 @@ const createEmptyPerson = () => ({
     name: "",
     designation: "",
     dob: null,
-    appointmentAt: null,
     updatedAt: null,
     email: "",
     gender: "",
@@ -58,13 +56,10 @@ const PersonForm = props => {
                 label: "DOB:",
                 name: "dob"
             }),
-            LocalDateTime({
-                label: "Appointment:",
-                name: "appointmentAt"
-            }),
             Instant({
                 label: "Updated At:",
-                name: "updatedAt"
+                name: "updatedAt",
+                readOnly: true
             }),
             Input({
                 label: "EMail:",
