@@ -25,6 +25,7 @@ const buttonLooks = {
     dn: "btn btn-outline-danger",
     pm: "btn btn-primary",
     sc: "btn btn-outline-secondary",
+    uf: "btn btn-info",
     ut: "btn btn-outline-info"
 };
 

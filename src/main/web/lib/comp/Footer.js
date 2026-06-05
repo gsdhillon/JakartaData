@@ -7,10 +7,12 @@
 import { createElement } from "../Grove.js";
 import {
     openRestDialog,
-    RestTapToggle
+    RestTapToggle,
+    useRestTapState
 } from "./REST.js";
 
 const groveLogoUrl = new URL("../grove-logo.svg", import.meta.url).href;
+const groveLogoHighlightUrl = new URL("../grove-logo-R.svg", import.meta.url).href;
 
 /**
  * Creates an application footer.
@@ -28,11 +30,13 @@ export const Footer = (props = {}) => {
         themeMode = "light",
         ...footerProps
     } = props;
+    const restTapState = useRestTapState();
+    const currentLogo = restTapState.entries.length > 0
+        ? groveLogoHighlightUrl
+        : logo;
     const footerClassName = [
         "grove-footer",
-        "bg-body-tertiary",
         "text-body",
-        "border-top",
         className
     ]
         .filter(Boolean)
@@ -63,7 +67,10 @@ export const Footer = (props = {}) => {
                 "button",
                 {
                     "aria-label": `Switch to ${normalizedTheme === "dark" ? "light" : "dark"} theme`,
-                    className: "btn btn-sm btn-outline-secondary grove-theme-toggle",
+                    className: [
+                        "btn btn-sm btn-outline-secondary grove-theme-toggle",
+                        `grove-theme-toggle-${normalizedTheme}`
+                    ].join(" "),
                     type: "button",
                     onClick: onThemeToggle
                 },
@@ -74,7 +81,7 @@ export const Footer = (props = {}) => {
             "div",
             { className: "grove-footer-right" },
             createElement(RestTapToggle),
-            logo
+            currentLogo
                 ? createElement(
                     "button",
                     {
@@ -88,7 +95,7 @@ export const Footer = (props = {}) => {
                         {
                             alt: "Grove logo",
                             className: "grove-footer-logo",
-                            src: logo
+                            src: currentLogo
                         }
                     )
                 )

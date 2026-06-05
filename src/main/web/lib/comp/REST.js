@@ -15,6 +15,7 @@ import { Div } from "./Div.js";
 const openEventName = "grove-rest-open";
 const maxEntries = 10;
 const toastDurationMs = 3000;
+const defaultComposerHeaders = "Content-Type: application/json\nAccept: application/json";
 const listeners = new Set();
 const toastListeners = new Set();
 const state = {
@@ -22,6 +23,7 @@ const state = {
     entries: [],
     installed: false,
     originalFetch: null,
+    pending: 0,
     toasts: []
 };
 
@@ -34,11 +36,16 @@ const notify = () => {
             "grove-rest-tap-has-entries",
             state.entries.length > 0
         );
+        document.documentElement.classList.toggle(
+            "grove-rest-tap-waiting",
+            state.pending > 0
+        );
     }
 
     listeners.forEach(listener => listener({
         enabled: state.enabled,
-        entries: [...state.entries]
+        entries: [...state.entries],
+        pending: state.pending
     }));
 };
 
@@ -229,12 +236,124 @@ const formatResponse = entry => [
     entry.response?.body ?? entry.error ?? ""
 ].join("\n");
 
+const parseHeaderText = headerText => {
+    const headers = {};
+
+    headerText
+        .split(/\r?\n/)
+        .map(line => line.trim())
+        .filter(Boolean)
+        .forEach(line => {
+            const separatorIndex = line.indexOf(":");
+
+            if (separatorIndex < 1) {
+                throw new Error(`Invalid header: ${line}`);
+            }
+
+            headers[line.slice(0, separatorIndex).trim()] =
+                line.slice(separatorIndex + 1).trim();
+        });
+
+    return headers;
+};
+
+const normalizeApiEndpoint = endpoint =>
+    String(endpoint || "")
+        .trim()
+        .replace(/^\.?\/?api\/?/i, "")
+        .replace(/^\/+/, "");
+
 const addEntry = entry => {
     state.entries = [
         entry,
         ...state.entries
     ].slice(0, maxEntries);
     notify();
+};
+
+const beginRequest = () => {
+    state.pending += 1;
+    notify();
+};
+
+const finishRequest = () => {
+    state.pending = Math.max(0, state.pending - 1);
+    notify();
+};
+
+const sendRestApiRequest = async ({
+    body,
+    endpoint,
+    headerText,
+    method
+}) => {
+    const normalizedEndpoint = normalizeApiEndpoint(endpoint);
+
+    if (!normalizedEndpoint) {
+        throw new Error("Enter an API endpoint.");
+    }
+
+    const headers = parseHeaderText(headerText);
+    const url = `./api/${normalizedEndpoint}`;
+    const requestBodyText = String(body || "");
+    const request = {
+        body: method === "GET" ? "" : requestBodyText,
+        headers,
+        method,
+        url
+    };
+    const options = {
+        headers,
+        method
+    };
+    const startedAt = performance.now();
+    const fetcher = state.originalFetch || window.fetch.bind(window);
+
+    if (method !== "GET" && requestBodyText !== "") {
+        options.body = requestBodyText;
+    }
+
+    beginRequest();
+
+    try {
+        const response = await fetcher(url, options);
+        const responseData = await responseMeta(response);
+        const entry = {
+            id: `${Date.now()}-${Math.random()}`,
+            durationMs: Math.round(performance.now() - startedAt),
+            request,
+            response: responseData,
+            time: now()
+        };
+
+        addEntry(entry);
+
+        if (!response.ok) {
+            await notifyHttpError(response);
+        }
+
+        return entry;
+    } catch (error) {
+        const entry = {
+            id: `${Date.now()}-${Math.random()}`,
+            durationMs: Math.round(performance.now() - startedAt),
+            error: error.message || String(error),
+            request,
+            response: null,
+            time: now()
+        };
+
+        addEntry(entry);
+        addToast({
+            errors: [error.message || String(error)],
+            status: "ERR",
+            statusText: "Network Error"
+        });
+
+        throw error;
+    } finally {
+        finishRequest();
+    }
 };
 
 export const installRestTap = () => {
@@ -252,6 +371,8 @@ export const installRestTap = () => {
     window.fetch = async (input, init = {}) => {
         const startedAt = performance.now();
         const request = await requestMeta(input, init);
+
+        beginRequest();
 
         try {
             const response = await state.originalFetch(input, init);
@@ -291,6 +412,8 @@ export const installRestTap = () => {
             });
 
             throw error;
+        } finally {
+            finishRequest();
         }
     };
 };
@@ -304,7 +427,8 @@ export const openRestDialog = () => {
 export const RestTapToggle = () => {
     const [tapState, setTapState] = useState({
         enabled: state.enabled,
-        entries: [...state.entries]
+        entries: [...state.entries],
+        pending: state.pending
     });
 
     installRestTap();
@@ -313,7 +437,8 @@ export const RestTapToggle = () => {
         listeners.add(setTapState);
         setTapState({
             enabled: state.enabled,
-            entries: [...state.entries]
+            entries: [...state.entries],
+            pending: state.pending
         });
 
         return () => {
@@ -334,11 +459,43 @@ export const RestTapToggle = () => {
     });
 };
 
-export const RestTap = () => {
+export const useRestTapState = () => {
+    const [tapState, setTapState] = useState({
+        enabled: state.enabled,
+        entries: [...state.entries],
+        pending: state.pending
+    });
+
+    installRestTap();
+
+    useEffect(() => {
+        listeners.add(setTapState);
+        setTapState({
+            enabled: state.enabled,
+            entries: [...state.entries],
+            pending: state.pending
+        });
+
+        return () => {
+            listeners.delete(setTapState);
+        };
+    }, []);
+
+    return tapState;
+};
+
+export const RestTap = (props = {}) => {
+    const embedded = props.embedded === true;
     const [entries, setEntries] = useState([...state.entries]);
     const [open, setOpen] = useState(false);
     const [selectedId, setSelectedId] = useState(state.entries[0]?.id ?? null);
     const [tab, setTab] = useState("request");
+    const [composerMethod, setComposerMethod] = useState("GET");
+    const [composerEndpoint, setComposerEndpoint] = useState("");
+    const [composerHeaders, setComposerHeaders] = useState(defaultComposerHeaders);
+    const [composerBody, setComposerBody] = useState("");
+    const [composerMessage, setComposerMessage] = useState("");
+    const [composerBusy, setComposerBusy] = useState(false);
 
     installRestTap();
 
@@ -362,19 +519,24 @@ export const RestTap = () => {
         };
 
         listeners.add(syncEntries);
-        window.addEventListener(openEventName, openDialog);
+        if (!embedded) {
+            window.addEventListener(openEventName, openDialog);
+        }
         syncEntries({
             enabled: state.enabled,
-            entries: [...state.entries]
+            entries: [...state.entries],
+            pending: state.pending
         });
 
         return () => {
             listeners.delete(syncEntries);
-            window.removeEventListener(openEventName, openDialog);
+            if (!embedded) {
+                window.removeEventListener(openEventName, openDialog);
+            }
         };
-    }, []);
+    }, [embedded]);
 
-    if (!open) {
+    if (!embedded && !open) {
         return null;
     }
 
@@ -382,19 +544,130 @@ export const RestTap = () => {
         entries.find(entry => entry.id === selectedId) ??
         entries[0] ??
         null;
+    const sendComposerRequest = async () => {
+        setComposerBusy(true);
+        setComposerMessage("");
 
-    return Div(
-        { className: "grove-rest-dialog-backdrop" },
-        Div(
-            {
-                "aria-modal": "true",
-                className: "modal-content shadow grove-rest-dialog",
-                role: "dialog"
-            },
-            Div(
-                { className: "grove-rest-dialog-body" },
+        try {
+            const entry = await sendRestApiRequest({
+                body: composerBody,
+                endpoint: composerEndpoint,
+                headerText: composerHeaders,
+                method: composerMethod
+            });
+
+            setSelectedId(entry.id);
+            setTab("response");
+            setComposerMessage(`Sent ${entry.request.method} ${entry.response?.status ?? "ERR"}`);
+        } catch (error) {
+            setComposerMessage(error.message || String(error));
+        } finally {
+            setComposerBusy(false);
+        }
+    };
+
+    const content = Div(
+        { className: "grove-rest-dialog-body" },
                 Div(
                     { className: "list-group list-group-flush grove-rest-list" },
+                    Div(
+                        { className: "grove-rest-composer" },
+                        Div(
+                            { className: "grove-rest-composer-method-row" },
+                            createElement(
+                                "select",
+                                {
+                                    className: "form-select form-select-sm grove-rest-method",
+                                    disabled: composerBusy,
+                                    value: composerMethod,
+                                    onChange(event) {
+                                        setComposerMethod(event.target.value);
+                                    }
+                                },
+                                ...["GET", "POST", "PUT", "PATCH", "DELETE"].map(method =>
+                                    createElement(
+                                        "option",
+                                        {
+                                            key: method,
+                                            value: method
+                                        },
+                                        method
+                                    )
+                                )
+                            ),
+                            Button({
+                                className: "btn-sm",
+                                disabled: composerBusy,
+                                label: composerBusy ? "Sending" : "Send",
+                                look: "pm",
+                                type: "button",
+                                onClick: sendComposerRequest
+                            })
+                        ),
+                        createElement(
+                            "label",
+                            { className: "grove-rest-url-field" },
+                            createElement(
+                                "span",
+                                { className: "grove-rest-url-prefix" },
+                                "./api/"
+                            ),
+                            createElement(
+                                "input",
+                                {
+                                    className: "form-control form-control-sm",
+                                    disabled: composerBusy,
+                                    placeholder: "persons/4",
+                                    type: "text",
+                                    value: composerEndpoint,
+                                    onChange(event) {
+                                        setComposerEndpoint(event.target.value);
+                                    }
+                                }
+                            )
+                        ),
+                        createElement(
+                            "label",
+                            { className: "grove-rest-composer-label" },
+                            "Headers",
+                            createElement(
+                                "textarea",
+                                {
+                                    className: "form-control form-control-sm grove-rest-composer-headers",
+                                    disabled: composerBusy,
+                                    rows: 3,
+                                    value: composerHeaders,
+                                    onChange(event) {
+                                        setComposerHeaders(event.target.value);
+                                    }
+                                }
+                            )
+                        ),
+                        createElement(
+                            "label",
+                            { className: "grove-rest-composer-label" },
+                            "Body",
+                            createElement(
+                                "textarea",
+                                {
+                                    className: "form-control form-control-sm grove-rest-composer-body",
+                                    disabled: composerBusy || composerMethod === "GET",
+                                    placeholder: "{\n  \"name\": \"Gurmeet\"\n}",
+                                    rows: 5,
+                                    value: composerBody,
+                                    onChange(event) {
+                                        setComposerBody(event.target.value);
+                                    }
+                                }
+                            )
+                        ),
+                        composerMessage
+                            ? Div(
+                                { className: "grove-rest-composer-message" },
+                                composerMessage
+                            )
+                            : null
+                    ),
                     Div(
                         { className: "h6 m-0 p-3 border-bottom grove-rest-side-title" },
                         "API Calls"
@@ -459,6 +732,15 @@ export const RestTap = () => {
                         }),
                         Div({ className: "flex-grow-1" }),
                         Button({
+                            className: tab === "compose" ? "grove-rest-tab-active" : "",
+                            label: "Compose",
+                            look: tab === "compose" ? "pm" : "ut",
+                            type: "button",
+                            onClick() {
+                                setTab("compose");
+                            }
+                        }),
+                        Button({
                             disabled: entries.length === 0,
                             label: "Clear All",
                             look: "dn",
@@ -473,11 +755,113 @@ export const RestTap = () => {
                             look: "sc",
                             type: "button",
                             onClick() {
-                                setOpen(false);
+                                if (embedded) {
+                                    props.onClose?.();
+                                } else {
+                                    setOpen(false);
+                                }
                             }
                         })
                     ),
-                    selectedEntry
+                    tab === "compose"
+                        ? Div(
+                            { className: "grove-rest-composer grove-rest-composer-main" },
+                            Div(
+                                { className: "grove-rest-composer-method-row" },
+                                createElement(
+                                    "select",
+                                    {
+                                        className: "form-select form-select-sm grove-rest-method",
+                                        disabled: composerBusy,
+                                        value: composerMethod,
+                                        onChange(event) {
+                                            setComposerMethod(event.target.value);
+                                        }
+                                    },
+                                    ...["GET", "POST", "PUT", "PATCH", "DELETE"].map(method =>
+                                        createElement(
+                                            "option",
+                                            {
+                                                key: method,
+                                                value: method
+                                            },
+                                            method
+                                        )
+                                    )
+                                ),
+                                Button({
+                                    disabled: composerBusy,
+                                    label: composerBusy ? "Sending" : "Send",
+                                    look: "pm",
+                                    type: "button",
+                                    onClick: sendComposerRequest
+                                })
+                            ),
+                            createElement(
+                                "label",
+                                { className: "grove-rest-url-field" },
+                                createElement(
+                                    "span",
+                                    { className: "grove-rest-url-prefix" },
+                                    "./api/"
+                                ),
+                                createElement(
+                                    "input",
+                                    {
+                                        className: "form-control form-control-sm",
+                                        disabled: composerBusy,
+                                        placeholder: "persons/4",
+                                        type: "text",
+                                        value: composerEndpoint,
+                                        onChange(event) {
+                                            setComposerEndpoint(event.target.value);
+                                        }
+                                    }
+                                )
+                            ),
+                            createElement(
+                                "label",
+                                { className: "grove-rest-composer-label" },
+                                "Headers",
+                                createElement(
+                                    "textarea",
+                                    {
+                                        className: "form-control form-control-sm grove-rest-composer-headers",
+                                        disabled: composerBusy,
+                                        rows: 4,
+                                        value: composerHeaders,
+                                        onChange(event) {
+                                            setComposerHeaders(event.target.value);
+                                        }
+                                    }
+                                )
+                            ),
+                            createElement(
+                                "label",
+                                { className: "grove-rest-composer-label" },
+                                "Body",
+                                createElement(
+                                    "textarea",
+                                    {
+                                        className: "form-control form-control-sm grove-rest-composer-body",
+                                        disabled: composerBusy || composerMethod === "GET",
+                                        placeholder: "{\n  \"name\": \"Gurmeet\"\n}",
+                                        rows: 10,
+                                        value: composerBody,
+                                        onChange(event) {
+                                            setComposerBody(event.target.value);
+                                        }
+                                    }
+                                )
+                            ),
+                            composerMessage
+                                ? Div(
+                                    { className: "grove-rest-composer-message" },
+                                    composerMessage
+                                )
+                                : null
+                        )
+                    : selectedEntry
                         ? createElement(
                             "pre",
                             { className: "grove-rest-payload" },
@@ -490,9 +874,24 @@ export const RestTap = () => {
                             "Turn Tap On and make an API call to view request and response details."
                         )
                 )
+    );
+
+    return embedded
+        ? Div(
+            { className: "grove-rest-center" },
+            content
+        )
+        : Div(
+            { className: "grove-rest-dialog-backdrop" },
+            Div(
+                {
+                    "aria-modal": "true",
+                    className: "modal-content shadow grove-rest-dialog",
+                    role: "dialog"
+                },
+                content
             )
         )
-    );
 };
 
 export const RestErrorToasts = () => {

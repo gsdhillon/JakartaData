@@ -49,9 +49,7 @@ export const Header = (props = {}) => {
     } = props;
     const headerClassName = [
         "grove-header",
-        "bg-body-tertiary",
         "text-body",
-        "border-bottom",
         className
     ]
         .filter(Boolean)

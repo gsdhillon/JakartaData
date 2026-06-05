@@ -158,6 +158,15 @@ const PersonController = () => {
             return;
         }
 
+        const designation = window.prompt(
+            "Enter new designation",
+            person.designation || ""
+        );
+
+        if (designation === null) {
+            return;
+        }
+
         setIsBusy(true);
         setStatusMessage("");
 
@@ -167,7 +176,7 @@ const PersonController = () => {
                 {
                     method: "PATCH",
                     body: JSON.stringify({
-                        designation: `Patched ${new Date().toLocaleTimeString()}`
+                        designation
                     })
                 }
             );

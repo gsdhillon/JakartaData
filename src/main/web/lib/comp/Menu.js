@@ -5,6 +5,7 @@
  */
 
 import { createElement } from "../Grove.js";
+import { Button } from "./Button.js";
 import { Div } from "./Div.js";
 
 const linkLabel = link =>
@@ -21,7 +22,7 @@ const renderMenuLink = link => {
         ...linkProps
     } = link || {};
     const linkClassName = [
-        href ? "nav-link" : active ? "btn btn-primary" : "btn btn-link",
+        href ? "nav-link" : "",
         "grove-menu-link",
         active ? "active grove-menu-link-active" : "",
         className
@@ -40,15 +41,13 @@ const renderMenuLink = link => {
             },
             content
         )
-        : createElement(
-            "button",
-            {
-                ...linkProps,
-                className: linkClassName,
-                type: linkProps.type || "button"
-            },
-            content
-        );
+        : Button({
+            ...linkProps,
+            className: linkClassName,
+            label: content,
+            look: active ? "ut" : "uf",
+            type: linkProps.type || "button"
+        });
 };
 
 /**
@@ -65,9 +64,7 @@ export const Menu = (props = {}) => {
     } = props;
     const menuClassName = [
         "grove-menu",
-        "bg-body-tertiary",
         "text-body",
-        "border-end",
         className
     ]
         .filter(Boolean)

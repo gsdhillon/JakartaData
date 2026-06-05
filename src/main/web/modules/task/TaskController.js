@@ -58,7 +58,8 @@ const taskPayload = task => ({
 });
 
 const TaskController = () => {
-    const { loggedInUserId } = useContext(AppContext);
+    const { loggedInPerson } = useContext(AppContext);
+    const loggedInUserId = loggedInPerson?.id ?? null;
     const [tasks, setTasks] = useState([]);
     const [selectedTask, setSelectedTask] = useState(null);
     const [selectedTaskId, setSelectedTaskId] = useState(null);
@@ -87,6 +88,11 @@ const TaskController = () => {
     }, [loggedInUserId]);
 
     const showAddTaskForm = () => {
+        if (!loggedInUserId) {
+            setStatusMessage("Login before adding a task.");
+            return;
+        }
+
         setSelectedTask(null);
         setSelectedTaskId(null);
         setMode("form");
@@ -230,7 +236,9 @@ const TaskController = () => {
         { className: "card shadow-sm p-4 demo task-list-view" },
         Div(
             { className: "text-muted align-self-stretch task-login-hint" },
-            `LoggedInUser: ${loggedInUserId}`
+            loggedInPerson
+                ? `LoggedInUser: ${loggedInPerson.id} ${loggedInPerson.name || ""}`.trim()
+                : "LoggedInUser: not logged in"
         ),
         statusMessage
             ? Div(
@@ -253,7 +261,7 @@ const TaskController = () => {
                 look: "pm",
                 name: "addTask",
                 type: "button",
-                disabled: isBusy,
+                disabled: isBusy || !loggedInUserId,
                 onClick: showAddTaskForm
             }),
             Button({
