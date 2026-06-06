@@ -1,0 +1,10 @@
+toast plumbing: code path that creates, stores, renders, and removes popup messages
+cache busting: changing a URL/version so browser fetches fresh files instead of cached ones
+wiring: connecting events, state, services, and components so a flow works
+state: data remembered by a component between renders
+props: values passed from a parent component to a child component
+callback: function passed to another function/component to run later
+router: code that maps URL/path to the component/page to show
+hash route: route stored after # in the browser URL, handled only by frontend
+fetch wrapper: shared helper around fetch for headers, parsing, and errors
+payload: data sent in a request body, usually JSON

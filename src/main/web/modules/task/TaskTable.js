@@ -63,10 +63,12 @@ const renderActions = props => (task, index) => {
     return [
         Button({
             id: `viewTask-${index}`,
-            label: "View",
+            icon: "eye",
+            label: null,
             look: "sc",
             name: "viewTask",
             disabled: props.isBusy,
+            title: "View task",
             type: "button",
             onClick() {
                 props.onView?.(task, index);
@@ -74,7 +76,8 @@ const renderActions = props => (task, index) => {
         }),
         Button({
             id: `updateTask-${index}`,
-            label: "Update",
+            icon: "pencil-square",
+            label: null,
             look: "pm",
             name: "updateTask",
             disabled: props.isBusy || !canUpdate,
@@ -86,10 +89,12 @@ const renderActions = props => (task, index) => {
         }),
         Button({
             id: `deleteTask-${index}`,
-            label: "Delete",
+            icon: "trash3",
+            label: null,
             look: "dn",
             name: "deleteTask",
             disabled: props.isBusy || !canUpdate,
+            title: "Delete task",
             type: "button",
             onClick() {
                 props.onDelete?.(task, index);
@@ -103,10 +108,11 @@ const TaskTable = (props = {}) =>
         className: "task-table",
         columns,
         emptyMessage: "No tasks added",
+        exportName: "tasks",
         getRowKey: (task, index) => task.id ?? index,
         renderActions: renderActions(props),
         rows: props.tasks || [],
-        searchPlaceholder: "Search tasks",
+        title: "Tasks",
         wrapperClassName: "task-table-wrap"
     });
 

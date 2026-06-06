@@ -11,20 +11,18 @@ import {
 } from "../Grove.js";
 import { Button } from "./Button.js";
 import { Div } from "./Div.js";
+import { showAppError } from "./AppError.js";
 
 const openEventName = "grove-rest-open";
 const maxEntries = 10;
-const toastDurationMs = 3000;
 const defaultComposerHeaders = "Content-Type: application/json\nAccept: application/json";
 const listeners = new Set();
-const toastListeners = new Set();
 const state = {
     enabled: false,
     entries: [],
     installed: false,
     originalFetch: null,
-    pending: 0,
-    toasts: []
+    pending: 0
 };
 
 const now = () =>
@@ -47,32 +45,6 @@ const notify = () => {
         entries: [...state.entries],
         pending: state.pending
     }));
-};
-
-const notifyToasts = () => {
-    toastListeners.forEach(listener => listener([...state.toasts]));
-};
-
-const removeToast = id => {
-    state.toasts = state.toasts.filter(toast => toast.id !== id);
-    notifyToasts();
-};
-
-const addToast = toast => {
-    const id = `${Date.now()}-${Math.random()}`;
-
-    state.toasts = [
-        {
-            ...toast,
-            id
-        },
-        ...state.toasts
-    ].slice(0, 5);
-    notifyToasts();
-
-    setTimeout(() => {
-        removeToast(id);
-    }, toastDurationMs);
 };
 
 const toggleRestTap = () => {
@@ -178,29 +150,28 @@ const responseMeta = async response => ({
 
 const parseErrorBody = async response => {
     const contentType = response.headers.get("Content-Type") || "";
+    const normalizedContentType = contentType.toLowerCase();
+
+    if (!normalizedContentType.includes("json")) {
+        return [];
+    }
 
     try {
-        if (contentType.includes("application/json")) {
-            const body = await response.clone().json();
+        const body = await response.clone().json();
 
-            if (Array.isArray(body)) {
-                return body.map(String);
-            }
-
-            if (Array.isArray(body?.errors)) {
-                return body.errors.map(String);
-            }
-
-            if (body?.message) {
-                return [String(body.message)];
-            }
-
-            return [JSON.stringify(body)];
+        if (Array.isArray(body)) {
+            return body.map(String);
         }
 
-        const text = await response.clone().text();
+        if (Array.isArray(body?.errors)) {
+            return body.errors.map(String);
+        }
 
-        return text ? [text] : [];
+        if (body?.message) {
+            return [String(body.message)];
+        }
+
+        return [JSON.stringify(body)];
     } catch {
         return [];
     }
@@ -208,9 +179,11 @@ const parseErrorBody = async response => {
 
 const notifyHttpError = async response => {
     const errors = await parseErrorBody(response);
+    const contentType = response.headers.get("Content-Type") || "unknown";
 
-    addToast({
-        errors: errors.length ? errors : [response.statusText || "Request failed"],
+    showAppError({
+        errors,
+        contentType,
         status: response.status,
         statusText: response.statusText
     });
@@ -344,7 +317,7 @@ const sendRestApiRequest = async ({
         };
 
         addEntry(entry);
-        addToast({
+        showAppError({
             errors: [error.message || String(error)],
             status: "ERR",
             statusText: "Network Error"
@@ -405,7 +378,7 @@ export const installRestTap = () => {
                 });
             }
 
-            addToast({
+            showAppError({
                 errors: [error.message || String(error)],
                 status: "ERR",
                 statusText: "Network Error"
@@ -894,56 +867,5 @@ export const RestTap = (props = {}) => {
         )
 };
 
-export const RestErrorToasts = () => {
-    const [toasts, setToasts] = useState([...state.toasts]);
-
-    installRestTap();
-
-    useEffect(() => {
-        toastListeners.add(setToasts);
-        setToasts([...state.toasts]);
-
-        return () => {
-            toastListeners.delete(setToasts);
-        };
-    }, []);
-
-    if (!toasts.length) {
-        return null;
-    }
-
-    return createElement(
-        "div",
-        {
-            "aria-live": "polite",
-            className: "grove-rest-error-toasts"
-        },
-        toasts.map(toast =>
-            createElement(
-                "div",
-                {
-                    className: "grove-rest-error-toast shadow",
-                    key: toast.id,
-                    role: "alert"
-                },
-                Div(
-                    { className: "grove-rest-error-title" },
-                    `HTTP ${toast.status} ${toast.statusText || ""}`.trim()
-                ),
-                createElement(
-                    "ul",
-                    { className: "grove-rest-error-list" },
-                    (toast.errors || []).map((error, index) =>
-                        createElement(
-                            "li",
-                            { key: `${toast.id}-${index}` },
-                            error
-                        )
-                    )
-                )
-            )
-        )
-    );
-};
-
+export { AppErrorToasts as RestErrorToasts } from "./AppError.js";
 export { RestTap as REST };

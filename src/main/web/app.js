@@ -5,66 +5,82 @@ import {
     Div,
     Footer,
     Header,
+    HashRouter,
     Menu,
+    navigateHash,
     REST,
+    useHashPath,
     useState
 } from "./lib/Grove.js";
 import { AppContext } from "./modules/application/AppContext.js";
-import PersonController from "./modules/person/PersonController.js";
+import PersonList from "./modules/person/PersonList.js";
+import { findPersonById } from "./modules/person/PersonService.js";
 import TaskController from "./modules/task/TaskController.js";
 
-const personsApiUrl = "./api/persons";
-
-const requestJson = async (url, options = {}) => {
-    const response = await fetch(url, options);
-
-    if (!response.ok) {
-        throw new Error(response.statusText || "Request failed");
-    }
-
-    return response.status === 204
-        ? null
-        : response.json();
-};
-
 const App = () => {
-    const [activeView, setActiveView] = useState("persons");
-    const [previousCenterView, setPreviousCenterView] = useState("persons");
+    const currentPath = useHashPath();
+    const [previousCenterPath, setPreviousCenterPath] = useState("/persons");
     const [themeMode, setThemeMode] = useState("light");
     const [loggedInPerson, setLoggedInPerson] = useState(null);
     const [draftUserId, setDraftUserId] = useState(1);
     const [loginMessage, setLoginMessage] = useState("");
     const [loginBusy, setLoginBusy] = useState(false);
+    const routes = [
+        {
+            element: PersonList,
+            path: "/"
+        },
+        {
+            element: PersonList,
+            path: "/persons"
+        },
+        {
+            element: TaskController,
+            path: "/tasks"
+        },
+        {
+            element: createElement(
+                REST,
+                {
+                    embedded: true,
+                    onClose() {
+                        navigateHash(previousCenterPath || "/persons");
+                    }
+                }
+            ),
+            path: "/rest"
+        }
+    ];
+    const centerTitle =
+        currentPath === "/tasks"
+            ? "Tasks"
+            : currentPath === "/rest"
+                ? "REST"
+                : "Persons";
     const Center = Div(
         { className: "app-center" },
-        activeView === "persons"
-            ? createElement(PersonController)
-            : activeView === "tasks"
-                ? createElement(TaskController)
-            : activeView === "rest"
-                ? createElement(
-                    REST,
-                    {
-                        embedded: true,
-                        onClose() {
-                            setActiveView(previousCenterView || "persons");
-                        }
-                    }
-                )
-            : Div(
-                { className: "app-empty-center" },
-                "Select a menu item."
-            )
+        createElement(
+            HashRouter,
+            {
+                defaultPath: "/persons",
+                fallback: PersonList,
+                routes
+            }
+        )
     );
-    const showCenterView = view => {
-        setActiveView(view);
+    const showCenterView = path => {
+        navigateHash(path);
     };
     const showRestCenter = () => {
-        if (activeView !== "rest") {
-            setPreviousCenterView(activeView);
+        if (currentPath !== "/rest") {
+            setPreviousCenterPath(
+                currentPath === "/"
+                    ? "/persons"
+                    : currentPath
+            );
         }
 
-        setActiveView("rest");
+        navigateHash("/rest");
     };
 
     return createElement(
@@ -75,6 +91,7 @@ const App = () => {
             }
         },
         AppShell({
+            centerTitle,
             themeMode,
             Header: Header({
                 avatar: loggedInPerson?.photo || undefined,
@@ -97,7 +114,7 @@ const App = () => {
                     setLoginMessage("");
 
                     try {
-                        const person = await requestJson(`${personsApiUrl}/${nextUserId}`);
+                        const person = await findPersonById(nextUserId);
 
                         setLoggedInPerson(person);
                         setDraftUserId(person.id ?? nextUserId);
@@ -112,17 +129,19 @@ const App = () => {
             Menu: Menu({
                 links: [
                     {
-                        active: activeView === "persons",
+                        active: currentPath === "/" || currentPath === "/persons",
+                        href: "#/persons",
                         label: "Persons",
                         onClick() {
-                            showCenterView("persons");
+                            showCenterView("/persons");
                         }
                     },
                     {
-                        active: activeView === "tasks",
+                        active: currentPath === "/tasks",
+                        href: "#/tasks",
                         label: "Tasks",
                         onClick() {
-                            showCenterView("tasks");
+                            showCenterView("/tasks");
                         }
                     }
                 ]

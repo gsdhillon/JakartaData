@@ -45,15 +45,11 @@ MySQL user: `ishjyot`
 
 Datasource JNDI name expected by the application: `jdbc/personDS`
 
-The `payara` Maven profile configures this datasource automatically with `asadmin`:
-
 ```text
 URL: jdbc:mysql://localhost:3306/person
 Username: ishjyot
 Password: fw0r
 ```
-
-It also installs the MySQL JDBC driver into the Payara domain.
 
 ## Build
 
@@ -63,13 +59,35 @@ mvn clean package
 
 Deploy `target/jakarta-data-person.war` to a Jakarta EE 11 server that supports Jakarta Data.
 
-## Build, Deploy, and Open on Payara
+## Payara Workflow
 
-```bash
-mvn package -Ppayara
+Start Payara only:
+
+```bat
+payara
 ```
 
-This starts Payara, configures `jdbc/personDS`, deploys the WAR, and opens:
+Full backend deployment:
+
+```bat
+deploy
+```
+
+This runs `mvn clean package`, recreates `jdbc/personDS`, and deploys the exploded app directory:
+
+```text
+target/jakarta-data-person
+```
+
+Frontend-only sync after editing files under `src/main/web`:
+
+```bat
+web
+```
+
+Then refresh the browser. Use `deploy` again when Java code, dependencies, REST resources, entities, or config changes.
+
+Application URL:
 
 ```text
 http://localhost:8080/jakarta-data-person/

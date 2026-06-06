@@ -8,24 +8,7 @@ import {
     Select,
     useState
 } from "../../lib/Grove.js";
-
-const createEmptyPerson = () => ({
-    id: "",
-    name: "",
-    designation: "",
-    dob: null,
-    updatedAt: null,
-    email: "",
-    gender: "",
-    mobileNo: "",
-    photo: ""
-});
-
-const normalizePerson = person => ({
-    ...createEmptyPerson(),
-    ...(person || {}),
-    id: person?.id ?? ""
-});
+import { normalizePerson } from "./PersonService.js";
 
 const PersonForm = props => {
     const [person, setPerson] = useState(
@@ -87,19 +70,11 @@ const PersonForm = props => {
         }),
         actions: [
             Button({
-                label: "Submit",
+                label: props.mode === "update" ? "Update" : "Submit",
                 look: "pm",
                 name: "submit",
                 disabled: props.isBusy,
                 type: "submit"
-            }),
-            Button({
-                label: "Close",
-                look: "sc",
-                name: "close",
-                disabled: props.isBusy,
-                type: "button",
-                onClick: props.onClose
             })
         ],
         onDataChange: setPerson,

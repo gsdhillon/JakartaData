@@ -9,15 +9,23 @@ import {
     createElement
 } from "../Grove.js";
 
-const renderButtonIcon = icon =>
+const iconClassName = icon =>
+    String(icon).includes(" ")
+        ? icon
+        : `bi bi-${icon}`;
+
+const renderButtonIcon = (icon, suffix = false) =>
     typeof icon === "string"
         ? createElement(
-            "span",
+            "i",
             {
                 "aria-hidden": "true",
-                className: "grove-button-icon"
-            },
-            icon
+                className: [
+                    "grove-button-icon",
+                    suffix ? "grove-button-icon-suffix" : "",
+                    iconClassName(icon)
+                ].filter(Boolean).join(" ")
+            }
         )
         : icon;
 
@@ -38,6 +46,7 @@ const buttonLooks = {
 export const Button = (props = {}, ...children) => {
     const {
         icon,
+        iconSuffix,
         label,
         look = "pm",
         ...buttonProps
@@ -46,17 +55,28 @@ export const Button = (props = {}, ...children) => {
         ? children
         : [
             icon ? renderButtonIcon(icon) : null,
-            label
+            label,
+            iconSuffix ? renderButtonIcon(iconSuffix, true) : null
         ].filter(child =>
             child !== null &&
             child !== undefined &&
             child !== ""
         );
+    const iconOnly =
+        buttonChildren.length === 1 &&
+        (icon || iconSuffix) &&
+        !buttonProps["aria-label"];
+    const resolvedButtonProps = iconOnly
+        ? {
+            ...buttonProps,
+            "aria-label": buttonProps.title || buttonProps.name || "Button"
+        }
+        : buttonProps;
 
     return createElement(
         "button",
         appendClassName(
-            buttonProps,
+            resolvedButtonProps,
             [
                 buttonLooks[look] || buttonLooks.pm,
                 "grove-button"

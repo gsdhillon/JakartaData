@@ -5,11 +5,10 @@
  */
 
 import { createElement } from "../Grove.js";
+import { AppErrorToasts } from "./AppError.js";
+import { CenterPanel } from "./CenterPanel.js";
 import { Div } from "./Div.js";
-import {
-    RestErrorToasts,
-    RestTap
-} from "./REST.js";
+import { RestTap } from "./REST.js";
 
 const bgByTheme = {
     dark: new URL("../grove-bg-dark.svg", import.meta.url).href,
@@ -24,6 +23,7 @@ const bgByTheme = {
 export const AppShell = (props = {}) => {
     const {
         Center,
+        centerTitle = "",
         Footer,
         Header,
         Menu,
@@ -46,6 +46,16 @@ export const AppShell = (props = {}) => {
         .filter(Boolean)
         .join(" ");
     const centerContent = Center ?? center;
+    const wrappedCenterContent =
+        centerContent !== null && centerContent !== undefined
+            ? createElement(
+                CenterPanel,
+                {
+                    title: centerTitle
+                },
+                centerContent
+            )
+            : centerContent;
     const centerClassName = [
         "grove-app-shell-center",
         centerContent !== null && centerContent !== undefined
@@ -75,7 +85,7 @@ export const AppShell = (props = {}) => {
                     className: centerClassName,
                     role: "main"
                 },
-                centerContent
+                wrappedCenterContent
             ),
             Div({
                 "aria-hidden": "true",
@@ -83,7 +93,7 @@ export const AppShell = (props = {}) => {
             })
         ),
         Footer ?? footer,
-        createElement(RestErrorToasts),
+        createElement(AppErrorToasts),
         createElement(RestTap)
     );
 };

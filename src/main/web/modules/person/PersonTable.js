@@ -42,32 +42,25 @@ const formatDate = value => {
 const renderActions = props => (person, index) => [
     Button({
         id: `updatePerson-${index}`,
-        label: "Update",
+        icon: "pencil-square",
+        label: null,
         look: "pm",
         name: "updatePerson",
         disabled: props.isBusy,
+        title: "Update person",
         type: "button",
         onClick() {
             props.onUpdate?.(person, index);
         }
     }),
     Button({
-        id: `patchDesignation-${index}`,
-        label: "Patch Designation",
-        look: "sc",
-        name: "patchDesignation",
-        disabled: props.isBusy,
-        type: "button",
-        onClick() {
-            props.onPatchDesignation?.(person, index);
-        }
-    }),
-    Button({
         id: `deletePerson-${index}`,
-        label: "Delete",
+        icon: "trash3",
+        label: null,
         look: "dn",
         name: "deletePerson",
         disabled: props.isBusy,
+        title: "Delete person",
         type: "button",
         onClick() {
             props.onDelete?.(person, index);
@@ -80,10 +73,11 @@ const PersonTable = (props = {}) =>
         className: "person-table",
         columns,
         emptyMessage: "No persons added",
+        exportName: "persons",
         getRowKey: (person, index) => person.id ?? index,
         renderActions: renderActions(props),
         rows: props.persons || [],
-        searchPlaceholder: "Search persons",
+        title: "Persons",
         wrapperClassName: "person-table-wrap"
     });
 

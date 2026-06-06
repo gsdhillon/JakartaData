@@ -21,6 +21,7 @@ const ensureGroveStyles = () => {
 
     const styleHrefs = [
         "./bootstrap.min.css",
+        "./bootstrap-icons.min.css",
         "./styles.css"
     ].map(path => new URL(path, import.meta.url).href);
 
@@ -1578,6 +1579,9 @@ const global = typeof window === "undefined"
 
 export * from "./comp/Button.js";
 export * from "./comp/AppShell.js";
+export * from "./comp/AppError.js";
+export * from "./comp/CenterPanel.js";
+export * from "./comp/CenterPanelContext.js";
 export * from "./comp/Div.js";
 export * from "./comp/Form.js";
 export * from "./comp/Footer.js";
@@ -1594,3 +1598,4 @@ export * from "./comp/Select.js";
 export * from "./comp/Table.js";
 export * from "./comp/Temporal.js";
 export * from "./comp/TextArea.js";
+export * from "./GroveRouters.js";
