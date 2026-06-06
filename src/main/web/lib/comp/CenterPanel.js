@@ -22,6 +22,7 @@ export const CenterPanel = (props = {}) => {
     } = props;
     const content = pageContent(props);
     const panelIdRef = useRef(`center-panel-${Math.random().toString(36).slice(2)}`);
+    const actionsRef = useRef(null);
     const [fullscreen, setFullscreen] = useState(false);
     const [actions, setActions] = useState(null);
     const [stack, setStack] = useState([
@@ -38,6 +39,7 @@ export const CenterPanel = (props = {}) => {
                 title
             }
         ]);
+        actionsRef.current = null;
         setActions(null);
     }, [title]);
 
@@ -75,13 +77,24 @@ export const CenterPanel = (props = {}) => {
         setStack(current => current.slice(0, index + 1));
     }, []);
 
+    const setToolbarActions = useCallback(nextActions => {
+        const normalizedActions = nextActions || null;
+
+        if (actionsRef.current === normalizedActions) {
+            return;
+        }
+
+        actionsRef.current = normalizedActions;
+        setActions(normalizedActions);
+    }, []);
+
     const value = useMemo(
         () => ({
             goBack,
             pushPage,
-            setActions
+            setActions: setToolbarActions
         }),
-        [goBack, pushPage]
+        [goBack, pushPage, setToolbarActions]
     );
     const activePage = stack[stack.length - 1] || {};
     const visiblePath = activePage.currentTitleOnly
@@ -155,9 +168,11 @@ export const CenterPanel = (props = {}) => {
                         })
                         : null,
                     Button({
-                        label: fullscreen ? "Exit Fullscreen" : "Fullscreen",
+                        icon: fullscreen ? "fullscreen-exit" : "fullscreen",
+                        label: null,
                         look: "dn",
                         onClick: toggleFullscreen,
+                        title: fullscreen ? "Restore" : "Maximize",
                         type: "button"
                     })
                 )

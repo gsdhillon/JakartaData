@@ -6,27 +6,10 @@ import {
     Label,
     LocalDateTime,
     TextArea,
+    useMemo,
     useState
 } from "../../lib/Grove.js";
-
-const createEmptyTask = loggedInUserId => ({
-    id: "",
-    taskName: "",
-    taskDesc: "",
-    addBy: loggedInUserId,
-    assignedTo: "",
-    deadLine: null,
-    createdOn: null,
-    completedOn: null
-});
-
-const normalizeTask = (task, loggedInUserId) => ({
-    ...createEmptyTask(loggedInUserId),
-    ...(task || {}),
-    id: task?.id ?? "",
-    addBy: task?.addBy ?? loggedInUserId,
-    assignedTo: task?.assignedTo ?? ""
-});
+import { normalizeTask } from "./TaskService.js";
 
 const TaskForm = props => {
     const [task, setTask] = useState(
@@ -34,6 +17,50 @@ const TaskForm = props => {
     );
     const showSubmit = props.showSubmit !== false;
     const showMarkCompleted = props.showMarkCompleted === true;
+    const actions = useMemo(
+        () => [
+            showSubmit
+                ? Button({
+                    icon: "check2-circle",
+                    label: props.mode === "update" ? "Update" : "Submit",
+                    look: "pm",
+                    name: "submit",
+                    disabled: props.isBusy || props.readOnly,
+                    type: "submit"
+                })
+                : null,
+            showMarkCompleted
+                ? Button({
+                    icon: "check-circle",
+                    label: "Mark Completed",
+                    look: "ut",
+                    name: "completeTask",
+                    disabled: props.isBusy,
+                    type: "button",
+                    onClick() {
+                        props.onMarkCompleted?.({ ...task });
+                    }
+                })
+                : null,
+            Button({
+                icon: "x-lg",
+                label: "Close",
+                look: "sc",
+                name: "close",
+                disabled: props.isBusy,
+                type: "button",
+                onClick: props.onClose
+            })
+        ],
+        [
+            showSubmit,
+            showMarkCompleted,
+            props.isBusy,
+            props.readOnly,
+            props.onClose,
+            task
+        ]
+    );
 
     return Form({
         className: "task-form",
@@ -93,37 +120,7 @@ const TaskForm = props => {
                 readOnly: true
             })
         ],
-        actions: [
-            showSubmit
-                ? Button({
-                    label: "Submit",
-                    look: "pm",
-                    name: "submit",
-                    disabled: props.isBusy || props.readOnly,
-                    type: "submit"
-                })
-                : null,
-            showMarkCompleted
-                ? Button({
-                    label: "Mark Completed",
-                    look: "ut",
-                    name: "completeTask",
-                    disabled: props.isBusy,
-                    type: "button",
-                    onClick() {
-                        props.onMarkCompleted?.({ ...task });
-                    }
-                })
-                : null,
-            Button({
-                label: "Close",
-                look: "sc",
-                name: "close",
-                disabled: props.isBusy,
-                type: "button",
-                onClick: props.onClose
-            })
-        ],
+        actions,
         onDataChange: setTask,
         onSubmit(event) {
             event.preventDefault();

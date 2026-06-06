@@ -11,6 +11,25 @@ import { Input } from "./Input.js";
 
 const defaultPhotoInputId = "photo-input";
 
+const photoSizeKb = value => {
+    if (!value) {
+        return "";
+    }
+
+    const text = String(value);
+    const base64 = text.includes(",")
+        ? text.slice(text.indexOf(",") + 1)
+        : text;
+    const padding = base64.endsWith("==")
+        ? 2
+        : base64.endsWith("=")
+            ? 1
+            : 0;
+    const bytes = Math.max(0, Math.floor((base64.length * 3) / 4) - padding);
+
+    return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+};
+
 const PhotoPicker = (props = {}) => {
     const {
         label,
@@ -20,6 +39,7 @@ const PhotoPicker = (props = {}) => {
     const valueInputId = `${inputId}-value`;
     const placeholder = label || photoProps.placeholder || "Photo";
     const hasPhoto = Boolean(photoProps.value);
+    const sizeText = photoSizeKb(photoProps.value);
     const commitPhotoValue = value => {
         const valueInput = document.getElementById(valueInputId);
 
@@ -91,8 +111,10 @@ const PhotoPicker = (props = {}) => {
             { className: "grove-photo-actions" },
             Button({
                 className: photoProps.buttonClassName,
-                label: photoProps.buttonText || "Browse",
+                icon: "folder2-open",
+                label: null,
                 look: "ut",
+                title: photoProps.buttonText || "Browse photo",
                 type: "button",
                 onClick() {
                     document.getElementById(inputId)?.click();
@@ -101,11 +123,20 @@ const PhotoPicker = (props = {}) => {
             Button({
                 className: photoProps.buttonClassName,
                 disabled: !hasPhoto,
-                label: photoProps.downloadButtonText || "Download",
+                icon: "download",
+                label: null,
                 look: "sc",
+                title: photoProps.downloadButtonText || "Download photo",
                 type: "button",
                 onClick: downloadPhoto
-            })
+            }),
+            sizeText
+                ? createElement(
+                    "span",
+                    { className: "grove-photo-size" },
+                    sizeText
+                )
+                : null
         )
     );
 };

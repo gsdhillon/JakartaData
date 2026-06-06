@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 import com.gurmeet.application.EditableField;
+import com.gurmeet.modules.security.PersonAccessPolicy;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
+import jakarta.json.bind.annotation.JsonbTransient;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
@@ -50,12 +52,19 @@ public class Person {
     private String gender;
 
     @EditableField
+    private String role = PersonAccessPolicy.USER;
+
+    @EditableField
     private String mobileNo;
 
     @EditableField
     @Lob
     @Column(columnDefinition = "LONGTEXT")
     private String photo;
+
+    @EditableField(false)
+    @JsonbTransient
+    private String password;
 
     public Person() {
     }
@@ -126,6 +135,14 @@ public class Person {
         this.gender = gender;
     }
 
+    public String getRole() {
+        return PersonAccessPolicy.normalizeRole(role);
+    }
+
+    public void setRole(String role) {
+        this.role = PersonAccessPolicy.normalizeRole(role);
+    }
+
     public String getMobileNo() {
         return mobileNo;
     }
@@ -140,5 +157,13 @@ public class Person {
 
     public void setPhoto(String photo) {
         this.photo = photo;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

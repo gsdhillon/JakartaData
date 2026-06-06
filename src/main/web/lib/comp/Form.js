@@ -4,9 +4,17 @@
  * @email gsdhillon@gmail.com
  */
 
-import { createElement } from "../Grove.js";
+import {
+    createElement,
+    useMemo,
+    useRef
+} from "../Grove.js";
 import { Div } from "./Div.js";
 import { temporalValue } from "./Instant.js";
+import {
+    useCenterPanel,
+    useCenterPanelActions
+} from "./CenterPanelContext.js";
 
 const formFieldTypes = new Set([
     "input",
@@ -112,6 +120,34 @@ const renderSlotLayout = slots => {
     return layoutChildren;
 };
 
+const bindActionToForm = (vnode, formId) => {
+    if (
+        vnode === null ||
+        vnode === undefined ||
+        typeof vnode === "string" ||
+        typeof vnode === "number"
+    ) {
+        return vnode;
+    }
+
+    const props = vnode.props || {};
+    const nextProps =
+        vnode.type === "button" && (props.type || "submit") === "submit"
+            ? {
+                ...props,
+                form: props.form || formId
+            }
+            : props;
+
+    return {
+        ...vnode,
+        props: nextProps,
+        children: (vnode.children || []).map(child =>
+            bindActionToForm(child, formId)
+        )
+    };
+};
+
 /**
  * Creates a form virtual node with optional data binding for named fields.
  * @param {Object} [props={}] - Form attributes and event handlers.
@@ -129,9 +165,29 @@ export const Form = (props = {}, ...children) => {
         onChange,
         ...formProps
     } = props;
+    const formIdRef = useRef(`grove-form-${Math.random().toString(36).slice(2)}`);
+    const centerPanel = useCenterPanel();
     const actionSlot = actions ?? action;
+    const formId = formProps.id || formProps.name || formIdRef.current;
+    const toolbarActions = useMemo(
+        () => actionSlot === undefined
+            ? null
+            : Div(
+                { className: "form-actions" },
+                ...toSlotChildren(actionSlot).map(actionNode =>
+                    bindActionToForm(actionNode, formId)
+                )
+            ),
+        [actionSlot, formId]
+    );
+    const moveActionsToCenter = Boolean(centerPanel && actionSlot !== undefined);
+    useCenterPanelActions(moveActionsToCenter ? toolbarActions : null);
     const formChildren = hasSlotLayout({ main, aside, actions: actionSlot })
-        ? renderSlotLayout({ main, aside, actions: actionSlot })
+        ? renderSlotLayout({
+            main,
+            aside,
+            actions: moveActionsToCenter ? undefined : actionSlot
+        })
         : children;
     const boundChildren =
         data && onDataChange
@@ -144,6 +200,7 @@ export const Form = (props = {}, ...children) => {
         "form",
         {
             ...formProps,
+            id: formId,
             onChange(event) {
                 onChange?.(event);
 

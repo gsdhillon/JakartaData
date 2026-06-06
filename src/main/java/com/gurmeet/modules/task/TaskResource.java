@@ -1,5 +1,6 @@
 package com.gurmeet.modules.task;
 
+import com.gurmeet.modules.security.SecurityService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.BadRequestException;
@@ -27,9 +28,16 @@ public class TaskResource {
     @Inject
     private TaskService taskService;
 
+    @Inject
+    private SecurityService securityService;
+
     @POST
-    public Response create(@Valid TaskRequestDto request, @HeaderParam("X-User-Id") Long loggedInUserId) {
-        TaskResponseDto savedTask = taskService.create(request, requireUserId(loggedInUserId));
+    public Response create(
+            @Valid TaskRequestDto request,
+            @HeaderParam("Authorization") String authorizationHeader,
+            @HeaderParam("X-User-Id") Long loggedInUserId
+    ) {
+        TaskResponseDto savedTask = taskService.create(request, requireUserId(authorizationHeader, loggedInUserId));
 
         return Response.created(URI.create("/api/tasks/" + savedTask.getId()))
                 .entity(savedTask)
@@ -37,13 +45,18 @@ public class TaskResource {
     }
 
     @GET
-    public List<TaskResponseDto> findAll() {
+    public List<TaskResponseDto> findAll(@HeaderParam("Authorization") String authorizationHeader) {
+        securityService.requireUserId(authorizationHeader);
         return taskService.findAll();
     }
 
     @GET
     @Path("/{id}")
-    public TaskResponseDto findById(@PathParam("id") Long id) {
+    public TaskResponseDto findById(
+            @HeaderParam("Authorization") String authorizationHeader,
+            @PathParam("id") Long id
+    ) {
+        securityService.requireUserId(authorizationHeader);
         return taskService.findById(id);
     }
 
@@ -52,27 +65,40 @@ public class TaskResource {
     public TaskResponseDto update(
             @PathParam("id") Long id,
             @Valid TaskRequestDto request,
+            @HeaderParam("Authorization") String authorizationHeader,
             @HeaderParam("X-User-Id") Long loggedInUserId
     ) {
-        return taskService.update(id, request, requireUserId(loggedInUserId));
+        return taskService.update(id, request, requireUserId(authorizationHeader, loggedInUserId));
     }
 
     @PATCH
     @Path("/{id}/complete")
-    public TaskResponseDto markCompleted(@PathParam("id") Long id, @HeaderParam("X-User-Id") Long loggedInUserId) {
-        return taskService.markCompleted(id, requireUserId(loggedInUserId));
+    public TaskResponseDto markCompleted(
+            @PathParam("id") Long id,
+            @HeaderParam("Authorization") String authorizationHeader,
+            @HeaderParam("X-User-Id") Long loggedInUserId
+    ) {
+        return taskService.markCompleted(id, requireUserId(authorizationHeader, loggedInUserId));
     }
 
     @DELETE
     @Path("/{id}")
-    public Response delete(@PathParam("id") Long id, @HeaderParam("X-User-Id") Long loggedInUserId) {
-        taskService.delete(id, requireUserId(loggedInUserId));
+    public Response delete(
+            @PathParam("id") Long id,
+            @HeaderParam("Authorization") String authorizationHeader,
+            @HeaderParam("X-User-Id") Long loggedInUserId
+    ) {
+        taskService.delete(id, requireUserId(authorizationHeader, loggedInUserId));
         return Response.noContent().build();
     }
 
-    private Long requireUserId(Long loggedInUserId) {
+    private Long requireUserId(String authorizationHeader, Long loggedInUserId) {
+        if (authorizationHeader != null && !authorizationHeader.isBlank()) {
+            return securityService.requireUserId(authorizationHeader);
+        }
+
         if (loggedInUserId == null) {
-            throw new BadRequestException("X-User-Id header is required.");
+            throw new BadRequestException("Authorization bearer token is required.");
         }
 
         return loggedInUserId;

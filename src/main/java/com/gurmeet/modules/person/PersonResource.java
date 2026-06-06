@@ -1,10 +1,13 @@
 package com.gurmeet.modules.person;
 
+import com.gurmeet.modules.security.PersonAccessPolicy;
+import com.gurmeet.modules.security.SecurityService;
 import jakarta.inject.Inject;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
@@ -28,9 +31,15 @@ public class PersonResource {
     @Inject
     private PersonService personService;
 
+    @Inject
+    private SecurityService securityService;
+
     @POST
     // Method name is not used in the URL. @POST decides the HTTP action.
-    public Response create(@Valid Person person) {
+    public Response create(@HeaderParam("Authorization") String authorizationHeader, @Valid Person person) {
+        Person actor = securityService.requirePerson(authorizationHeader);
+
+        PersonAccessPolicy.requireCanCreate(actor, person);
         Person savedPerson = personService.create(person);
         return Response.created(URI.create("/api/persons/" + savedPerson.getId()))
                 .entity(savedPerson)
@@ -39,7 +48,8 @@ public class PersonResource {
 
     @GET
     // Method name is not used in the URL. @GET decides the HTTP action.
-    public List<Person> findAll() {
+    public List<Person> findAll(@HeaderParam("Authorization") String authorizationHeader) {
+        securityService.requireUserId(authorizationHeader);
         return personService.findAll();
     }
 
@@ -47,7 +57,8 @@ public class PersonResource {
     @Path("/{id}")
     // Method name is not used in the URL. @GET and @Path decide the endpoint.
     // "{id}" and @PathParam("id") must match. The Java variable name can be different.
-    public Person findById(@PathParam("id") Long personId) {
+    public Person findById(@HeaderParam("Authorization") String authorizationHeader, @PathParam("id") Long personId) {
+        securityService.requireUserId(authorizationHeader);
         return personService.findById(personId)
                 .orElseThrow(() -> new NotFoundException("Person not found: " + personId));
     }
@@ -55,20 +66,44 @@ public class PersonResource {
     @PUT
     @Path("/{id}")
     // Method name is not used in the URL. @PUT and @Path decide the endpoint.
-    public Person update(@PathParam("id") Long id, @Valid Person person) {
+    public Person update(
+            @HeaderParam("Authorization") String authorizationHeader,
+            @PathParam("id") Long id,
+            @Valid Person person
+    ) {
+        Person actor = securityService.requirePerson(authorizationHeader);
+        Person existingPerson = personService.findRequiredById(id);
+
+        PersonAccessPolicy.requireCanUpdate(actor, existingPerson, person);
         return personService.update(id, person);
     }
 
     @PATCH
     @Path("/{id}")
-    public Person patch(@PathParam("id") Long id, JsonObject patch) {
+    public Person patch(
+            @HeaderParam("Authorization") String authorizationHeader,
+            @PathParam("id") Long id,
+            JsonObject patch
+    ) {
+        Person actor = securityService.requirePerson(authorizationHeader);
+        Person existingPerson = personService.findRequiredById(id);
+        Person requestedPerson = new Person();
+
+        requestedPerson.setRole(patch.containsKey("role") && !patch.isNull("role")
+                ? patch.getString("role")
+                : existingPerson.getRole());
+        PersonAccessPolicy.requireCanUpdate(actor, existingPerson, requestedPerson);
         return personService.patch(id, patch);
     }
 
     @DELETE
     @Path("/{id}")
     // Method name is not used in the URL. @DELETE and @Path decide the endpoint.
-    public Response delete(@PathParam("id") Long id) {
+    public Response delete(@HeaderParam("Authorization") String authorizationHeader, @PathParam("id") Long id) {
+        Person actor = securityService.requirePerson(authorizationHeader);
+        Person targetPerson = personService.findRequiredById(id);
+
+        PersonAccessPolicy.requireCanDelete(actor, targetPerson);
         personService.delete(id);
         return Response.noContent().build();
     }

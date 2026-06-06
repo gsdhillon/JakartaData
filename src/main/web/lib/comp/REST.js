@@ -189,6 +189,31 @@ const notifyHttpError = async response => {
     });
 };
 
+export const requestJson = async (url, options = {}) => {
+    const {
+        authToken,
+        userId,
+        ...fetchOptions
+    } = options;
+    const response = await fetch(url, {
+        ...fetchOptions,
+        headers: {
+            ...(fetchOptions.body ? { "Content-Type": "application/json" } : {}),
+            ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+            ...(userId ? { "X-User-Id": String(userId) } : {}),
+            ...(fetchOptions.headers || {})
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error(response.statusText || "Request failed");
+    }
+
+    return response.status === 204
+        ? null
+        : response.json();
+};
+
 const formatHeaders = headers =>
     Object
         .entries(headers || {})
@@ -419,17 +444,30 @@ export const RestTapToggle = () => {
         };
     }, []);
 
-    return Button({
-        className: [
-            "btn-sm",
-            "grove-rest-toggle",
-            tapState.enabled ? "grove-rest-toggle-on" : ""
-        ].filter(Boolean).join(" "),
-        label: tapState.enabled ? "Tap On" : "Tap Off",
-        look: tapState.enabled ? "ut" : "sc",
-        type: "button",
-        onClick: toggleRestTap
-    });
+    return createElement(
+        "button",
+        {
+            "aria-label": tapState.enabled ? "Turn REST tap off" : "Turn REST tap on",
+            "aria-pressed": tapState.enabled,
+            className: [
+                "grove-rest-toggle",
+                tapState.enabled ? "grove-rest-toggle-on" : ""
+            ].filter(Boolean).join(" "),
+            title: tapState.enabled ? "Tap On" : "Tap Off",
+            type: "button",
+            onClick: toggleRestTap
+        },
+        createElement(
+            "span",
+            { className: "grove-rest-toggle-track" },
+            createElement("span", { className: "grove-rest-toggle-knob" })
+        ),
+        createElement(
+            "span",
+            { className: "grove-rest-toggle-text" },
+            "Tap"
+        )
+    );
 };
 
 export const useRestTapState = () => {
@@ -457,8 +495,7 @@ export const useRestTapState = () => {
     return tapState;
 };
 
-export const RestTap = (props = {}) => {
-    const embedded = props.embedded === true;
+export const RestTap = () => {
     const [entries, setEntries] = useState([...state.entries]);
     const [open, setOpen] = useState(false);
     const [selectedId, setSelectedId] = useState(state.entries[0]?.id ?? null);
@@ -492,9 +529,7 @@ export const RestTap = (props = {}) => {
         };
 
         listeners.add(syncEntries);
-        if (!embedded) {
-            window.addEventListener(openEventName, openDialog);
-        }
+        window.addEventListener(openEventName, openDialog);
         syncEntries({
             enabled: state.enabled,
             entries: [...state.entries],
@@ -503,13 +538,11 @@ export const RestTap = (props = {}) => {
 
         return () => {
             listeners.delete(syncEntries);
-            if (!embedded) {
-                window.removeEventListener(openEventName, openDialog);
-            }
+            window.removeEventListener(openEventName, openDialog);
         };
-    }, [embedded]);
+    }, []);
 
-    if (!embedded && !open) {
+    if (!open) {
         return null;
     }
 
@@ -540,110 +573,14 @@ export const RestTap = (props = {}) => {
     };
 
     const content = Div(
-        { className: "grove-rest-dialog-body" },
+        { className: "grove-rest-window" },
+        Div(
+            { className: "grove-rest-dialog-body" },
                 Div(
                     { className: "list-group list-group-flush grove-rest-list" },
                     Div(
-                        { className: "grove-rest-composer" },
-                        Div(
-                            { className: "grove-rest-composer-method-row" },
-                            createElement(
-                                "select",
-                                {
-                                    className: "form-select form-select-sm grove-rest-method",
-                                    disabled: composerBusy,
-                                    value: composerMethod,
-                                    onChange(event) {
-                                        setComposerMethod(event.target.value);
-                                    }
-                                },
-                                ...["GET", "POST", "PUT", "PATCH", "DELETE"].map(method =>
-                                    createElement(
-                                        "option",
-                                        {
-                                            key: method,
-                                            value: method
-                                        },
-                                        method
-                                    )
-                                )
-                            ),
-                            Button({
-                                className: "btn-sm",
-                                disabled: composerBusy,
-                                label: composerBusy ? "Sending" : "Send",
-                                look: "pm",
-                                type: "button",
-                                onClick: sendComposerRequest
-                            })
-                        ),
-                        createElement(
-                            "label",
-                            { className: "grove-rest-url-field" },
-                            createElement(
-                                "span",
-                                { className: "grove-rest-url-prefix" },
-                                "./api/"
-                            ),
-                            createElement(
-                                "input",
-                                {
-                                    className: "form-control form-control-sm",
-                                    disabled: composerBusy,
-                                    placeholder: "persons/4",
-                                    type: "text",
-                                    value: composerEndpoint,
-                                    onChange(event) {
-                                        setComposerEndpoint(event.target.value);
-                                    }
-                                }
-                            )
-                        ),
-                        createElement(
-                            "label",
-                            { className: "grove-rest-composer-label" },
-                            "Headers",
-                            createElement(
-                                "textarea",
-                                {
-                                    className: "form-control form-control-sm grove-rest-composer-headers",
-                                    disabled: composerBusy,
-                                    rows: 3,
-                                    value: composerHeaders,
-                                    onChange(event) {
-                                        setComposerHeaders(event.target.value);
-                                    }
-                                }
-                            )
-                        ),
-                        createElement(
-                            "label",
-                            { className: "grove-rest-composer-label" },
-                            "Body",
-                            createElement(
-                                "textarea",
-                                {
-                                    className: "form-control form-control-sm grove-rest-composer-body",
-                                    disabled: composerBusy || composerMethod === "GET",
-                                    placeholder: "{\n  \"name\": \"Gurmeet\"\n}",
-                                    rows: 5,
-                                    value: composerBody,
-                                    onChange(event) {
-                                        setComposerBody(event.target.value);
-                                    }
-                                }
-                            )
-                        ),
-                        composerMessage
-                            ? Div(
-                                { className: "grove-rest-composer-message" },
-                                composerMessage
-                            )
-                            : null
-                    ),
-                    Div(
                         { className: "h6 m-0 p-3 border-bottom grove-rest-side-title" },
-                        "API Calls"
+                        "REST API Calls"
                     ),
                     entries.length
                         ? entries.map(entry =>
@@ -724,15 +661,13 @@ export const RestTap = (props = {}) => {
                         }),
                         Button({
                             className: "grove-rest-close",
-                            label: "Close",
+                            icon: "x-lg",
+                            label: null,
                             look: "sc",
+                            title: "Close REST console",
                             type: "button",
                             onClick() {
-                                if (embedded) {
-                                    props.onClose?.();
-                                } else {
-                                    setOpen(false);
-                                }
+                                setOpen(false);
                             }
                         })
                     ),
@@ -847,24 +782,20 @@ export const RestTap = (props = {}) => {
                             "Turn Tap On and make an API call to view request and response details."
                         )
                 )
+        )
     );
 
-    return embedded
-        ? Div(
-            { className: "grove-rest-center" },
+    return Div(
+        { className: "grove-rest-dialog-backdrop" },
+        Div(
+            {
+                "aria-modal": "true",
+                className: "modal-content shadow grove-rest-dialog",
+                role: "dialog"
+            },
             content
         )
-        : Div(
-            { className: "grove-rest-dialog-backdrop" },
-            Div(
-                {
-                    "aria-modal": "true",
-                    className: "modal-content shadow grove-rest-dialog",
-                    role: "dialog"
-                },
-                content
-            )
-        )
+    )
 };
 
 export { AppErrorToasts as RestErrorToasts } from "./AppError.js";

@@ -16,11 +16,18 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo Building exploded app directory...
-call mvn clean package
+call "%~dp0payara.bat"
 if errorlevel 1 exit /b %ERRORLEVEL%
 
-call "%~dp0payara.bat"
+call asadmin list-applications | findstr /I "%APP_NAME%" >nul 2>nul
+if not errorlevel 1 (
+    echo Undeploying %APP_NAME% so Maven clean can remove locked files...
+    call asadmin undeploy "%APP_NAME%"
+    if errorlevel 1 exit /b %ERRORLEVEL%
+)
+
+echo Building exploded app directory...
+call mvn clean package
 if errorlevel 1 exit /b %ERRORLEVEL%
 
 if not exist "%APP_DIR%" (

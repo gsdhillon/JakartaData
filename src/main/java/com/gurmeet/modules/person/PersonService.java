@@ -1,6 +1,7 @@
 package com.gurmeet.modules.person;
 
 import com.gurmeet.application.EditableFields;
+import com.gurmeet.modules.security.PersonAccessPolicy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.json.JsonObject;
@@ -27,6 +28,7 @@ public class PersonService {
 
     public Person create(Person person) {
         person.setId(null);
+        person.setRole(PersonAccessPolicy.normalizeRole(person.getRole()));
         return personRepository.save(person);
     }
 
@@ -51,7 +53,13 @@ public class PersonService {
 
         Person person = optionalPerson.get();
         EditableFields.copyEditableFields(updatedPerson, person);
+        person.setRole(PersonAccessPolicy.normalizeRole(person.getRole()));
         return personRepository.save(person);
+    }
+
+    public Person findRequiredById(Long id) {
+        return personRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Person not found: " + id));
     }
 
     public Person patch(Long id, JsonObject patch) {
@@ -65,6 +73,7 @@ public class PersonService {
                 case "dob" -> person.setDob(getLocalDateOrNull(patch, fieldName));
                 case "email" -> person.setEmail(getStringOrNull(patch, fieldName));
                 case "gender" -> person.setGender(getStringOrNull(patch, fieldName));
+                case "role" -> person.setRole(getStringOrNull(patch, fieldName));
                 case "mobileNo" -> person.setMobileNo(getStringOrNull(patch, fieldName));
                 case "photo" -> person.setPhoto(getStringOrNull(patch, fieldName));
                 default -> throw new BadRequestException("Field is not patchable: " + fieldName);
@@ -79,6 +88,14 @@ public class PersonService {
 
     public void delete(Long id) {
         personRepository.deleteById(id);
+    }
+
+    public Person changePassword(Long id, String passwordHash) {
+        Person person = personRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Person not found: " + id));
+
+        person.setPassword(passwordHash);
+        return personRepository.save(person);
     }
 
     private String getStringOrNull(JsonObject patch, String fieldName) {

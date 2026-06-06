@@ -1,6 +1,7 @@
 package com.gurmeet.application;
 
 import com.gurmeet.modules.person.PersonResource;
+import com.gurmeet.modules.security.SecurityResource;
 import com.gurmeet.modules.task.TaskResource;
 import jakarta.ws.rs.ApplicationPath;
 import jakarta.ws.rs.core.Application;
@@ -15,6 +16,7 @@ public class RestApplication extends Application {
     public Set<Class<?>> getClasses() {
         return Set.of(
                 PersonResource.class,
+                SecurityResource.class,
                 TaskResource.class,
                 ValidationErrorsMapper.class,
                 WebApplicationExceptionMapper.class,

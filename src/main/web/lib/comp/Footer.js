@@ -68,13 +68,22 @@ export const Footer = (props = {}) => {
                 {
                     "aria-label": `Switch to ${normalizedTheme === "dark" ? "light" : "dark"} theme`,
                     className: [
-                        "btn btn-sm btn-outline-secondary grove-theme-toggle",
+                        "grove-theme-toggle",
                         `grove-theme-toggle-${normalizedTheme}`
                     ].join(" "),
                     type: "button",
                     onClick: onThemeToggle
                 },
-                normalizedTheme === "dark" ? "Dark" : "Light"
+                createElement(
+                    "span",
+                    { className: "grove-theme-toggle-track" },
+                    createElement("span", { className: "grove-theme-toggle-knob" })
+                ),
+                createElement(
+                    "span",
+                    { className: "grove-theme-toggle-text" },
+                    normalizedTheme === "dark" ? "Dark" : "Light"
+                )
             )
         ),
         createElement(

@@ -4,7 +4,7 @@
  * @email gsdhillon@gmail.com
  */
 
-import { createElement } from "../Grove.js";
+import { createElement, useState } from "../Grove.js";
 import { Div } from "./Div.js";
 
 const renderImageSlot = (value, className, alt) => {
@@ -35,18 +35,16 @@ const defaultLogo = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg
 export const Header = (props = {}) => {
     const {
         avatar = defaultAvatar,
+        avatarMenu = [],
         avtar,
         className = "",
         height = "90px",
         logo = defaultLogo,
         subTitle,
         title,
-        userId,
-        loginDisabled = false,
-        onLogin,
-        onUserIdChange,
         ...headerProps
     } = props;
+    const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
     const headerClassName = [
         "grove-header",
         "text-body",
@@ -87,39 +85,46 @@ export const Header = (props = {}) => {
         ),
         Div(
             { className: "grove-header-avatar" },
-            userId !== undefined
-                ? createElement(
-                    "label",
-                    { className: "grove-header-user-id" },
-                    "UserId",
-                    createElement(
-                        "input",
-                        {
-                            className: "form-control form-control-sm grove-header-user-id-control",
-                            min: "1",
-                            name: "loggedInUserId",
-                            type: "number",
-                            value: userId,
-                            onChange(event) {
-                                onUserIdChange?.(event.target.value);
-                            }
-                        }
-                    ),
-                    createElement(
-                        "button",
-                        {
-                            className: "btn btn-sm btn-primary grove-header-login",
-                            disabled: loginDisabled,
-                            type: "button",
-                            onClick() {
-                                onLogin?.();
-                            }
-                        },
-                        "Login"
+            createElement(
+                "button",
+                {
+                    "aria-expanded": avatarMenuOpen,
+                    "aria-label": "Account menu",
+                    className: "grove-header-avatar-button",
+                    type: "button",
+                    onClick() {
+                        setAvatarMenuOpen(open => !open);
+                    }
+                },
+                renderImageSlot(avtar ?? avatar, "grove-header-avatar-image", "User avatar")
+            ),
+            avatarMenuOpen && avatarMenu.length
+                ? Div(
+                    { className: "grove-header-avatar-menu shadow" },
+                    ...avatarMenu.map((item, index) =>
+                        createElement(
+                            "button",
+                            {
+                                className: "grove-header-avatar-menu-item",
+                                disabled: item.disabled,
+                                key: item.key || item.label || index,
+                                type: "button",
+                                onClick() {
+                                    setAvatarMenuOpen(false);
+                                    item.onClick?.();
+                                }
+                            },
+                            item.icon
+                                ? createElement("i", {
+                                    "aria-hidden": "true",
+                                    className: `bi bi-${item.icon}`
+                                })
+                                : null,
+                            item.label
+                        )
                     )
                 )
-                : null,
-            renderImageSlot(avtar ?? avatar, "grove-header-avatar-image", "User avatar")
+                : null
         )
     );
 };

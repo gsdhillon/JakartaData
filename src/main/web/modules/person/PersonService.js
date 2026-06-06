@@ -1,22 +1,6 @@
+import { requestJson } from "../../lib/Grove.js";
+
 const personsApiUrl = "./api/persons";
-
-const requestJson = async (url, options = {}) => {
-    const response = await fetch(url, {
-        ...options,
-        headers: {
-            ...(options.body ? { "Content-Type": "application/json" } : {}),
-            ...(options.headers || {})
-        }
-    });
-
-    if (!response.ok) {
-        throw new Error(response.statusText || "Request failed");
-    }
-
-    return response.status === 204
-        ? null
-        : response.json();
-};
 
 export const createEmptyPerson = () => ({
     id: "",
@@ -26,6 +10,7 @@ export const createEmptyPerson = () => ({
     updatedAt: null,
     email: "",
     gender: "",
+    role: "USER",
     mobileNo: "",
     photo: ""
 });
@@ -55,28 +40,31 @@ const personPayload = person => {
     return payload;
 };
 
-export const findAllPersons = async () => {
-    const persons = await requestJson(personsApiUrl);
+export const findAllPersons = async authToken => {
+    const persons = await requestJson(personsApiUrl, { authToken });
 
     return (persons || []).map(normalizePerson);
 };
 
-export const findPersonById = id =>
-    requestJson(`${personsApiUrl}/${id}`);
+export const findPersonById = (id, authToken) =>
+    requestJson(`${personsApiUrl}/${id}`, { authToken });
 
-export const createPerson = person =>
+export const createPerson = (person, authToken) =>
     requestJson(personsApiUrl, {
         method: "POST",
+        authToken,
         body: JSON.stringify(personPayload(person))
     });
 
-export const updatePerson = (id, person) =>
+export const updatePerson = (id, person, authToken) =>
     requestJson(`${personsApiUrl}/${id}`, {
         method: "PUT",
+        authToken,
         body: JSON.stringify(personPayload(person))
     });
 
-export const deletePersonById = id =>
+export const deletePersonById = (id, authToken) =>
     requestJson(`${personsApiUrl}/${id}`, {
+        authToken,
         method: "DELETE"
     });

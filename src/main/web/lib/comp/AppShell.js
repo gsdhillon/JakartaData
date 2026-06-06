@@ -4,15 +4,23 @@
  * @email gsdhillon@gmail.com
  */
 
-import { createElement } from "../Grove.js";
+import { createElement, useEffect, useState } from "../Grove.js";
 import { AppErrorToasts } from "./AppError.js";
 import { CenterPanel } from "./CenterPanel.js";
 import { Div } from "./Div.js";
+import { Menu as MenuComponent } from "./Menu.js";
 import { RestTap } from "./REST.js";
 
 const bgByTheme = {
     dark: new URL("../grove-bg-dark.svg", import.meta.url).href,
     light: new URL("../grove-bg-light.svg", import.meta.url).href
+};
+const openPageEventName = "grove-app-open-page";
+
+export const openAppPage = key => {
+    if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent(openPageEventName, { detail: { key } }));
+    }
 };
 
 /**
@@ -27,6 +35,10 @@ export const AppShell = (props = {}) => {
         Footer,
         Header,
         Menu,
+        pages = [],
+        initialPage,
+        authenticated = true,
+        loginPageKey = "login",
         center,
         className = "",
         footer,
@@ -35,6 +47,14 @@ export const AppShell = (props = {}) => {
         themeMode = "light",
         ...shellProps
     } = props;
+    const firstPage = pages[0];
+    const [activePageKey, setActivePageKey] = useState(
+        initialPage ?? firstPage?.key ?? firstPage?.label ?? firstPage?.title
+    );
+    const activePage =
+        pages.find(page =>
+            (page.key ?? page.label ?? page.title) === activePageKey
+        ) ?? firstPage;
     const normalizedTheme = themeMode === "dark"
         ? "dark"
         : "light";
@@ -45,13 +65,51 @@ export const AppShell = (props = {}) => {
     ]
         .filter(Boolean)
         .join(" ");
-    const centerContent = Center ?? center;
+    useEffect(() => {
+        const openPage = event => {
+            const nextKey = event.detail?.key;
+            const nextPage = pages.find(page => (page.key ?? page.label ?? page.title) === nextKey);
+
+            if (nextPage) {
+                setActivePageKey(nextPage.auth !== false && !authenticated
+                    ? loginPageKey
+                    : nextKey);
+            }
+        };
+
+        window.addEventListener(openPageEventName, openPage);
+        return () => window.removeEventListener(openPageEventName, openPage);
+    }, [pages, authenticated, loginPageKey]);
+
+    const menuPages = pages.filter(page => page.menu !== false);
+    const generatedMenu = menuPages.length
+        ? MenuComponent({
+            links: menuPages.map(page => {
+                const pageKey = page.key ?? page.label ?? page.title;
+
+                return {
+                    active: page === activePage,
+                    label: page.label ?? page.title,
+                    onClick() {
+                        setActivePageKey(page.auth !== false && !authenticated
+                            ? loginPageKey
+                            : pageKey);
+                    }
+                };
+            })
+        })
+        : null;
+    const generatedCenter = activePage?.component
+        ? createElement(activePage.component, activePage.props || {})
+        : activePage?.content;
+    const activeCenterTitle = activePage?.title ?? activePage?.label ?? centerTitle;
+    const centerContent = Center ?? center ?? generatedCenter;
     const wrappedCenterContent =
         centerContent !== null && centerContent !== undefined
             ? createElement(
                 CenterPanel,
                 {
-                    title: centerTitle
+                    title: activeCenterTitle
                 },
                 centerContent
             )
@@ -78,7 +136,7 @@ export const AppShell = (props = {}) => {
         Header ?? header,
         Div(
             { className: "grove-app-shell-body" },
-            Menu ?? menu,
+            Menu ?? menu ?? generatedMenu,
             createElement(
                 "main",
                 {
