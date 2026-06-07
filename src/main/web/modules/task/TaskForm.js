@@ -76,16 +76,12 @@ const TaskForm = props => {
                 }),
                 Input({
                     label: "Task Name:",
-                    maxLength: 50,
-                    minLength: 5,
                     name: "taskName",
                     readOnly: props.readOnly,
                     type: "text"
                 }),
                 TextArea({
                     label: "Task Desc:",
-                    maxLength: 500,
-                    minLength: 5,
                     name: "taskDesc",
                     readOnly: props.readOnly,
                     rows: 5
@@ -98,7 +94,6 @@ const TaskForm = props => {
                 }),
                 Input({
                     label: "Assigned To:",
-                    min: "1",
                     name: "assignedTo",
                     readOnly: props.readOnly,
                     type: "number"

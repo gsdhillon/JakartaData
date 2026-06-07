@@ -776,7 +776,10 @@ const global = typeof window === "undefined"
     }
 
     function isAttribute(name) {
-        return name.startsWith("data-") || name.startsWith("aria-") || name === "role";
+        return name.startsWith("data-") ||
+            name.startsWith("aria-") ||
+            name === "role" ||
+            name === "form";
     }
 
     const browserManagedInputTypes = new Set([

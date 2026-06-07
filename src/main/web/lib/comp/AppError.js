@@ -7,7 +7,7 @@ import {
 } from "../Grove.js";
 import { Div } from "./Div.js";
 
-const toastDurationMs = 5000;
+const toastDurationMs = 6000;
 const toastListeners = new Set();
 const appErrorState = {
     toasts: []
@@ -40,6 +40,32 @@ export const clearAppErrors = () => {
     notifyToasts();
 };
 
+const scheduleAppErrorClear = id => {
+    setTimeout(() => {
+        const toast = appErrorState.toasts.find(currentToast => currentToast.id === id);
+
+        if (toast && !toast.held) {
+            clearAppError(id);
+        }
+    }, toastDurationMs);
+};
+
+export const setAppErrorHeld = (id, held) => {
+    appErrorState.toasts = appErrorState.toasts.map(toast =>
+        toast.id === id
+            ? {
+                ...toast,
+                held
+            }
+            : toast
+    );
+    notifyToasts();
+
+    if (!held) {
+        scheduleAppErrorClear(id);
+    }
+};
+
 export const showAppError = error => {
     const id = `${Date.now()}-${Math.random()}`;
     const normalizedError =
@@ -54,15 +80,14 @@ export const showAppError = error => {
     appErrorState.toasts = [
         {
             ...normalizedError,
+            held: false,
             id
         },
         ...appErrorState.toasts
     ].slice(0, 5);
     notifyToasts();
 
-    setTimeout(() => {
-        clearAppError(id);
-    }, toastDurationMs);
+    scheduleAppErrorClear(id);
 };
 
 export const AppErrorToasts = () => {
@@ -121,6 +146,53 @@ export const AppErrorToasts = () => {
                             )
                         )
                         : null
+                ),
+                createElement(
+                    "div",
+                    { className: "grove-rest-error-actions" },
+                    createElement(
+                        "button",
+                        {
+                            "aria-label": "Dismiss error message",
+                            className: "grove-rest-error-action",
+                            onClick: event => {
+                                event.stopPropagation();
+                                clearAppError(toast.id);
+                            },
+                            title: "Dismiss",
+                            type: "button"
+                        },
+                        createElement("i", {
+                            "aria-hidden": "true",
+                            className: "bi bi-x-lg"
+                        })
+                    ),
+                    createElement(
+                        "button",
+                        {
+                            "aria-label": toast.held
+                                ? "Resume automatic dismissal"
+                                : "Hold error message",
+                            className: [
+                                "grove-rest-error-action",
+                                toast.held ? "grove-rest-error-action-held" : ""
+                            ]
+                                .filter(Boolean)
+                                .join(" "),
+                            onClick: event => {
+                                event.stopPropagation();
+                                setAppErrorHeld(toast.id, !toast.held);
+                            },
+                            title: toast.held ? "Release hold" : "Hold",
+                            type: "button"
+                        },
+                        createElement("i", {
+                            "aria-hidden": "true",
+                            className: toast.held
+                                ? "bi bi-pin-angle-fill"
+                                : "bi bi-pin-angle"
+                        })
+                    )
                 )
             )
         )

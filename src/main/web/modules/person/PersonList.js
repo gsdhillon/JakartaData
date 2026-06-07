@@ -47,7 +47,7 @@ const canUpdatePerson = (actor, person) => {
     const targetRole = roleOf(person);
 
     if (actorRole === SUPER_ADMIN) {
-        return targetRole === ADMIN || targetRole === USER;
+        return samePerson(actor?.id, person?.id) || targetRole === ADMIN || targetRole === USER;
     }
 
     if (actorRole === ADMIN) {
@@ -135,7 +135,7 @@ const PersonList = () => {
             : canUpdatePerson(loggedInPerson, normalizedPerson);
         const roleOptions = mode === "add"
             ? canCreateRoles
-            : roleOf(loggedInPerson) === SUPER_ADMIN
+            : roleOf(loggedInPerson) === SUPER_ADMIN && !samePerson(loggedInPerson?.id, normalizedPerson?.id)
                 ? [ADMIN, USER]
                 : [roleOf(normalizedPerson)];
 

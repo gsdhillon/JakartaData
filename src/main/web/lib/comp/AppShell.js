@@ -8,6 +8,7 @@ import { createElement, useEffect, useState } from "../Grove.js";
 import { AppErrorToasts } from "./AppError.js";
 import { CenterPanel } from "./CenterPanel.js";
 import { Div } from "./Div.js";
+import { Footer as FooterComponent } from "./Footer.js";
 import { Menu as MenuComponent } from "./Menu.js";
 import { RestTap } from "./REST.js";
 
@@ -26,10 +27,12 @@ export const openAppPage = key => {
 const pageKeyOf = page =>
     page?.key ?? page?.label ?? page?.title;
 
-const targetPageKey = (page, authenticated, loginPageKey) =>
+const targetPageKey = (page, authenticated, loginPageKey, forcedPageKey) =>
     page?.requiresLogin && !authenticated
         ? loginPageKey
-        : pageKeyOf(page);
+        : authenticated && forcedPageKey && pageKeyOf(page) !== forcedPageKey
+            ? forcedPageKey
+            : pageKeyOf(page);
 
 /**
  * Creates the page shell with header, menu, center area, right strip, and footer.
@@ -43,6 +46,7 @@ export const AppShell = (props = {}) => {
         Footer,
         Header,
         Menu,
+        forcedPageKey = null,
         pages = [],
         initialPage,
         authenticated = true,
@@ -50,6 +54,7 @@ export const AppShell = (props = {}) => {
         center,
         className = "",
         footer,
+        footerProps = {},
         header,
         menu,
         themeMode = "light",
@@ -59,9 +64,12 @@ export const AppShell = (props = {}) => {
     const [activePageKey, setActivePageKey] = useState(
         initialPage ?? firstPage?.key ?? firstPage?.label ?? firstPage?.title
     );
+    const [activeThemeMode, setActiveThemeMode] = useState(
+        themeMode === "dark" ? "dark" : "light"
+    );
     const activePage =
         pages.find(page => pageKeyOf(page) === activePageKey) ?? firstPage;
-    const normalizedTheme = themeMode === "dark"
+    const normalizedTheme = activeThemeMode === "dark"
         ? "dark"
         : "light";
     const shellClassName = [
@@ -77,13 +85,19 @@ export const AppShell = (props = {}) => {
             const nextPage = pages.find(page => pageKeyOf(page) === nextKey);
 
             if (nextPage) {
-                setActivePageKey(targetPageKey(nextPage, authenticated, loginPageKey));
+                setActivePageKey(targetPageKey(nextPage, authenticated, loginPageKey, forcedPageKey));
             }
         };
 
         window.addEventListener(openPageEventName, openPage);
         return () => window.removeEventListener(openPageEventName, openPage);
-    }, [pages, authenticated, loginPageKey]);
+    }, [pages, authenticated, loginPageKey, forcedPageKey]);
+
+    useEffect(() => {
+        if (authenticated && forcedPageKey && activePageKey !== forcedPageKey) {
+            setActivePageKey(forcedPageKey);
+        }
+    }, [authenticated, forcedPageKey, activePageKey]);
 
     useEffect(() => {
         if (!authenticated || activePageKey !== loginPageKey) {
@@ -100,6 +114,10 @@ export const AppShell = (props = {}) => {
         }
     }, [authenticated, activePageKey, loginPageKey, pages]);
 
+    useEffect(() => {
+        setActiveThemeMode(themeMode === "dark" ? "dark" : "light");
+    }, [themeMode]);
+
     const menuPages = pages.filter(page => page.menu !== false);
     const generatedMenu = menuPages.length
         ? MenuComponent({
@@ -108,7 +126,7 @@ export const AppShell = (props = {}) => {
                     active: page === activePage,
                     label: page.label ?? page.title,
                     onClick() {
-                        setActivePageKey(targetPageKey(page, authenticated, loginPageKey));
+                        setActivePageKey(targetPageKey(page, authenticated, loginPageKey, forcedPageKey));
                     }
                 };
             })
@@ -137,6 +155,16 @@ export const AppShell = (props = {}) => {
     ]
         .filter(Boolean)
         .join(" ");
+    const generatedFooter = createElement(
+        FooterComponent,
+        {
+            ...footerProps,
+            onThemeToggle: footerProps.onThemeToggle ?? (() => {
+                setActiveThemeMode(current => current === "dark" ? "light" : "dark");
+            }),
+            themeMode: footerProps.themeMode ?? normalizedTheme
+        }
+    );
 
     return Div(
         {
@@ -165,7 +193,7 @@ export const AppShell = (props = {}) => {
                 className: "grove-app-shell-right-strip"
             })
         ),
-        Footer ?? footer,
+        Footer ?? footer ?? generatedFooter,
         createElement(AppErrorToasts),
         createElement(RestTap)
     );

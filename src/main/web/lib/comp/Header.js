@@ -4,7 +4,12 @@
  * @email gsdhillon@gmail.com
  */
 
-import { createElement, openAppPage, useState } from "../Grove.js";
+import {
+    createElement,
+    openAppPage,
+    useEffect,
+    useState
+} from "../Grove.js";
 import { Div } from "./Div.js";
 import { Text } from "./Text.js";
 
@@ -90,6 +95,7 @@ export const Header = (props = {}) => {
         authenticated = true,
         loginInfo,
         avtar,
+        appLogo,
         className = "",
         height = "90px",
         logo = defaultLogo,
@@ -98,6 +104,18 @@ export const Header = (props = {}) => {
         ...headerProps
     } = props;
     const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
+    useEffect(() => {
+        if (!avatarMenuOpen) {
+            return undefined;
+        }
+
+        const closeAvatarMenu = () => {
+            setAvatarMenuOpen(false);
+        };
+
+        document.addEventListener("click", closeAvatarMenu);
+        return () => document.removeEventListener("click", closeAvatarMenu);
+    }, [avatarMenuOpen]);
     const resolvedAvatarMenu = menuItems
         ? menuItemsToAvatarMenu(menuItems, authenticated, actions)
         : avatarMenu;
@@ -107,6 +125,7 @@ export const Header = (props = {}) => {
         loginInfo?.avatarThumbnail ??
         loginInfo?.thumbnail ??
         defaultAvatar;
+    const resolvedLogo = appLogo ?? logo;
     const headerClassName = [
         "grove-header",
         "text-body",
@@ -127,7 +146,7 @@ export const Header = (props = {}) => {
         },
         Div(
             { className: "grove-header-logo" },
-            renderImageSlot(logo, "grove-header-logo-image", "Application logo")
+            renderImageSlot(resolvedLogo, "grove-header-logo-image", "Application logo")
         ),
         Div(
             { className: "grove-header-title-block" },
@@ -147,7 +166,12 @@ export const Header = (props = {}) => {
                 : null
         ),
         Div(
-            { className: "grove-header-avatar" },
+            {
+                className: "grove-header-avatar",
+                onClick(event) {
+                    event.stopPropagation?.();
+                }
+            },
             createElement(
                 "button",
                 {

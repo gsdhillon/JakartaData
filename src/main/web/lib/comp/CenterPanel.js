@@ -23,6 +23,7 @@ export const CenterPanel = (props = {}) => {
     } = props;
     const content = pageContent(props);
     const panelIdRef = useRef(`grove-center-panel-${Math.random().toString(36).slice(2)}`);
+    const panelId = panelProps.id || panelIdRef.current;
     const actionsRef = useRef(null);
     const [fullscreen, setFullscreen] = useState(false);
     const [actions, setActions] = useState(null);
@@ -46,27 +47,33 @@ export const CenterPanel = (props = {}) => {
 
     useEffect(() => {
         const updateFullscreen = () => {
-            setFullscreen(document.fullscreenElement?.id === panelIdRef.current);
+            setFullscreen(document.fullscreenElement?.id === panelId);
         };
 
         document.addEventListener("fullscreenchange", updateFullscreen);
         return () => document.removeEventListener("fullscreenchange", updateFullscreen);
-    }, []);
+    }, [panelId]);
 
     const toggleFullscreen = useCallback(async () => {
         if (document.fullscreenElement) {
             await document.exitFullscreen();
+            setFullscreen(false);
             return;
         }
 
-        await document.getElementById(panelIdRef.current)?.requestFullscreen?.();
-    }, []);
+        await document.getElementById(panelId)?.requestFullscreen?.();
+        setFullscreen(true);
+    }, [panelId]);
 
     const pushPage = useCallback(page => {
+        actionsRef.current = null;
+        setActions(null);
         setStack(current => current.concat(page));
     }, []);
 
     const goBack = useCallback(() => {
+        actionsRef.current = null;
+        setActions(null);
         setStack(current =>
             current.length > 1
                 ? current.slice(0, -1)
@@ -115,7 +122,7 @@ export const CenterPanel = (props = {}) => {
             {
                 ...panelProps,
                 className: panelClassName,
-                id: panelProps.id || panelIdRef.current
+                id: panelId
             },
             Div(
                 { className: "grove-center-panel-topbar" },
@@ -164,9 +171,11 @@ export const CenterPanel = (props = {}) => {
                     actions,
                     stack.length > 1
                         ? Button({
-                            label: "Back",
+                            icon: "arrow-left",
+                            label: null,
                             look: "sc",
                             onClick: goBack,
+                            title: "Back",
                             type: "button"
                         })
                         : null,

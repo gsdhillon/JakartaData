@@ -1,8 +1,16 @@
 package com.gurmeet.modules.security;
 
+import com.gurmeet.application.ValidationRules;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 public class ChangePasswordRequest {
 
+    @NotBlank(message = "Current password is required.")
     private String currentPassword;
+
+    @NotBlank(message = "New password is required.")
+    @Size(min = ValidationRules.PASSWORD_MIN_LENGTH, message = "New password must be at least {min} characters.")
     private String newPassword;
 
     public String getCurrentPassword() {

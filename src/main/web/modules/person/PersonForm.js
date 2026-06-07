@@ -1,4 +1,5 @@
 import {
+    Alert,
     Button,
     Form,
     Input,
@@ -16,7 +17,9 @@ const PersonForm = props => {
     const [person, setPerson] = useState(
         normalizePerson(props.person)
     );
+    const [message, setMessage] = useState("");
     const readOnly = props.readOnly === true;
+    const isAdd = props.mode === "add";
     const actions = useMemo(
         () => [
             props.showSubmit === false
@@ -35,11 +38,20 @@ const PersonForm = props => {
 
     return Page(
         { layout: "fill" },
+        message
+            ? Alert({ look: "warning", value: message })
+            : null,
         Form({
             data: person,
+            editableFields: {
+                id: false,
+                updatedAt: false
+            },
+            hideNonEditableFields: isAdd,
             layout: "stack",
             main: [
                 Input({
+                    editable: false,
                     label: "Id:",
                     name: "id",
                     readOnly: true,
@@ -63,6 +75,7 @@ const PersonForm = props => {
                     readOnly
                 }),
                 Instant({
+                    editable: false,
                     label: "Updated At:",
                     name: "updatedAt",
                     readOnly: true
@@ -96,7 +109,31 @@ const PersonForm = props => {
                     name: "mobileNo",
                     readOnly,
                     type: "tel"
-                })
+                }),
+                isAdd
+                    ? Input({
+                        label: "Initial Password:",
+                        name: "rawPassword",
+                        readOnly,
+                        type: "password"
+                    })
+                    : null,
+                isAdd
+                    ? Input({
+                        label: "Confirm Password:",
+                        name: "confirmPassword",
+                        readOnly,
+                        type: "password"
+                    })
+                    : null,
+                isAdd
+                    ? Input({
+                        label: "Force Password Change:",
+                        name: "passwordChangeRequired",
+                        readOnly,
+                        type: "checkbox"
+                    })
+                    : null
             ],
             aside: Photo({
                 label: "Photo",
@@ -107,6 +144,13 @@ const PersonForm = props => {
             onDataChange: setPerson,
             onSubmit(event) {
                 event.preventDefault();
+
+                if (isAdd && person.rawPassword !== person.confirmPassword) {
+                    setMessage("Initial password and confirm password do not match.");
+                    return;
+                }
+
+                setMessage("");
                 props.onSubmit?.({ ...person });
             }
         })

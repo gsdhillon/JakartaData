@@ -31,8 +31,7 @@ const formatDateTime = value => {
 
 const columns = [
     { key: "id", label: "Id" },
-    { key: "taskName", label: "Task Name" },
-    { key: "taskDesc", label: "Task Desc" },
+    { key: "taskName", label: "Task" },
     { key: "addBy", label: "Add By" },
     { key: "assignedTo", label: "Assigned To" },
     {
@@ -42,14 +41,8 @@ const columns = [
         value: task => formatDateTime(task.deadLine)
     },
     {
-        key: "createdOn",
-        label: "Created On",
-        render: task => formatInstantLocal(task.createdOn),
-        value: task => formatInstantLocal(task.createdOn)
-    },
-    {
         key: "completedOn",
-        label: "Completed On",
+        label: "Completed",
         render: task => formatInstantLocal(task.completedOn),
         value: task => formatInstantLocal(task.completedOn)
     }

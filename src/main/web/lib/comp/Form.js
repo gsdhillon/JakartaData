@@ -77,6 +77,61 @@ const bindFormVNode = (vnode, data) => {
     };
 };
 
+const isNonEditableField = (props, editableFields) =>
+    props.name &&
+    (
+        props.editable === false ||
+        editableFields?.[props.name] === false
+    );
+
+const containsNonEditableField = (vnode, editableFields) => {
+    if (
+        vnode === null ||
+        vnode === undefined ||
+        typeof vnode === "string" ||
+        typeof vnode === "number"
+    ) {
+        return false;
+    }
+
+    const props = vnode.props || {};
+
+    return isNonEditableField(props, editableFields) ||
+        (vnode.children || []).some(child =>
+            containsNonEditableField(child, editableFields)
+        );
+};
+
+const filterNonEditableFields = (vnode, editableFields) => {
+    if (
+        vnode === null ||
+        vnode === undefined ||
+        typeof vnode === "string" ||
+        typeof vnode === "number"
+    ) {
+        return vnode;
+    }
+
+    const props = vnode.props || {};
+
+    if (
+        isNonEditableField(props, editableFields) ||
+        (
+            vnode.type === "label" &&
+            String(props.className || "").includes("grove-field-label") &&
+            containsNonEditableField(vnode, editableFields)
+        )
+    ) {
+        return null;
+    }
+
+    return {
+        ...vnode,
+        children: (vnode.children || [])
+            .map(child => filterNonEditableFields(child, editableFields))
+    };
+};
+
 const toSlotChildren = slot =>
     Array.isArray(slot)
         ? slot
@@ -158,11 +213,13 @@ const bindActionToForm = (vnode, formId) => {
 export const Form = (props = {}, ...children) => {
     const {
         data,
+        editableFields,
         main,
         aside,
         action,
         actions,
         centerActions = true,
+        hideNonEditableFields = false,
         layout,
         onDataChange,
         onChange,
@@ -198,12 +255,15 @@ export const Form = (props = {}, ...children) => {
     const renderedFormProps = layoutClassName
         ? appendClassName(formProps, layoutClassName)
         : formProps;
+    const visibleFormChildren = hideNonEditableFields
+        ? formChildren.map(child => filterNonEditableFields(child, editableFields))
+        : formChildren;
     const boundChildren =
         data && onDataChange
-            ? formChildren.map(child =>
+            ? visibleFormChildren.map(child =>
                 bindFormVNode(child, data)
             )
-            : formChildren;
+            : visibleFormChildren;
 
     return createElement(
         "form",

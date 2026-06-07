@@ -7,6 +7,7 @@
 import {
     appendClassName,
     createElement,
+    useEffect,
     useMemo,
     useState
 } from "../Grove.js";
@@ -420,7 +421,12 @@ const renderColumnFilter = options => {
         ),
         isOpen
             ? Div(
-                { className: "grove-table-column-filter-popover" },
+                {
+                    className: "grove-table-column-filter-popover",
+                    onClick(event) {
+                        event.stopPropagation?.();
+                    }
+                },
                 Div(
                     { className: "grove-table-column-filter-input" },
                     icon("search"),
@@ -428,7 +434,7 @@ const renderColumnFilter = options => {
                         "aria-label": `Filter ${column.label}`,
                         name: `${key}Filter`,
                         placeholder: `Filter ${column.label}`,
-                        type: "search",
+                        type: "text",
                         value,
                         onChange(event) {
                             const nextValue = event.target.value;
@@ -509,6 +515,18 @@ const Table = (props = {}) => {
         key: null,
         direction: null
     });
+    useEffect(() => {
+        if (!activeColumnFilter) {
+            return undefined;
+        }
+
+        const closeColumnFilter = () => {
+            setActiveColumnFilter(null);
+        };
+
+        document.addEventListener("click", closeColumnFilter);
+        return () => document.removeEventListener("click", closeColumnFilter);
+    }, [activeColumnFilter]);
     const visibleRows =
         useMemo(
             () => sortedRows(

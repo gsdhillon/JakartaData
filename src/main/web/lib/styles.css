@@ -36,6 +36,7 @@
 }
 
 .grove-center-panel {
+    --grove-form-label-width: 170px;
     background: var(--app-panel-bg, var(--bs-body-bg));
     border: 1px solid var(--app-border, var(--bs-border-color));
     border-radius: 8px;
@@ -111,6 +112,14 @@
 
 .grove-center-panel-actions .grove-table-toolbar {
     margin-bottom: 0;
+}
+
+.grove-center-panel-actions .grove-button {
+    --bs-btn-font-size: 0.875rem;
+    --bs-btn-line-height: 1.25;
+    --bs-btn-padding-x: 0.5rem;
+    --bs-btn-padding-y: 0.25rem;
+    min-height: calc(1.25em + 0.5rem + 2px);
 }
 
 .grove-center-panel-content {
@@ -525,10 +534,6 @@
     gap: 0.9rem;
 }
 
-.grove-card-login .grove-field-label {
-    grid-template-columns: 130px minmax(0, 1fr);
-}
-
 .grove-card-login .grove-form-actions {
     margin-top: 1rem;
 }
@@ -633,7 +638,7 @@
 
 .grove-field-label {
     display: grid;
-    grid-template-columns: 129px 1fr;
+    grid-template-columns: var(--grove-form-label-width, 170px) minmax(0, 1fr);
     gap: 0.625rem;
     align-items: center;
 }
@@ -657,7 +662,7 @@
 }
 
 .grove-password-control .grove-control {
-    padding-right: 4.75rem;
+    padding-right: 2.75rem;
 }
 
 .grove-clear-control {
@@ -679,19 +684,18 @@
     background: transparent;
     border: 0;
     color: var(--app-muted-text, var(--bs-secondary-color));
-    gap: 0.25rem;
     display: inline-flex;
     font-size: 0.8rem;
     font-weight: 700;
     height: 1.8rem;
     justify-content: center;
     line-height: 1;
-    padding: 0 0.35rem;
+    padding: 0;
     position: absolute;
     right: 0.5rem;
     top: 50%;
     transform: translateY(-50%);
-    width: 3.75rem;
+    width: 1.8rem;
 }
 
 .grove-password-toggle:hover,
@@ -770,6 +774,8 @@
     display: inline-flex;
     gap: 0.35rem;
     align-items: center;
+    min-height: 1.8rem;
+    width: 100%;
 }
 
 .grove-table-sort {
@@ -789,7 +795,7 @@
 }
 
 .grove-table-column-filter {
-    position: relative;
+    position: static;
     display: inline-flex;
 }
 
@@ -813,15 +819,16 @@
 
 .grove-table-column-filter-popover {
     position: absolute;
-    top: calc(100% + 0.35rem);
     left: 0;
+    right: 0;
+    top: 0;
     z-index: 20;
-    width: 240px;
-    padding: 0.5rem;
-    border: 1px solid var(--bs-border-color);
-    border-radius: var(--bs-border-radius);
+    width: auto;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
     background: var(--bs-body-bg);
-    box-shadow: 0 0.75rem 1.5rem rgba(15, 23, 42, 0.18);
+    box-shadow: none;
 }
 
 .grove-table-column-filter-input {
@@ -838,6 +845,9 @@
 }
 
 .grove-table-column-filter-input .form-control {
+    min-height: 1.8rem;
+    height: 1.8rem;
+    font-size: 0.875rem;
     padding-left: 1.8rem;
     padding-right: 2rem;
 }
@@ -903,7 +913,7 @@
     color: var(--bs-body-color, #3f2b12);
     display: grid;
     gap: 10px;
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr) auto;
     min-height: 52px;
     padding: 10px;
     pointer-events: auto;
@@ -936,6 +946,34 @@
     font-size: 13px;
     line-height: 1.3;
     overflow-wrap: anywhere;
+}
+
+.grove-rest-error-actions {
+    align-items: center;
+    display: grid;
+    gap: 4px;
+}
+
+.grove-rest-error-action {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    border-radius: 4px;
+    color: inherit;
+    display: inline-flex;
+    height: 20px;
+    justify-content: center;
+    opacity: 0.72;
+    padding: 0;
+    width: 20px;
+}
+
+.grove-rest-error-action:hover,
+.grove-rest-error-action:focus-visible,
+.grove-rest-error-action-held {
+    background: rgba(220, 53, 69, 0.12);
+    color: #dc3545;
+    opacity: 1;
 }
 
 @keyframes app-message-in {
@@ -1139,6 +1177,10 @@
 
     .grove-rest-list {
         max-height: 180px;
+    }
+
+    .grove-field-label {
+        grid-template-columns: 1fr;
     }
 
     .grove-photo-picker,

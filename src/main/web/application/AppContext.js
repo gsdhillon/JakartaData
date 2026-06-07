@@ -14,6 +14,7 @@ export const AppContext = createContext({
     loginInfo: null,
     loginSession() {},
     logoutSession() {},
+    markPasswordChanged() {},
     setLoginInfo() {}
 });
 
@@ -40,7 +41,10 @@ export const AppProvider = props => {
                 setAuthToken(session.token);
                 setLoggedInPerson(session.person || null);
                 setLoginInfo(nextLoginInfo || null);
-                setTimeout(() => openAppPage("persons"), 0);
+                setTimeout(
+                    () => openAppPage(session.person?.passwordChangeRequired ? "changePass" : "persons"),
+                    0
+                );
             },
             async logoutSession() {
                 try {
@@ -52,6 +56,17 @@ export const AppProvider = props => {
                     clearSession();
                     setTimeout(() => openAppPage("login"), 0);
                 }
+            },
+            markPasswordChanged() {
+                setLoggedInPerson(currentPerson =>
+                    currentPerson
+                        ? {
+                            ...currentPerson,
+                            passwordChangeRequired: false
+                        }
+                        : currentPerson
+                );
+                setTimeout(() => openAppPage("persons"), 0);
             }
         }),
         [authToken, loggedIn, loggedInPerson, loginInfo]

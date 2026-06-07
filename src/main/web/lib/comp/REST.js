@@ -21,10 +21,6 @@ const bootstrapAdminSampleBody = JSON.stringify(
     {
         name: "Ishjyot Kaur",
         designation: "Student",
-        email: "ishjyot@gmail.com",
-        gender: "Female",
-        dob: "2004-09-23",
-        mobileNo: "9920351796",
         password: "changeit"
     },
     null,

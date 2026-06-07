@@ -2,8 +2,8 @@ import {
     AppShell,
     createElement,
     createRoot,
-    Footer,
-    Header
+    Header,
+    useMemo
 } from "../lib/Grove.js";
 import {
     AppProvider,
@@ -13,6 +13,8 @@ import PersonList from "../modules/person/PersonList.js";
 import ChangePass from "./security/ChangePass.js";
 import Login from "./security/Login.js";
 import TaskList from "../modules/task/TaskList.js";
+
+const appLogo = new URL("./logo.png", import.meta.url).href;
 
 const pages = [
     {
@@ -69,19 +71,29 @@ const AppLayout = () => {
     const {
         authToken,
         loggedIn,
+        loggedInPerson,
         loginInfo,
+        markPasswordChanged,
         logoutSession
     } = useAppContext();
+    const passwordChangeRequired = Boolean(loggedInPerson?.passwordChangeRequired);
 
-    const resolvedPages = pages.map(page => page.key === "changePass"
-        ? {
-            ...page,
-            props: { authToken }
-        }
-        : page);
+    const resolvedPages = useMemo(
+        () => pages.map(page => page.key === "changePass"
+            ? {
+                ...page,
+                props: {
+                    authToken,
+                    onPasswordChanged: markPasswordChanged
+                }
+            }
+            : page),
+        [authToken, markPasswordChanged]
+    );
 
     return AppShell({
         authenticated: loggedIn,
+        forcedPageKey: passwordChangeRequired ? "changePass" : null,
         initialPage: loggedIn ? "persons" : "login",
         loginPageKey: "login",
         pages: resolvedPages,
@@ -90,6 +102,8 @@ const AppLayout = () => {
                 logout: logoutSession
             },
             authenticated: loggedIn,
+            appLogo,
+            avatar: loggedInPerson?.photo || undefined,
             loginInfo,
             menuItems: accountMenuItems,
             title: "Jakarta Data Person",
@@ -97,9 +111,9 @@ const AppLayout = () => {
                 ? `Signed in as ${loginInfo.name}`
                 : "Person and task management"
         }),
-        Footer: Footer({
+        footerProps: {
             brand: "Jakarta Data Person"
-        })
+        }
     });
 };
 

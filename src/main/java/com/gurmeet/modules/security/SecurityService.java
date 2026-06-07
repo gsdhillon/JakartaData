@@ -64,10 +64,6 @@ public class SecurityService {
             throw new NotAuthorizedException("Current password is not valid.");
         }
 
-        if (request.getNewPassword() == null || request.getNewPassword().length() < 6) {
-            throw new BadRequestException("New password must be at least 6 characters.");
-        }
-
         personService.changePassword(personId, passwordService.hashPassword(request.getNewPassword()));
     }
 

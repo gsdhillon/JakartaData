@@ -2,6 +2,7 @@ import {
     createContext,
     useContext,
     useEffect,
+    useLayoutEffect,
     useRef
 } from "../Grove.js";
 
@@ -14,7 +15,7 @@ export const useCenterPanelActions = actions => {
     const centerPanel = useCenterPanel();
     const centerPanelRef = useRef(centerPanel);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (!centerPanel) {
             return undefined;
         }

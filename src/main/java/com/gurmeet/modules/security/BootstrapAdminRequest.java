@@ -1,5 +1,6 @@
 package com.gurmeet.modules.security;
 
+import com.gurmeet.application.ValidationRules;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Past;
@@ -28,7 +29,7 @@ public class BootstrapAdminRequest {
     private String photo;
 
     @NotBlank(message = "Password is required.")
-    @Size(min = 6, message = "Password must be at least 6 characters.")
+    @Size(min = ValidationRules.PASSWORD_MIN_LENGTH, message = "Password must be at least {min} characters.")
     private String password;
 
     public String getName() {

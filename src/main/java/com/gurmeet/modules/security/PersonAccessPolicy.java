@@ -45,6 +45,11 @@ public final class PersonAccessPolicy {
         String requestedRole = requestedPerson.getRole() == null || requestedPerson.getRole().isBlank()
                 ? existingRole
                 : normalizeRole(requestedPerson.getRole());
+        boolean selfUpdate = actor != null && actor.getId() != null && actor.getId().equals(existingPerson.getId());
+
+        if (SUPER_ADMIN.equals(actorRole) && selfUpdate && SUPER_ADMIN.equals(existingRole) && SUPER_ADMIN.equals(requestedRole)) {
+            return;
+        }
 
         if (SUPER_ADMIN.equals(actorRole) && (ADMIN.equals(existingRole) || USER.equals(existingRole)) && (ADMIN.equals(requestedRole) || USER.equals(requestedRole))) {
             return;

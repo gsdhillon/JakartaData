@@ -3,6 +3,7 @@ import {
     Button,
     Card,
     Form,
+    FormHeader,
     Input,
     Page,
     useMemo,
@@ -33,9 +34,13 @@ const ChangePass = props => {
     );
 
     return Page(
-        { layout: "fill" },
+        { layout: "center" },
         Card(
-            { kind: "form" },
+            { kind: "login" },
+            FormHeader({
+                icon: "key",
+                title: "Change Password"
+            }),
             !props.authToken
                 ? Alert({ look: "info", value: "Login before changing password." })
                 : null,
@@ -53,13 +58,11 @@ const ChangePass = props => {
                     }),
                     Input({
                         label: "New Password:",
-                        minLength: 6,
                         name: "newPassword",
                         type: "password"
                     }),
                     Input({
                         label: "Confirm Password:",
-                        minLength: 6,
                         name: "confirmPassword",
                         type: "password"
                     })
@@ -77,11 +80,20 @@ const ChangePass = props => {
                     setIsBusy(true);
                     setMessage("");
 
+                    let redirected = false;
+
                     try {
                         await changePassword(props.authToken, {
                             currentPassword: passwords.currentPassword,
                             newPassword: passwords.newPassword
                         });
+
+                        if (props.onPasswordChanged) {
+                            redirected = true;
+                            props.onPasswordChanged();
+                            return;
+                        }
+
                         setPasswords({
                             currentPassword: "",
                             newPassword: "",
@@ -91,7 +103,9 @@ const ChangePass = props => {
                     } catch {
                         setMessage("Unable to change password.");
                     } finally {
-                        setIsBusy(false);
+                        if (!redirected) {
+                            setIsBusy(false);
+                        }
                     }
                 }
             })

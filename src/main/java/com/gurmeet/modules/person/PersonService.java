@@ -2,9 +2,15 @@ package com.gurmeet.modules.person;
 
 import com.gurmeet.application.EditableFields;
 import com.gurmeet.modules.security.PersonAccessPolicy;
+import com.gurmeet.modules.security.PasswordService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.json.JsonObject;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.PersistenceException;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validator;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
 
@@ -17,18 +23,34 @@ import java.util.Optional;
 public class PersonService {
 
     private PersonRepository personRepository;
+    private PasswordService passwordService;
+    private Validator validator;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public PersonService() {
     }
 
     @Inject
-    public PersonService(PersonRepository personRepository) {
+    public PersonService(PersonRepository personRepository, PasswordService passwordService, Validator validator) {
         this.personRepository = personRepository;
+        this.passwordService = passwordService;
+        this.validator = validator;
     }
 
     public Person create(Person person) {
         person.setId(null);
         person.setRole(PersonAccessPolicy.normalizeRole(person.getRole()));
+
+        var violations = validator.validate(person, Person.Create.class);
+
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
+        }
+
+        person.setPassword(passwordService.hashPassword(person.getRawPassword()));
+        person.setRawPassword(null);
         return personRepository.save(person);
     }
 
@@ -37,10 +59,15 @@ public class PersonService {
     }
 
     public boolean hasPersons() {
-        return personRepository.findAll()
-                .limit(1)
-                .findAny()
-                .isPresent();
+        try {
+            Number count = (Number) entityManager
+                    .createNativeQuery("SELECT COUNT(*) FROM Person")
+                    .getSingleResult();
+
+            return count.longValue() > 0;
+        } catch (PersistenceException exception) {
+            return false;
+        }
     }
 
     public Optional<Person> findById(Long id) {
@@ -102,6 +129,7 @@ public class PersonService {
                 .orElseThrow(() -> new NotFoundException("Person not found: " + id));
 
         person.setPassword(passwordHash);
+        person.setPasswordChangeRequired(false);
         return personRepository.save(person);
     }
 

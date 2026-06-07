@@ -47,6 +47,9 @@ const PhotoPicker = (props = {}) => {
         if (valueInput) {
             valueInput.value = value;
             valueInput.dispatchEvent(
+                new Event("input", { bubbles: true })
+            );
+            valueInput.dispatchEvent(
                 new Event("change", { bubbles: true })
             );
         }

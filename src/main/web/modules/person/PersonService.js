@@ -12,7 +12,10 @@ export const createEmptyPerson = () => ({
     gender: "",
     role: "USER",
     mobileNo: "",
-    photo: ""
+    photo: "",
+    rawPassword: "",
+    confirmPassword: "",
+    passwordChangeRequired: true
 });
 
 export const normalizePerson = person => ({
@@ -26,6 +29,11 @@ const personPayload = person => {
 
     delete payload.id;
     delete payload.updatedAt;
+    delete payload.confirmPassword;
+
+    if (payload.rawPassword === "") {
+        delete payload.rawPassword;
+    }
 
     if (payload.dob === "") {
         payload.dob = null;

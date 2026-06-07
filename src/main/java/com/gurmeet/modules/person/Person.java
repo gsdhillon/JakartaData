@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 import com.gurmeet.application.EditableField;
+import com.gurmeet.application.ValidationRules;
 import com.gurmeet.modules.security.PersonAccessPolicy;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Transient;
 import jakarta.json.bind.annotation.JsonbTransient;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Past;
@@ -20,6 +22,9 @@ import jakarta.validation.constraints.Size;
 
 @Entity
 public class Person {
+
+    public interface Create {
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -65,6 +70,15 @@ public class Person {
     @EditableField(false)
     @JsonbTransient
     private String password;
+
+    @Transient
+    @NotBlank(message = "Initial password is required.", groups = Create.class)
+    @Size(min = ValidationRules.PASSWORD_MIN_LENGTH, message = "Initial password must be at least {min} characters.", groups = Create.class)
+    private String rawPassword;
+
+    @EditableField(false)
+    @Column(name = "password_change_required")
+    private boolean passwordChangeRequired;
 
     public Person() {
     }
@@ -165,5 +179,21 @@ public class Person {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getRawPassword() {
+        return rawPassword;
+    }
+
+    public void setRawPassword(String rawPassword) {
+        this.rawPassword = rawPassword;
+    }
+
+    public boolean isPasswordChangeRequired() {
+        return passwordChangeRequired;
+    }
+
+    public void setPasswordChangeRequired(boolean passwordChangeRequired) {
+        this.passwordChangeRequired = passwordChangeRequired;
     }
 }

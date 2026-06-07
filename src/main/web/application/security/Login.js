@@ -102,7 +102,6 @@ const Login = props => {
                 main: [
                     Input({
                         label: "Person Id:",
-                        min: "1",
                         name: "personId",
                         type: "number"
                     }),

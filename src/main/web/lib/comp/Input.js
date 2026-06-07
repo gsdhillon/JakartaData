@@ -35,7 +35,6 @@ const togglePasswordVisibility = event => {
         .closest(".grove-password-control")
         ?.querySelector("input");
     const icon = button.querySelector("i");
-    const text = button.querySelector(".grove-password-toggle-text");
 
     if (!input) {
         return;
@@ -52,10 +51,6 @@ const togglePasswordVisibility = event => {
 
     if (icon) {
         icon.className = `bi bi-${shouldShow ? "eye-slash" : "eye"}`;
-    }
-
-    if (text) {
-        text.textContent = shouldShow ? "Hide" : "Show";
     }
 
     input.focus();
@@ -119,11 +114,6 @@ export const Input = (props = {}, ...children) => {
                             "aria-hidden": "true",
                             className: "bi bi-eye"
                         }
-                    ),
-                    createElement(
-                        "span",
-                        { className: "grove-password-toggle-text" },
-                        "Show"
                     )
                 )
             )
