@@ -35,7 +35,7 @@
     background: transparent !important;
 }
 
-.center-panel {
+.grove-center-panel {
     background: var(--app-panel-bg, var(--bs-body-bg));
     border: 1px solid var(--app-border, var(--bs-border-color));
     border-radius: 8px;
@@ -47,13 +47,13 @@
     padding: 0;
 }
 
-.center-panel:fullscreen {
+.grove-center-panel:fullscreen {
     background: var(--app-panel-bg, var(--bs-body-bg));
     border-radius: 0;
     height: 100vh;
 }
 
-.center-panel-topbar {
+.grove-center-panel-topbar {
     align-items: center;
     background: transparent;
     border-bottom: 1px solid color-mix(in srgb, var(--app-border, var(--bs-border-color)) 72%, transparent);
@@ -64,34 +64,30 @@
     padding: 4px 7px 4px 12px;
 }
 
-.center-panel-path {
+.grove-center-panel-path {
     align-items: center;
-    color: var(--app-button-color, var(--bs-primary));
     display: flex;
     flex: 1;
     flex-wrap: wrap;
-    font-size: 17px;
-    font-weight: 800;
     gap: 0;
-    line-height: 1;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.center-panel-path-part {
+.grove-center-panel-path-part {
     display: inline-flex;
     gap: 0.35rem;
     align-items: center;
 }
 
-.center-panel-path-separator {
+.grove-center-panel-path-separator {
     color: color-mix(in srgb, var(--app-muted-text, var(--bs-secondary-color)) 70%, transparent);
     margin: 0 5px;
 }
 
-.center-panel-path-button {
+.grove-center-panel-path-button {
     background: transparent;
     border: 0;
     color: inherit;
@@ -101,11 +97,11 @@
     padding: 0;
 }
 
-.center-panel-path-button:hover {
+.grove-center-panel-path-button:hover {
     color: var(--app-button-color, var(--bs-primary));
 }
 
-.center-panel-actions {
+.grove-center-panel-actions {
     align-items: center;
     display: inline-flex;
     flex: 0 0 auto;
@@ -113,14 +109,35 @@
     gap: 4px;
 }
 
-.center-panel-actions .grove-table-toolbar {
+.grove-center-panel-actions .grove-table-toolbar {
     margin-bottom: 0;
 }
 
-.center-panel-content {
+.grove-center-panel-content {
     min-height: 0;
     overflow: hidden;
     padding: 0;
+    position: relative;
+}
+
+.grove-page {
+    min-height: 0;
+    width: 100%;
+}
+
+.grove-page-fill {
+    height: 100%;
+    overflow: auto;
+    padding: 1rem;
+}
+
+.grove-page-center {
+    align-items: center;
+    display: flex;
+    inset: 0;
+    justify-content: center;
+    padding: 1.5rem;
+    position: absolute;
 }
 
 .grove-header {
@@ -195,6 +212,11 @@
     background: var(--bs-tertiary-bg);
 }
 
+.grove-text {
+    margin: 0;
+}
+
+.grove-text-app-title,
 .grove-header-title {
     color: color-mix(in srgb, var(--app-border-color, rgba(245, 158, 11, 0.42)) 24%, #ffffff);
     font-size: 25px;
@@ -205,6 +227,7 @@
     text-transform: uppercase;
 }
 
+.grove-text-app-title::after,
 .grove-header-title::after {
     background: var(--bs-primary);
     border-radius: 999px;
@@ -215,9 +238,39 @@
     width: min(100%, 148px);
 }
 
+.grove-text-title,
+.grove-center-panel-path,
+.grove-form-header,
+.login-card-header,
+.grove-rest-side-title {
+    color: var(--app-button-color, var(--bs-primary));
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.grove-text-app-subtitle,
 .grove-header-subtitle {
     color: rgba(255, 255, 255, 0.82);
     margin: 0;
+}
+
+.grove-text-subtitle {
+    color: var(--app-muted-text, var(--bs-secondary-color));
+    font-size: 0.95rem;
+    line-height: 1.25;
+    margin: 0;
+}
+
+.grove-text-label,
+.grove-field-label {
+    font-weight: 700;
+}
+
+.grove-text-caption {
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
 }
 
 .grove-footer {
@@ -383,7 +436,7 @@
 }
 
 .grove-menu-links,
-.form-fields {
+.grove-form-fields {
     display: grid;
     gap: 0.75rem;
 }
@@ -414,22 +467,147 @@
     color: #ffffff !important;
 }
 
-.form-main {
+.grove-form-main {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 240px;
     gap: 1.25rem;
     align-items: start;
 }
 
-.form-actions,
+.grove-form-actions,
 .grove-table-actions {
     display: flex;
     gap: 0.5rem;
 }
 
+.grove-form-stack {
+    display: grid;
+    gap: 1rem;
+}
+
+.grove-card {
+    background: var(--bs-body-bg);
+    border: 1px solid color-mix(in srgb, var(--app-border, var(--bs-border-color)) 72%, transparent);
+    border-radius: 0.75rem;
+    box-shadow: 0 0.5rem 1rem rgba(15, 23, 42, 0.12);
+    padding: 1.5rem;
+}
+
+.grove-card-form,
 .security-form {
     margin: 0;
     max-width: 560px;
+}
+
+.grove-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+}
+
+.grove-card-login {
+    border: 0;
+    overflow: hidden;
+    width: min(100%, 460px);
+}
+
+.grove-card-align-center {
+    align-items: center;
+}
+
+.grove-card-login .grove-form-main {
+    display: block;
+}
+
+.grove-card-login .grove-form-fields {
+    display: grid;
+    gap: 0.9rem;
+}
+
+.grove-card-login .grove-field-label {
+    grid-template-columns: 130px minmax(0, 1fr);
+}
+
+.grove-card-login .grove-form-actions {
+    margin-top: 1rem;
+}
+
+.grove-form-header {
+    align-items: center;
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    white-space: nowrap;
+}
+
+.grove-form-header-text {
+    display: grid;
+    gap: 0.2rem;
+}
+
+.grove-form-header-icon {
+    font-size: 1.15rem;
+    line-height: 1;
+}
+
+.grove-alert {
+    border: 1px solid transparent;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    padding: 0.5rem 0.75rem;
+}
+
+.grove-alert-info {
+    background: var(--bs-info-bg-subtle);
+    border-color: var(--bs-info-border-subtle);
+    color: var(--bs-info-text-emphasis);
+}
+
+.grove-alert-warning {
+    background: var(--bs-warning-bg-subtle);
+    border-color: var(--bs-warning-border-subtle);
+    color: var(--bs-warning-text-emphasis);
+}
+
+.grove-alert-danger {
+    background: var(--bs-danger-bg-subtle);
+    border-color: var(--bs-danger-border-subtle);
+    color: var(--bs-danger-text-emphasis);
+}
+
+.grove-alert-success {
+    background: var(--bs-success-bg-subtle);
+    border-color: var(--bs-success-border-subtle);
+    color: var(--bs-success-text-emphasis);
+}
+
+.grove-status-text {
+    align-self: stretch;
+    color: var(--app-muted-text, var(--bs-secondary-color));
+}
+
+.security-form {
+    margin: 0;
+    max-width: 560px;
+}
+
+.login-card {
+    border: 0;
+    overflow: hidden;
+}
+
+.login-card-header {
+    align-items: center;
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    white-space: nowrap;
+}
+
+.login-card-icon {
+    font-size: 1.15rem;
+    line-height: 1;
 }
 
 .grove-button {
@@ -458,10 +636,9 @@
     grid-template-columns: 129px 1fr;
     gap: 0.625rem;
     align-items: center;
-    font-weight: 700;
 }
 
-.grove-field-label > * {
+.grove-field-label > :not(.grove-text-label) {
     font-weight: 400;
 }
 
@@ -470,8 +647,17 @@
     display: block;
 }
 
+.grove-password-control {
+    position: relative;
+    display: block;
+}
+
 .grove-clearable-control .grove-control {
     padding-right: 2rem;
+}
+
+.grove-password-control .grove-control {
+    padding-right: 4.75rem;
 }
 
 .grove-clear-control {
@@ -486,6 +672,31 @@
     line-height: 1;
     text-decoration: none;
     transform: translateY(-50%);
+}
+
+.grove-password-toggle {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    color: var(--app-muted-text, var(--bs-secondary-color));
+    gap: 0.25rem;
+    display: inline-flex;
+    font-size: 0.8rem;
+    font-weight: 700;
+    height: 1.8rem;
+    justify-content: center;
+    line-height: 1;
+    padding: 0 0.35rem;
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3.75rem;
+}
+
+.grove-password-toggle:hover,
+.grove-password-toggle:focus {
+    color: var(--app-button-color, var(--bs-primary));
 }
 
 .grove-photo-picker {
@@ -652,7 +863,7 @@
     color: var(--bs-danger);
 }
 
-.search-highlight {
+.grove-search-highlight {
     padding: 0 0.08rem;
     border-radius: 0.15rem;
     background: #fff3cd;
@@ -850,10 +1061,6 @@
 }
 
 .grove-rest-side-title {
-    color: var(--bs-primary);
-    font-size: 16px;
-    font-weight: 800;
-    line-height: 1;
     position: sticky;
     top: 0;
     z-index: 1;
@@ -907,7 +1114,7 @@
 @media (max-width: 640px) {
     .grove-app-shell-body,
     .grove-rest-dialog-body,
-    .form-main {
+    .grove-form-main {
         grid-template-columns: 1fr;
     }
 
@@ -944,3 +1151,4 @@
         aspect-ratio: 3 / 4;
     }
 }
+

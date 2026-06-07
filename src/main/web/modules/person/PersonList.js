@@ -1,14 +1,16 @@
 import {
     Button,
+    Card,
     createElement,
-    Div,
+    Page,
+    StatusText,
     useCenterPanel,
     useContext,
     useEffect,
     useMemo,
     useState
 } from "../../lib/Grove.js";
-import { AppContext } from "../application/AppContext.js";
+import { AppContext } from "../../application/AppContext.js";
 import PersonForm from "./PersonForm.js";
 import {
     createPerson,
@@ -205,24 +207,27 @@ const PersonList = () => {
         [isBusy, authToken, loggedInPerson]
     );
 
-    return Div(
-        { className: "card shadow-sm p-4 demo person-list-view" },
-        statusMessage
-            ? Div(
-                { className: "text-muted align-self-stretch person-status" },
-                statusMessage
-            )
-            : null,
-        PersonTable({
-            persons,
-            onDelete: deletePerson,
-            onUpdate: person => openPersonForm("update", person),
-            onView: person => openPersonForm("view", person),
-            canDelete: person => canDeletePerson(loggedInPerson, person),
-            canUpdate: person => canUpdatePerson(loggedInPerson, person),
-            isBusy,
-            toolbarActions
-        })
+    return Page(
+        { layout: "fill" },
+        Card(
+            {
+                align: "center",
+                kind: "list"
+            },
+            statusMessage
+                ? StatusText({ value: statusMessage })
+                : null,
+            PersonTable({
+                persons,
+                onDelete: deletePerson,
+                onUpdate: person => openPersonForm("update", person),
+                onView: person => openPersonForm("view", person),
+                canDelete: person => canDeletePerson(loggedInPerson, person),
+                canUpdate: person => canUpdatePerson(loggedInPerson, person),
+                isBusy,
+                toolbarActions
+            })
+        )
     );
 };
 

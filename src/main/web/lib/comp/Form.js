@@ -5,6 +5,7 @@
  */
 
 import {
+    appendClassName,
     createElement,
     useMemo,
     useRef
@@ -96,9 +97,9 @@ const renderSlotLayout = slots => {
 
         layoutChildren.push(
             Div(
-                { className: "form-main" },
+                { className: "grove-form-main" },
                 Div(
-                    { className: "form-fields" },
+                    { className: "grove-form-fields" },
                     ...mainChildren
                 ),
                 ...(slots.aside !== undefined
@@ -111,7 +112,7 @@ const renderSlotLayout = slots => {
     if (slots.actions !== undefined) {
         layoutChildren.push(
             Div(
-                { className: "form-actions" },
+                { className: "grove-form-actions" },
                 ...toSlotChildren(slots.actions)
             )
         );
@@ -161,6 +162,8 @@ export const Form = (props = {}, ...children) => {
         aside,
         action,
         actions,
+        centerActions = true,
+        layout,
         onDataChange,
         onChange,
         ...formProps
@@ -173,14 +176,14 @@ export const Form = (props = {}, ...children) => {
         () => actionSlot === undefined
             ? null
             : Div(
-                { className: "form-actions" },
+                { className: "grove-form-actions" },
                 ...toSlotChildren(actionSlot).map(actionNode =>
                     bindActionToForm(actionNode, formId)
                 )
             ),
         [actionSlot, formId]
     );
-    const moveActionsToCenter = Boolean(centerPanel && actionSlot !== undefined);
+    const moveActionsToCenter = Boolean(centerActions && centerPanel && actionSlot !== undefined);
     useCenterPanelActions(moveActionsToCenter ? toolbarActions : null);
     const formChildren = hasSlotLayout({ main, aside, actions: actionSlot })
         ? renderSlotLayout({
@@ -189,6 +192,12 @@ export const Form = (props = {}, ...children) => {
             actions: moveActionsToCenter ? undefined : actionSlot
         })
         : children;
+    const layoutClassName = layout
+        ? `grove-form-${String(layout).toLowerCase()}`
+        : "";
+    const renderedFormProps = layoutClassName
+        ? appendClassName(formProps, layoutClassName)
+        : formProps;
     const boundChildren =
         data && onDataChange
             ? formChildren.map(child =>
@@ -199,7 +208,7 @@ export const Form = (props = {}, ...children) => {
     return createElement(
         "form",
         {
-            ...formProps,
+            ...renderedFormProps,
             id: formId,
             onChange(event) {
                 onChange?.(event);

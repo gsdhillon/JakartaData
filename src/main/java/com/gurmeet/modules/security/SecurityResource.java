@@ -18,10 +18,21 @@ public class SecurityResource {
     @Inject
     private SecurityService securityService;
 
+    @Inject
+    private BootstrapAdminService bootstrapAdminService;
+
     @POST
     @Path("/login")
     public AuthResponse login(@Valid LoginRequest request) {
         return securityService.login(request);
+    }
+
+    @POST
+    @Path("/bootstrap-admin")
+    public Response bootstrapAdmin(@Valid BootstrapAdminRequest request) {
+        return Response.status(Response.Status.CREATED)
+                .entity(bootstrapAdminService.createFirstSuperAdmin(request))
+                .build();
     }
 
     @POST

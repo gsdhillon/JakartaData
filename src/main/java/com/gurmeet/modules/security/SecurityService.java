@@ -10,35 +10,30 @@ import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotAuthorizedException;
 
 import javax.crypto.Mac;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.Base64;
 
 @ApplicationScoped
 public class SecurityService {
 
-    private static final String HASH_ALGORITHM = "PBKDF2WithHmacSHA256";
-    private static final int HASH_ITERATIONS = 65536;
-    private static final int HASH_LENGTH = 256;
     private static final long TOKEN_TTL_SECONDS = 8 * 60 * 60;
     private static final String JWT_ALGORITHM = "HmacSHA256";
     private static final String JWT_SECRET = "JakartaDataPersonChangeThisSecret";
 
-    private final SecureRandom secureRandom = new SecureRandom();
     private PersonService personService;
+    private PasswordService passwordService;
 
     public SecurityService() {
     }
 
     @Inject
-    public SecurityService(PersonService personService) {
+    public SecurityService(PersonService personService, PasswordService passwordService) {
         this.personService = personService;
+        this.passwordService = passwordService;
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -49,12 +44,12 @@ public class SecurityService {
         Person person = personService.findById(request.getPersonId())
                 .orElseThrow(() -> new NotAuthorizedException("Invalid login."));
 
-        if (!verifyPassword(request.getPassword(), person.getPassword())) {
+        if (!passwordService.verifyPassword(request.getPassword(), person.getPassword())) {
             throw new NotAuthorizedException("Invalid login.");
         }
 
-        if (needsPasswordUpgrade(person.getPassword())) {
-            personService.changePassword(person.getId(), hashPassword(request.getPassword()));
+        if (passwordService.needsPasswordUpgrade(person.getPassword())) {
+            personService.changePassword(person.getId(), passwordService.hashPassword(request.getPassword()));
         }
 
         return new AuthResponse(person, createToken(person));
@@ -65,7 +60,7 @@ public class SecurityService {
         Person person = personService.findById(personId)
                 .orElseThrow(() -> new NotAuthorizedException("Invalid token."));
 
-        if (!verifyPassword(request.getCurrentPassword(), person.getPassword())) {
+        if (!passwordService.verifyPassword(request.getCurrentPassword(), person.getPassword())) {
             throw new NotAuthorizedException("Current password is not valid.");
         }
 
@@ -73,7 +68,7 @@ public class SecurityService {
             throw new BadRequestException("New password must be at least 6 characters.");
         }
 
-        personService.changePassword(personId, hashPassword(request.getNewPassword()));
+        personService.changePassword(personId, passwordService.hashPassword(request.getNewPassword()));
     }
 
     public Long requireUserId(String authorizationHeader) {
@@ -136,55 +131,6 @@ public class SecurityService {
         } catch (Exception exception) {
             throw new IllegalStateException("Unable to sign JWT.", exception);
         }
-    }
-
-    private String hashPassword(String password) {
-        try {
-            byte[] salt = new byte[16];
-            secureRandom.nextBytes(salt);
-            PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, HASH_ITERATIONS, HASH_LENGTH);
-            byte[] hash = SecretKeyFactory.getInstance(HASH_ALGORITHM).generateSecret(spec).getEncoded();
-
-            return "pbkdf2$" + HASH_ITERATIONS + "$" + base64Url(salt) + "$" + base64Url(hash);
-        } catch (Exception exception) {
-            throw new IllegalStateException("Unable to hash password.", exception);
-        }
-    }
-
-    private boolean verifyPassword(String password, String storedPassword) {
-        if (password == null || storedPassword == null || storedPassword.isBlank()) {
-            return false;
-        }
-
-        try {
-            if (!isHashedPassword(storedPassword)) {
-                return password.equals(storedPassword);
-            }
-
-            String[] parts = storedPassword.split("\\$");
-
-            if (parts.length != 4) {
-                return false;
-            }
-
-            int iterations = Integer.parseInt(parts[1]);
-            byte[] salt = Base64.getUrlDecoder().decode(parts[2]);
-            byte[] expectedHash = Base64.getUrlDecoder().decode(parts[3]);
-            PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, iterations, expectedHash.length * 8);
-            byte[] actualHash = SecretKeyFactory.getInstance(HASH_ALGORITHM).generateSecret(spec).getEncoded();
-
-            return MessageDigest.isEqual(expectedHash, actualHash);
-        } catch (Exception exception) {
-            return false;
-        }
-    }
-
-    private boolean needsPasswordUpgrade(String storedPassword) {
-        return storedPassword != null && !storedPassword.isBlank() && !isHashedPassword(storedPassword);
-    }
-
-    private boolean isHashedPassword(String storedPassword) {
-        return storedPassword != null && storedPassword.startsWith("pbkdf2$");
     }
 
     private String bearerToken(String authorizationHeader) {

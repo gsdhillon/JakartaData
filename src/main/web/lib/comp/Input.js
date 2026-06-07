@@ -8,6 +8,7 @@ import {
     appendClassName,
     createElement
 } from "../Grove.js";
+import { Text } from "./Text.js";
 
 const clearableTypes = new Set([
     "date",
@@ -25,6 +26,38 @@ const clearInputValue = event => {
 
     input.value = "";
     input.dispatchEvent(new Event("change", { bubbles: true }));
+    input.focus();
+};
+
+const togglePasswordVisibility = event => {
+    const button = event.currentTarget;
+    const input = button
+        .closest(".grove-password-control")
+        ?.querySelector("input");
+    const icon = button.querySelector("i");
+    const text = button.querySelector(".grove-password-toggle-text");
+
+    if (!input) {
+        return;
+    }
+
+    const shouldShow = input.type === "password";
+
+    input.type = shouldShow ? "text" : "password";
+    button.setAttribute(
+        "aria-label",
+        `${shouldShow ? "Hide" : "Show"} ${button.dataset.grovePasswordName || "password"}`
+    );
+    button.setAttribute("title", shouldShow ? "Hide password" : "Show password");
+
+    if (icon) {
+        icon.className = `bi bi-${shouldShow ? "eye-slash" : "eye"}`;
+    }
+
+    if (text) {
+        text.textContent = shouldShow ? "Hide" : "Show";
+    }
+
     input.focus();
 };
 
@@ -62,11 +95,44 @@ export const Input = (props = {}, ...children) => {
         !controlProps.readOnly &&
         !controlProps.disabled &&
         Boolean(controlProps.value);
+    const passwordControl =
+        controlProps.type === "password" &&
+        !controlProps.readOnly &&
+        !controlProps.disabled
+            ? createElement(
+                "span",
+                { className: "grove-password-control" },
+                control,
+                createElement(
+                    "button",
+                    {
+                        "aria-label": `Show ${label || controlProps.name || "password"}`,
+                        className: "grove-password-toggle",
+                        "data-grove-password-name": label || controlProps.name || "password",
+                        title: "Show password",
+                        type: "button",
+                        onClick: togglePasswordVisibility
+                    },
+                    createElement(
+                        "i",
+                        {
+                            "aria-hidden": "true",
+                            className: "bi bi-eye"
+                        }
+                    ),
+                    createElement(
+                        "span",
+                        { className: "grove-password-toggle-text" },
+                        "Show"
+                    )
+                )
+            )
+            : control;
     const clearableControl = clearableTypes.has(controlProps.type)
         ? createElement(
             "span",
             { className: "grove-clearable-control" },
-            control,
+            passwordControl,
             shouldShowClear
                 ? createElement(
                     "button",
@@ -80,13 +146,16 @@ export const Input = (props = {}, ...children) => {
                 )
                 : null
         )
-        : control;
+        : passwordControl;
 
     return label
         ? createElement(
             "label",
             { className: "grove-field-label" },
-            label,
+            Text({
+                look: "label",
+                value: label
+            }),
             clearableControl
         )
         : clearableControl;

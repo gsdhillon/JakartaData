@@ -12,10 +12,24 @@ import {
 import { Button } from "./Button.js";
 import { Div } from "./Div.js";
 import { showAppError } from "./AppError.js";
+import { Text } from "./Text.js";
 
 const openEventName = "grove-rest-open";
 const maxEntries = 10;
 const defaultComposerHeaders = "Content-Type: application/json\nAccept: application/json";
+const bootstrapAdminSampleBody = JSON.stringify(
+    {
+        name: "Ishjyot Kaur",
+        designation: "Student",
+        email: "ishjyot@gmail.com",
+        gender: "Female",
+        dob: "2004-09-23",
+        mobileNo: "9920351796",
+        password: "changeit"
+    },
+    null,
+    2
+);
 const listeners = new Set();
 const state = {
     enabled: false,
@@ -571,6 +585,14 @@ export const RestTap = () => {
             setComposerBusy(false);
         }
     };
+    const composeBootstrapAdmin = () => {
+        setComposerMethod("POST");
+        setComposerEndpoint("security/bootstrap-admin");
+        setComposerHeaders(defaultComposerHeaders);
+        setComposerBody(bootstrapAdminSampleBody);
+        setComposerMessage("Bootstrap admin sample loaded. Edit values, then Send.");
+        setTab("compose");
+    };
 
     const content = Div(
         { className: "grove-rest-window" },
@@ -580,7 +602,10 @@ export const RestTap = () => {
                     { className: "list-group list-group-flush grove-rest-list" },
                     Div(
                         { className: "h6 m-0 p-3 border-bottom grove-rest-side-title" },
-                        "REST API Calls"
+                        Text({
+                            look: "title",
+                            value: "REST API Calls"
+                        })
                     ),
                     entries.length
                         ? entries.map(entry =>
@@ -649,6 +674,15 @@ export const RestTap = () => {
                             onClick() {
                                 setTab("compose");
                             }
+                        }),
+                        Button({
+                            disabled: composerBusy,
+                            icon: "person-fill-add",
+                            label: null,
+                            look: "ut",
+                            title: "Load bootstrap admin request",
+                            type: "button",
+                            onClick: composeBootstrapAdmin
                         }),
                         Button({
                             disabled: entries.length === 0,

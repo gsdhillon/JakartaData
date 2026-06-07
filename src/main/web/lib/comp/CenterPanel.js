@@ -10,6 +10,7 @@ import { Button } from "./Button.js";
 import { CenterPanelContext } from "./CenterPanelContext.js";
 import { Div } from "./Div.js";
 import { AppErrorToasts } from "./AppError.js";
+import { Text } from "./Text.js";
 
 const pageContent = props =>
     props.content ?? props.children?.[0] ?? null;
@@ -21,7 +22,7 @@ export const CenterPanel = (props = {}) => {
         ...panelProps
     } = props;
     const content = pageContent(props);
-    const panelIdRef = useRef(`center-panel-${Math.random().toString(36).slice(2)}`);
+    const panelIdRef = useRef(`grove-center-panel-${Math.random().toString(36).slice(2)}`);
     const actionsRef = useRef(null);
     const [fullscreen, setFullscreen] = useState(false);
     const [actions, setActions] = useState(null);
@@ -101,7 +102,7 @@ export const CenterPanel = (props = {}) => {
         ? [activePage]
         : stack;
     const panelClassName = [
-        "center-panel",
+        "grove-center-panel",
         className
     ]
         .filter(Boolean)
@@ -117,47 +118,49 @@ export const CenterPanel = (props = {}) => {
                 id: panelProps.id || panelIdRef.current
             },
             Div(
-                { className: "center-panel-topbar" },
+                { className: "grove-center-panel-topbar" },
                 Div(
                     {
                         "aria-label": "Current location",
-                        className: "center-panel-path"
+                        className: "grove-center-panel-path"
                     },
                     ...visiblePath.map((page, index) => {
                         const isLast = index === visiblePath.length - 1;
 
                         return Div(
                             {
-                                className: "center-panel-path-part",
+                                className: "grove-center-panel-path-part",
                                 key: index
                             },
                             index > 0
                                 ? createElement(
                                     "span",
-                                    { className: "center-panel-path-separator" },
+                                    { className: "grove-center-panel-path-separator" },
                                     "/"
                                 )
                                 : null,
                             isLast
-                                ? createElement(
-                                    "span",
-                                    {},
-                                    page.title
-                                )
+                                ? Text({
+                                    look: "title",
+                                    value: page.title
+                                })
                                 : createElement(
                                     "button",
                                     {
-                                        className: "center-panel-path-button",
+                                        className: "grove-center-panel-path-button",
                                         onClick: () => popTo(index),
                                         type: "button"
                                     },
-                                    page.title
+                                    Text({
+                                        look: "title",
+                                        value: page.title
+                                    })
                                 )
                         );
                     })
                 ),
                 Div(
-                    { className: "center-panel-actions" },
+                    { className: "grove-center-panel-actions" },
                     actions,
                     stack.length > 1
                         ? Button({
@@ -178,7 +181,7 @@ export const CenterPanel = (props = {}) => {
                 )
             ),
             Div(
-                { className: "center-panel-content" },
+                { className: "grove-center-panel-content" },
                 activePage.content
             ),
             fullscreen ? createElement(AppErrorToasts) : null

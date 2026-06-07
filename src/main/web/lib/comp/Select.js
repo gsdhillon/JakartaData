@@ -8,6 +8,7 @@ import {
     appendClassName,
     createElement
 } from "../Grove.js";
+import { Text } from "./Text.js";
 
 const normalizePlaceholderName = value => {
     const normalized = String(value || "")
@@ -87,7 +88,10 @@ export const Select = (props = {}, ...children) => {
         ? createElement(
             "label",
             { className: "grove-field-label" },
-            label,
+            Text({
+                look: "label",
+                value: label
+            }),
             control
         )
         : control;

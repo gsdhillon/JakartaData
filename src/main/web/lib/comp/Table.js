@@ -188,7 +188,7 @@ const highlightText = (text, search) => {
             ? createElement(
                 "mark",
                 {
-                    className: "search-highlight",
+                    className: "grove-search-highlight",
                     key: `hit-${index}`
                 },
                 part

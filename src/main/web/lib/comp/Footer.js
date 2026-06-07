@@ -10,6 +10,7 @@ import {
     RestTapToggle,
     useRestTapState
 } from "./REST.js";
+import { Text } from "./Text.js";
 
 const groveLogoUrl = new URL("../grove-logo.svg", import.meta.url).href;
 const groveLogoHighlightUrl = new URL("../grove-logo-R.svg", import.meta.url).href;
@@ -58,7 +59,10 @@ export const Footer = (props = {}) => {
         createElement(
             "div",
             { className: "grove-footer-brand" },
-            brand ? `${brand} \u00a9` : "\u00a9"
+            Text({
+                look: "caption",
+                value: brand ? `${brand} \u00a9` : "\u00a9"
+            })
         ),
         createElement(
             "div",

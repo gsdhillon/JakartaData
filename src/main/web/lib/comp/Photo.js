@@ -8,6 +8,7 @@ import { createElement } from "../Grove.js";
 import { Button } from "./Button.js";
 import { Div } from "./Div.js";
 import { Input } from "./Input.js";
+import { Text } from "./Text.js";
 
 const defaultPhotoInputId = "photo-input";
 
@@ -131,11 +132,11 @@ const PhotoPicker = (props = {}) => {
                 onClick: downloadPhoto
             }),
             sizeText
-                ? createElement(
-                    "span",
-                    { className: "grove-photo-size" },
-                    sizeText
-                )
+                ? Text({
+                    className: "grove-photo-size",
+                    look: "caption",
+                    value: sizeText
+                })
                 : null
         )
     );

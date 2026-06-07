@@ -57,7 +57,6 @@ const renderActions = props => (person, index) => [
 
 const PersonTable = (props = {}) =>
     Table({
-        className: "person-table",
         columns,
         emptyMessage: "No persons added",
         exportName: "persons",
@@ -65,8 +64,7 @@ const PersonTable = (props = {}) =>
         renderActions: renderActions(props),
         rows: props.persons || [],
         toolbarActions: props.toolbarActions,
-        title: "Persons",
-        wrapperClassName: "person-table-wrap"
+        title: "Persons"
     });
 
 export default PersonTable;

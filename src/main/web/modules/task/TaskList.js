@@ -1,14 +1,16 @@
 import {
     Button,
+    Card,
     createElement,
-    Div,
+    Page,
+    StatusText,
     useCenterPanel,
     useContext,
     useEffect,
     useMemo,
     useState
 } from "../../lib/Grove.js";
-import { AppContext } from "../application/AppContext.js";
+import { AppContext } from "../../application/AppContext.js";
 import TaskForm from "./TaskForm.js";
 import {
     completeTaskById,
@@ -179,23 +181,26 @@ const TaskList = () => {
         [isBusy, loggedInUserId]
     );
 
-    return Div(
-        { className: "card shadow-sm p-4 demo task-list-view" },
-        statusMessage
-            ? Div(
-                { className: "text-muted align-self-stretch task-status" },
-                statusMessage
-            )
-            : null,
-        TaskTable({
-            isBusy,
-            loggedInUserId,
-            tasks,
-            toolbarActions,
-            onDelete: deleteTask,
-            onUpdate: task => openTaskForm("update", task),
-            onView: task => openTaskForm("view", task)
-        })
+    return Page(
+        { layout: "fill" },
+        Card(
+            {
+                align: "center",
+                kind: "list"
+            },
+            statusMessage
+                ? StatusText({ value: statusMessage })
+                : null,
+            TaskTable({
+                isBusy,
+                loggedInUserId,
+                tasks,
+                toolbarActions,
+                onDelete: deleteTask,
+                onUpdate: task => openTaskForm("update", task),
+                onView: task => openTaskForm("view", task)
+            })
+        )
     );
 };
 

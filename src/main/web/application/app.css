@@ -1,0 +1,20 @@
+html,
+body,
+#app {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    overflow: hidden;
+}
+
+.app-center {
+    height: 100%;
+    min-height: 0;
+}
+
+.app-error {
+    margin-bottom: 0.75rem;
+    white-space: pre-line;
+}

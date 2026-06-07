@@ -4,6 +4,7 @@ import {
     Input,
     Instant,
     LocalDate,
+    Page,
     Photo,
     Select,
     useMemo,
@@ -32,81 +33,84 @@ const PersonForm = props => {
         [props.mode, props.isBusy, props.showSubmit, readOnly]
     );
 
-    return Form({
-        className: "person-form",
-        data: person,
-        main: [
-            Input({
-                label: "Id:",
-                name: "id",
-                readOnly: true,
-                type: "text"
-            }),
-            Input({
-                label: "Name:",
-                name: "name",
-                readOnly,
-                type: "text"
-            }),
-            Input({
-                label: "Designation:",
-                name: "designation",
-                readOnly,
-                type: "text"
-            }),
-            LocalDate({
-                label: "DOB:",
-                name: "dob",
+    return Page(
+        { layout: "fill" },
+        Form({
+            data: person,
+            layout: "stack",
+            main: [
+                Input({
+                    label: "Id:",
+                    name: "id",
+                    readOnly: true,
+                    type: "text"
+                }),
+                Input({
+                    label: "Name:",
+                    name: "name",
+                    readOnly,
+                    type: "text"
+                }),
+                Input({
+                    label: "Designation:",
+                    name: "designation",
+                    readOnly,
+                    type: "text"
+                }),
+                LocalDate({
+                    label: "DOB:",
+                    name: "dob",
+                    readOnly
+                }),
+                Instant({
+                    label: "Updated At:",
+                    name: "updatedAt",
+                    readOnly: true
+                }),
+                Input({
+                    label: "EMail:",
+                    name: "email",
+                    readOnly,
+                    type: "email"
+                }),
+                Select({
+                    label: "Gender:",
+                    name: "gender",
+                    disabled: readOnly,
+                    options: [
+                        { label: "Female", value: "female" },
+                        { label: "Male", value: "male" },
+                        { label: "Other", value: "other" }
+                    ]
+                }),
+                Select({
+                    label: "Role:",
+                    name: "role",
+                    disabled: readOnly || props.roleReadOnly,
+                    options: props.roleOptions || [
+                        { label: "USER", value: "USER" }
+                    ]
+                }),
+                Input({
+                    label: "MobileNo:",
+                    name: "mobileNo",
+                    readOnly,
+                    type: "tel"
+                })
+            ],
+            aside: Photo({
+                label: "Photo",
+                name: "photo",
                 readOnly
             }),
-            Instant({
-                label: "Updated At:",
-                name: "updatedAt",
-                readOnly: true
-            }),
-            Input({
-                label: "EMail:",
-                name: "email",
-                readOnly,
-                type: "email"
-            }),
-            Select({
-                label: "Gender:",
-                name: "gender",
-                disabled: readOnly,
-                options: [
-                    { label: "Female", value: "female" },
-                    { label: "Male", value: "male" },
-                    { label: "Other", value: "other" }
-                ]
-            }),
-            Select({
-                label: "Role:",
-                name: "role",
-                disabled: readOnly || props.roleReadOnly,
-                options: props.roleOptions || [
-                    { label: "USER", value: "USER" }
-                ]
-            }),
-            Input({
-                label: "MobileNo:",
-                name: "mobileNo",
-                readOnly,
-                type: "tel"
-            })
-        ],
-        aside: Photo({
-            label: "Photo",
-            name: "photo",
-            readOnly
-        }),
-        actions,
-        onDataChange: setPerson,
-        onSubmit(event) {
-            event.preventDefault();
-            props.onSubmit?.({ ...person });
-        }
-    });
+            actions,
+            onDataChange: setPerson,
+            onSubmit(event) {
+                event.preventDefault();
+                props.onSubmit?.({ ...person });
+            }
+        })
+    );
 };
 
 export default PersonForm;

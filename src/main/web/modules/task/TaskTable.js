@@ -105,7 +105,6 @@ const renderActions = props => (task, index) => {
 
 const TaskTable = (props = {}) =>
     Table({
-        className: "task-table",
         columns,
         emptyMessage: "No tasks added",
         exportName: "tasks",
@@ -113,8 +112,7 @@ const TaskTable = (props = {}) =>
         renderActions: renderActions(props),
         rows: props.tasks || [],
         toolbarActions: props.toolbarActions,
-        title: "Tasks",
-        wrapperClassName: "task-table-wrap"
+        title: "Tasks"
     });
 
 export default TaskTable;

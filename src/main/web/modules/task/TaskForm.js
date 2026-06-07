@@ -3,8 +3,8 @@ import {
     Form,
     Input,
     Instant,
-    Label,
     LocalDateTime,
+    Page,
     TextArea,
     useMemo,
     useState
@@ -62,71 +62,71 @@ const TaskForm = props => {
         ]
     );
 
-    return Form({
-        className: "task-form",
-        data: task,
-        main: [
-            Input({
-                label: "Id:",
-                name: "id",
-                readOnly: true,
-                type: "text"
-            }),
-            Input({
-                label: "Task Name:",
-                maxLength: 50,
-                minLength: 5,
-                name: "taskName",
-                readOnly: props.readOnly,
-                type: "text"
-            }),
-            Label(
-                { className: "grove-field-label" },
-                "Task Desc:",
+    return Page(
+        { layout: "fill" },
+        Form({
+            data: task,
+            layout: "stack",
+            main: [
+                Input({
+                    label: "Id:",
+                    name: "id",
+                    readOnly: true,
+                    type: "text"
+                }),
+                Input({
+                    label: "Task Name:",
+                    maxLength: 50,
+                    minLength: 5,
+                    name: "taskName",
+                    readOnly: props.readOnly,
+                    type: "text"
+                }),
                 TextArea({
+                    label: "Task Desc:",
                     maxLength: 500,
                     minLength: 5,
                     name: "taskDesc",
                     readOnly: props.readOnly,
                     rows: 5
+                }),
+                Input({
+                    label: "Add By:",
+                    name: "addBy",
+                    readOnly: true,
+                    type: "number"
+                }),
+                Input({
+                    label: "Assigned To:",
+                    min: "1",
+                    name: "assignedTo",
+                    readOnly: props.readOnly,
+                    type: "number"
+                }),
+                LocalDateTime({
+                    label: "Deadline:",
+                    name: "deadLine",
+                    readOnly: props.readOnly
+                }),
+                Instant({
+                    label: "Created On:",
+                    name: "createdOn",
+                    readOnly: true
+                }),
+                Instant({
+                    label: "Completed On:",
+                    name: "completedOn",
+                    readOnly: true
                 })
-            ),
-            Input({
-                label: "Add By:",
-                name: "addBy",
-                readOnly: true,
-                type: "number"
-            }),
-            Input({
-                label: "Assigned To:",
-                min: "1",
-                name: "assignedTo",
-                readOnly: props.readOnly,
-                type: "number"
-            }),
-            LocalDateTime({
-                label: "Deadline:",
-                name: "deadLine",
-                readOnly: props.readOnly
-            }),
-            Instant({
-                label: "Created On:",
-                name: "createdOn",
-                readOnly: true
-            }),
-            Instant({
-                label: "Completed On:",
-                name: "completedOn",
-                readOnly: true
-            })
-        ],
-        actions,
-        onDataChange: setTask,
-        onSubmit(event) {
-            event.preventDefault();
-            props.onSubmit?.({ ...task });
-        }
-    });
+            ],
+            actions,
+            onDataChange: setTask,
+            onSubmit(event) {
+                event.preventDefault();
+                props.onSubmit?.({ ...task });
+            }
+        })
+    );
 };
 
 export default TaskForm;

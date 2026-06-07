@@ -23,6 +23,14 @@ export const openAppPage = key => {
     }
 };
 
+const pageKeyOf = page =>
+    page?.key ?? page?.label ?? page?.title;
+
+const targetPageKey = (page, authenticated, loginPageKey) =>
+    page?.requiresLogin && !authenticated
+        ? loginPageKey
+        : pageKeyOf(page);
+
 /**
  * Creates the page shell with header, menu, center area, right strip, and footer.
  * @param {Object} [props={}] - Shell regions.
@@ -52,9 +60,7 @@ export const AppShell = (props = {}) => {
         initialPage ?? firstPage?.key ?? firstPage?.label ?? firstPage?.title
     );
     const activePage =
-        pages.find(page =>
-            (page.key ?? page.label ?? page.title) === activePageKey
-        ) ?? firstPage;
+        pages.find(page => pageKeyOf(page) === activePageKey) ?? firstPage;
     const normalizedTheme = themeMode === "dark"
         ? "dark"
         : "light";
@@ -68,12 +74,10 @@ export const AppShell = (props = {}) => {
     useEffect(() => {
         const openPage = event => {
             const nextKey = event.detail?.key;
-            const nextPage = pages.find(page => (page.key ?? page.label ?? page.title) === nextKey);
+            const nextPage = pages.find(page => pageKeyOf(page) === nextKey);
 
             if (nextPage) {
-                setActivePageKey(nextPage.auth !== false && !authenticated
-                    ? loginPageKey
-                    : nextKey);
+                setActivePageKey(targetPageKey(nextPage, authenticated, loginPageKey));
             }
         };
 
@@ -81,19 +85,30 @@ export const AppShell = (props = {}) => {
         return () => window.removeEventListener(openPageEventName, openPage);
     }, [pages, authenticated, loginPageKey]);
 
+    useEffect(() => {
+        if (!authenticated || activePageKey !== loginPageKey) {
+            return;
+        }
+
+        const nextPage =
+            pages.find(page => page.menu !== false && page.requiresLogin) ??
+            pages.find(page => pageKeyOf(page) !== loginPageKey);
+        const nextKey = pageKeyOf(nextPage);
+
+        if (nextKey && nextKey !== loginPageKey) {
+            setActivePageKey(nextKey);
+        }
+    }, [authenticated, activePageKey, loginPageKey, pages]);
+
     const menuPages = pages.filter(page => page.menu !== false);
     const generatedMenu = menuPages.length
         ? MenuComponent({
             links: menuPages.map(page => {
-                const pageKey = page.key ?? page.label ?? page.title;
-
                 return {
                     active: page === activePage,
                     label: page.label ?? page.title,
                     onClick() {
-                        setActivePageKey(page.auth !== false && !authenticated
-                            ? loginPageKey
-                            : pageKey);
+                        setActivePageKey(targetPageKey(page, authenticated, loginPageKey));
                     }
                 };
             })

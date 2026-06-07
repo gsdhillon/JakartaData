@@ -36,6 +36,13 @@ public class PersonService {
         return personRepository.findAll().toList();
     }
 
+    public boolean hasPersons() {
+        return personRepository.findAll()
+                .limit(1)
+                .findAny()
+                .isPresent();
+    }
+
     public Optional<Person> findById(Long id) {
         return personRepository.findById(id);
     }

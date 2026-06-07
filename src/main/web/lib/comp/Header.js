@@ -4,8 +4,9 @@
  * @email gsdhillon@gmail.com
  */
 
-import { createElement, useState } from "../Grove.js";
+import { createElement, openAppPage, useState } from "../Grove.js";
 import { Div } from "./Div.js";
+import { Text } from "./Text.js";
 
 const renderImageSlot = (value, className, alt) => {
     if (!value) {
@@ -27,6 +28,54 @@ const renderImageSlot = (value, className, alt) => {
 const defaultAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='24' fill='%23dbeafe'/%3E%3Ccircle cx='24' cy='19' r='7' fill='%231e40af'/%3E%3Cpath d='M12 39c2-8 7-12 12-12s10 4 12 12' fill='%231e40af'/%3E%3C/svg%3E";
 const defaultLogo = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23eff6ff'/%3E%3Cpath d='M18 44c2-8 8-12 14-12s12 4 14 12' fill='none' stroke='%232563eb' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='22' r='8' fill='%232563eb'/%3E%3C/svg%3E";
 
+const visibleForAuth = (item, authenticated) => {
+    const visibility = item.visibleWhen ?? item.visible ?? "always";
+
+    if (visibility === "loggedIn" || visibility === "authenticated") {
+        return authenticated;
+    }
+
+    if (visibility === "loggedOut" || visibility === "anonymous") {
+        return !authenticated;
+    }
+
+    return true;
+};
+
+const defaultIconFor = item => {
+    if (item.icon) {
+        return item.icon;
+    }
+
+    if (item.action === "logout") {
+        return "box-arrow-right";
+    }
+
+    if (item.page === "login") {
+        return "box-arrow-in-right";
+    }
+
+    return null;
+};
+
+const menuItemsToAvatarMenu = (menuItems, authenticated, actions) =>
+    menuItems
+        .filter(item => visibleForAuth(item, authenticated))
+        .map(item => ({
+            ...item,
+            icon: defaultIconFor(item),
+            onClick() {
+                if (item.page) {
+                    openAppPage(item.page);
+                    return;
+                }
+
+                if (item.action) {
+                    actions?.[item.action]?.(item);
+                }
+            }
+        }));
+
 /**
  * Creates an application header.
  * @param {Object} [props={}] - Header attributes and content.
@@ -34,8 +83,12 @@ const defaultLogo = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg
  */
 export const Header = (props = {}) => {
     const {
-        avatar = defaultAvatar,
+        avatar,
         avatarMenu = [],
+        menuItems,
+        actions,
+        authenticated = true,
+        loginInfo,
         avtar,
         className = "",
         height = "90px",
@@ -45,6 +98,15 @@ export const Header = (props = {}) => {
         ...headerProps
     } = props;
     const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
+    const resolvedAvatarMenu = menuItems
+        ? menuItemsToAvatarMenu(menuItems, authenticated, actions)
+        : avatarMenu;
+    const resolvedAvatar =
+        avtar ??
+        avatar ??
+        loginInfo?.avatarThumbnail ??
+        loginInfo?.thumbnail ??
+        defaultAvatar;
     const headerClassName = [
         "grove-header",
         "text-body",
@@ -70,17 +132,18 @@ export const Header = (props = {}) => {
         Div(
             { className: "grove-header-title-block" },
             title
-                ? createElement(
-                    "h1",
-                    { className: "grove-header-title" },
-                    title
-                )
+                ? Text({
+                    className: "grove-header-title",
+                    look: "appTitle",
+                    value: title
+                })
                 : null,
             subTitle
-                ? Div(
-                    { className: "grove-header-subtitle" },
-                    subTitle
-                )
+                ? Text({
+                    className: "grove-header-subtitle",
+                    look: "appSubtitle",
+                    value: subTitle
+                })
                 : null
         ),
         Div(
@@ -96,12 +159,12 @@ export const Header = (props = {}) => {
                         setAvatarMenuOpen(open => !open);
                     }
                 },
-                renderImageSlot(avtar ?? avatar, "grove-header-avatar-image", "User avatar")
+                renderImageSlot(resolvedAvatar, "grove-header-avatar-image", "User avatar")
             ),
-            avatarMenuOpen && avatarMenu.length
+            avatarMenuOpen && resolvedAvatarMenu.length
                 ? Div(
                     { className: "grove-header-avatar-menu shadow" },
-                    ...avatarMenu.map((item, index) =>
+                    ...resolvedAvatarMenu.map((item, index) =>
                         createElement(
                             "button",
                             {
