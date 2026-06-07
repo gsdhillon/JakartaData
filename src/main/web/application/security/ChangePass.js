@@ -1,7 +1,6 @@
 import {
     Alert,
     Button,
-    Card,
     Form,
     FormHeader,
     Input,
@@ -35,8 +34,12 @@ const ChangePass = props => {
 
     return Page(
         { layout: "center" },
-        Card(
-            { kind: "login" },
+        Form({
+            centerActions: false,
+            className: "grove-auth-form",
+            data: passwords,
+            layout: "center",
+            main: [
             FormHeader({
                 icon: "key",
                 title: "Change Password"
@@ -47,69 +50,64 @@ const ChangePass = props => {
             message
                 ? Alert({ look: "warning", value: message })
                 : null,
-            Form({
-                centerActions: false,
-                data: passwords,
-                main: [
-                    Input({
-                        label: "Current Password:",
-                        name: "currentPassword",
-                        type: "password"
-                    }),
-                    Input({
-                        label: "New Password:",
-                        name: "newPassword",
-                        type: "password"
-                    }),
-                    Input({
-                        label: "Confirm Password:",
-                        name: "confirmPassword",
-                        type: "password"
-                    })
-                ],
-                actions,
-                onDataChange: setPasswords,
-                async onSubmit(event) {
-                    event.preventDefault();
+                Input({
+                    label: "Current Password:",
+                    name: "currentPassword",
+                    type: "password"
+                }),
+                Input({
+                    label: "New Password:",
+                    name: "newPassword",
+                    type: "password"
+                }),
+                Input({
+                    label: "Confirm Password:",
+                    name: "confirmPassword",
+                    type: "password"
+                })
+            ],
+            actions,
+            onDataChange: setPasswords,
+            async onSubmit(event) {
+                event.preventDefault();
 
-                    if (passwords.newPassword !== passwords.confirmPassword) {
-                        setMessage("New password and confirm password do not match.");
+                if (passwords.newPassword !== passwords.confirmPassword) {
+                    setMessage("New password and confirm password do not match.");
+                    return;
+                }
+
+                setIsBusy(true);
+                setMessage("");
+
+                let redirected = false;
+
+                try {
+                    await changePassword(props.authToken, {
+                        currentPassword: passwords.currentPassword,
+                        newPassword: passwords.newPassword
+                    });
+
+                    if (props.onPasswordChanged) {
+                        redirected = true;
+                        props.onPasswordChanged();
                         return;
                     }
 
-                    setIsBusy(true);
-                    setMessage("");
-
-                    let redirected = false;
-
-                    try {
-                        await changePassword(props.authToken, {
-                            currentPassword: passwords.currentPassword,
-                            newPassword: passwords.newPassword
-                        });
-
-                        if (props.onPasswordChanged) {
-                            redirected = true;
-                            props.onPasswordChanged();
-                            return;
-                        }
-
-                        setPasswords({
-                            currentPassword: "",
-                            newPassword: "",
-                            confirmPassword: ""
-                        });
-                        setMessage("Password changed.");
-                    } catch {
-                        setMessage("Unable to change password.");
-                    } finally {
-                        if (!redirected) {
-                            setIsBusy(false);
-                        }
+                    setPasswords({
+                        currentPassword: "",
+                        newPassword: "",
+                        confirmPassword: ""
+                    });
+                    setMessage("Password changed.");
+                } catch {
+                    setMessage("Unable to change password.");
+                } finally {
+                    if (!redirected) {
+                        setIsBusy(false);
                     }
                 }
-            })
-        )
+            }
+        })
     );
 };
 

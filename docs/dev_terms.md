@@ -11,6 +11,7 @@
 | router | Code that maps a URL or path to the component/page to show. |
 | hash route | Route stored after `#` in the browser URL, handled only by the frontend. |
 | fetch wrapper | Shared helper around `fetch` for headers, parsing, and errors. |
+| monkey-patching | Replacing an existing function at runtime with a wrapper that calls the original function and adds extra behavior. |
 | payload | Data sent in a request body, usually JSON. |
 | rerender | Running component render code again because state, props, or context changed. |
 | listener | Function registered to react to an event, such as click, fetch, hashchange, or a custom app event. |

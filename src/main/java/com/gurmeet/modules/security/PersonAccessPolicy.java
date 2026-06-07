@@ -28,6 +28,10 @@ public final class PersonAccessPolicy {
         String actorRole = role(actor);
         String requestedRole = normalizeRole(requestedPerson.getRole());
 
+        if (!SUPER_ADMIN.equals(actorRole) && !requestedPerson.isPasswordChangeRequired()) {
+            throw new ForbiddenException("Only SUPER-ADMIN can skip forced password change.");
+        }
+
         if (SUPER_ADMIN.equals(actorRole) && (ADMIN.equals(requestedRole) || USER.equals(requestedRole))) {
             return;
         }

@@ -9,7 +9,7 @@ import {
     AppProvider,
     useAppContext
 } from "./AppContext.js";
-import PersonList from "../modules/person/PersonList.js";
+import PersonList from "../modules/person/PersonList.js?v=dev-20260607-01";
 import ChangePass from "./security/ChangePass.js";
 import Login from "./security/Login.js";
 import TaskList from "../modules/task/TaskList.js";
@@ -31,6 +31,7 @@ const pages = [
     },
     {
         component: Login,
+        hideToolbar: true,
         key: "login",
         label: "Login",
         menu: false,
@@ -38,6 +39,7 @@ const pages = [
     },
     {
         component: ChangePass,
+        hideToolbar: true,
         key: "changePass",
         label: "Change Password",
         menu: false,

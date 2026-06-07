@@ -27,9 +27,36 @@ const isCheckedInput = element =>
     element.type === "checkbox" ||
     element.type === "radio";
 
+const isRadioInput = element =>
+    element.type === "radio";
+
+const coerceRadioValue = value => {
+    if (value === "true") {
+        return true;
+    }
+
+    if (value === "false") {
+        return false;
+    }
+
+    return value;
+};
+
+const booleanValue = (value, nullable) => {
+    if (nullable && value === "") {
+        return null;
+    }
+
+    return value === "true";
+};
+
 const valueFromFormTarget = target =>
-    isCheckedInput(target)
+    isRadioInput(target)
+        ? coerceRadioValue(target.value)
+        : isCheckedInput(target)
         ? target.checked
+        : target.dataset.groveBoolean
+            ? booleanValue(target.value, target.dataset.groveBoolean === "nullable")
         : target.dataset.groveTemporal && target.value === ""
             ? null
             : target.value;
@@ -62,10 +89,15 @@ const bindFormVNode = (vnode, data) => {
         Object.prototype.hasOwnProperty.call(data, props.name);
 
     const nextProps = isField
-        ? {
-            ...props,
-            [isCheckedInput(props) ? "checked" : "value"]: valueForFormField(props, data)
-        }
+        ? isRadioInput(props)
+            ? {
+                ...props,
+                checked: String(valueForFormField(props, data)) === String(props.value)
+            }
+            : {
+                ...props,
+                [isCheckedInput(props) ? "checked" : "value"]: valueForFormField(props, data)
+            }
         : props;
 
     return {
@@ -252,9 +284,13 @@ export const Form = (props = {}, ...children) => {
     const layoutClassName = layout
         ? `grove-form-${String(layout).toLowerCase()}`
         : "";
-    const renderedFormProps = layoutClassName
-        ? appendClassName(formProps, layoutClassName)
-        : formProps;
+    const renderedFormProps = appendClassName(
+        formProps,
+        [
+            "grove-form",
+            layoutClassName
+        ].filter(Boolean).join(" ")
+    );
     const visibleFormChildren = hideNonEditableFields
         ? formChildren.map(child => filterNonEditableFields(child, editableFields))
         : formChildren;
@@ -274,6 +310,10 @@ export const Form = (props = {}, ...children) => {
                 onChange?.(event);
 
                 if (!onDataChange || !event.target.name) {
+                    return;
+                }
+
+                if (isRadioInput(event.target) && !event.target.checked) {
                     return;
                 }
 

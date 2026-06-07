@@ -15,7 +15,9 @@ import { showAppError } from "./AppError.js";
 import { Text } from "./Text.js";
 
 const openEventName = "grove-rest-open";
+const groveLogoUrl = new URL("../grove-logo.svg", import.meta.url).href;
 const maxEntries = 10;
+const maxConsoleEntries = 100;
 const defaultComposerHeaders = "Content-Type: application/json\nAccept: application/json";
 const bootstrapAdminSampleBody = JSON.stringify(
     {
@@ -28,9 +30,11 @@ const bootstrapAdminSampleBody = JSON.stringify(
 );
 const listeners = new Set();
 const state = {
+    consoleEntries: [],
     enabled: false,
     entries: [],
     installed: false,
+    originalConsole: {},
     originalFetch: null,
     pending: 0
 };
@@ -42,7 +46,7 @@ const notify = () => {
     if (typeof document !== "undefined") {
         document.documentElement.classList.toggle(
             "grove-rest-tap-has-entries",
-            state.entries.length > 0
+            state.entries.length > 0 || state.consoleEntries.length > 0
         );
         document.documentElement.classList.toggle(
             "grove-rest-tap-waiting",
@@ -52,6 +56,7 @@ const notify = () => {
 
     listeners.forEach(listener => listener({
         enabled: state.enabled,
+        consoleEntries: [...state.consoleEntries],
         entries: [...state.entries],
         pending: state.pending
     }));
@@ -63,6 +68,7 @@ const toggleRestTap = () => {
 };
 
 const clearRestEntries = () => {
+    state.consoleEntries = [];
     state.entries = [];
     notify();
 };
@@ -230,19 +236,102 @@ const formatHeaders = headers =>
         .map(([key, value]) => `${key}: ${value}`)
         .join("\n");
 
+const shortenSampleString = value =>
+    value.length > 100
+        ? `${value.slice(0, 80)}...${value.slice(-10)} (${value.length})`
+        : value;
+
+const arrayTotalMarker = count =>
+    `__GROVE_REST_ARRAY_TOTAL_${count}__`;
+
+const unquoteArrayTotalMarkers = text =>
+    text.replace(/"__GROVE_REST_ARRAY_TOTAL_(\d+)__"/g, "... total $1");
+
+const sampleJsonValue = value => {
+    if (typeof value === "string") {
+        return shortenSampleString(value);
+    }
+
+    if (Array.isArray(value)) {
+        return value.length
+            ? [
+                sampleJsonValue(value[0]),
+                arrayTotalMarker(value.length)
+            ]
+            : [];
+    }
+
+    if (value && typeof value === "object") {
+        return Object
+            .entries(value)
+            .reduce((sampled, [key, childValue]) => ({
+                ...sampled,
+                [key]: sampleJsonValue(childValue)
+            }), {});
+    }
+
+    return value;
+};
+
+const formatBodySample = body => {
+    const text = String(body || "");
+    const trimmed = text.trim();
+
+    if (!trimmed) {
+        return "";
+    }
+
+    try {
+        return unquoteArrayTotalMarkers(
+            JSON.stringify(sampleJsonValue(JSON.parse(trimmed)), null, 2)
+        );
+    } catch {
+        return text;
+    }
+};
+
 const formatRequest = entry => [
     `${entry.request.method} ${entry.request.url} HTTP/1.1`,
     formatHeaders(entry.request.headers),
     "",
-    entry.request.body || ""
+    formatBodySample(entry.request.body)
 ].join("\n");
 
 const formatResponse = entry => [
     `HTTP/1.1 ${entry.response?.status ?? "ERROR"} ${entry.response?.statusText ?? entry.error ?? ""}`.trim(),
     formatHeaders(entry.response?.headers),
     "",
-    entry.response?.body ?? entry.error ?? ""
+    entry.response
+        ? formatBodySample(entry.response.body)
+        : entry.error ?? ""
 ].join("\n");
+
+const formatConsoleArg = value => {
+    if (value instanceof Error) {
+        return value.stack || value.message;
+    }
+
+    if (typeof value === "string") {
+        return value;
+    }
+
+    if (value === null || value === undefined) {
+        return String(value);
+    }
+
+    try {
+        return JSON.stringify(value, null, 2);
+    } catch {
+        return String(value);
+    }
+};
+
+const formatConsoleEntries = entries =>
+    entries.length
+        ? entries
+            .map(entry => `[${entry.time}] ${entry.level.toUpperCase()}\n${entry.message}`)
+            .join("\n\n")
+        : "No console logs captured yet.";
 
 const parseHeaderText = headerText => {
     const headers = {};
@@ -276,6 +365,14 @@ const addEntry = entry => {
         entry,
         ...state.entries
     ].slice(0, maxEntries);
+    notify();
+};
+
+const addConsoleEntry = entry => {
+    state.consoleEntries = [
+        entry,
+        ...state.consoleEntries
+    ].slice(0, maxConsoleEntries);
     notify();
 };
 
@@ -376,6 +473,28 @@ export const installRestTap = () => {
     state.installed = true;
     state.originalFetch = window.fetch.bind(window);
 
+    ["log", "info", "warn", "error", "debug"].forEach(level => {
+        if (typeof console?.[level] !== "function") {
+            return;
+        }
+
+        state.originalConsole[level] = console[level].bind(console);
+        console[level] = (...args) => {
+            state.originalConsole[level](...args);
+
+            if (!state.enabled) {
+                return;
+            }
+
+            addConsoleEntry({
+                id: `${Date.now()}-${Math.random()}`,
+                level,
+                message: args.map(formatConsoleArg).join(" "),
+                time: now()
+            });
+        };
+    });
+
     window.fetch = async (input, init = {}) => {
         const startedAt = performance.now();
         const request = await requestMeta(input, init);
@@ -434,6 +553,7 @@ export const openRestDialog = () => {
 
 export const RestTapToggle = () => {
     const [tapState, setTapState] = useState({
+        consoleEntries: [...state.consoleEntries],
         enabled: state.enabled,
         entries: [...state.entries],
         pending: state.pending
@@ -444,6 +564,7 @@ export const RestTapToggle = () => {
     useEffect(() => {
         listeners.add(setTapState);
         setTapState({
+            consoleEntries: [...state.consoleEntries],
             enabled: state.enabled,
             entries: [...state.entries],
             pending: state.pending
@@ -482,6 +603,7 @@ export const RestTapToggle = () => {
 
 export const useRestTapState = () => {
     const [tapState, setTapState] = useState({
+        consoleEntries: [...state.consoleEntries],
         enabled: state.enabled,
         entries: [...state.entries],
         pending: state.pending
@@ -492,6 +614,7 @@ export const useRestTapState = () => {
     useEffect(() => {
         listeners.add(setTapState);
         setTapState({
+            consoleEntries: [...state.consoleEntries],
             enabled: state.enabled,
             entries: [...state.entries],
             pending: state.pending
@@ -506,7 +629,9 @@ export const useRestTapState = () => {
 };
 
 export const RestTap = () => {
+    const [consoleEntries, setConsoleEntries] = useState([...state.consoleEntries]);
     const [entries, setEntries] = useState([...state.entries]);
+    const [maximized, setMaximized] = useState(false);
     const [open, setOpen] = useState(false);
     const [selectedId, setSelectedId] = useState(state.entries[0]?.id ?? null);
     const [tab, setTab] = useState("request");
@@ -521,6 +646,7 @@ export const RestTap = () => {
 
     useEffect(() => {
         const syncEntries = nextState => {
+            setConsoleEntries(nextState.consoleEntries);
             setEntries(nextState.entries);
             setSelectedId(currentId =>
                 currentId && nextState.entries.some(entry => entry.id === currentId)
@@ -529,6 +655,7 @@ export const RestTap = () => {
             );
         };
         const openDialog = () => {
+            setConsoleEntries([...state.consoleEntries]);
             setEntries([...state.entries]);
             setSelectedId(currentId =>
                 currentId && state.entries.some(entry => entry.id === currentId)
@@ -542,6 +669,7 @@ export const RestTap = () => {
         window.addEventListener(openEventName, openDialog);
         syncEntries({
             enabled: state.enabled,
+            consoleEntries: [...state.consoleEntries],
             entries: [...state.entries],
             pending: state.pending
         });
@@ -598,6 +726,16 @@ export const RestTap = () => {
                     { className: "list-group list-group-flush grove-rest-list" },
                     Div(
                         { className: "h6 m-0 p-3 border-bottom grove-rest-side-title" },
+                        createElement(
+                            "img",
+                            {
+                                alt: "Grove logo",
+                                className: "grove-rest-side-logo",
+                                height: 40,
+                                src: groveLogoUrl,
+                                width: 40
+                            }
+                        ),
                         Text({
                             look: "title",
                             value: "REST API Calls"
@@ -633,7 +771,7 @@ export const RestTap = () => {
                             )
                         )
                         : Div(
-                            { className: "p-3 grove-rest-empty" },
+                            { className: "grove-rest-empty" },
                             "No API calls captured yet."
                         )
                 ),
@@ -659,6 +797,15 @@ export const RestTap = () => {
                             type: "button",
                             onClick() {
                                 setTab("response");
+                            }
+                        }),
+                        Button({
+                            className: tab === "console" ? "grove-rest-tab-active" : "",
+                            label: `Console${consoleEntries.length ? ` (${consoleEntries.length})` : ""}`,
+                            look: tab === "console" ? "pm" : "sc",
+                            type: "button",
+                            onClick() {
+                                setTab("console");
                             }
                         }),
                         Div({ className: "flex-grow-1" }),
@@ -690,7 +837,18 @@ export const RestTap = () => {
                             }
                         }),
                         Button({
-                            className: "grove-rest-close",
+                            className: "grove-rest-window-action",
+                            icon: maximized ? "fullscreen-exit" : "fullscreen",
+                            label: null,
+                            look: "sc",
+                            title: maximized ? "Restore REST console" : "Maximize REST console",
+                            type: "button",
+                            onClick() {
+                                setMaximized(current => !current);
+                            }
+                        }),
+                        Button({
+                            className: "grove-rest-close grove-rest-window-action",
                             icon: "x-lg",
                             label: null,
                             look: "sc",
@@ -799,6 +957,12 @@ export const RestTap = () => {
                                 )
                                 : null
                         )
+                    : tab === "console"
+                        ? createElement(
+                            "pre",
+                            { className: "grove-rest-payload grove-rest-console-payload" },
+                            formatConsoleEntries(consoleEntries)
+                        )
                     : selectedEntry
                         ? createElement(
                             "pre",
@@ -816,7 +980,12 @@ export const RestTap = () => {
     );
 
     return Div(
-        { className: "grove-rest-dialog-backdrop" },
+        {
+            className: [
+                "grove-rest-dialog-backdrop",
+                maximized ? "grove-rest-dialog-backdrop-maximized" : ""
+            ].filter(Boolean).join(" ")
+        },
         Div(
             {
                 "aria-modal": "true",

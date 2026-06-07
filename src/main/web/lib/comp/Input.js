@@ -73,16 +73,35 @@ export const Input = (props = {}, ...children) => {
             id: inputProps.name
         }
         : inputProps;
-    const controlProps = elementProps.placeholder
-        ? elementProps
-        : {
+    const isSetPassword = elementProps.type === "setpass";
+    const htmlElementProps = isSetPassword
+        ? {
             ...elementProps,
-            placeholder: elementProps.name
+            autoComplete: elementProps.autoComplete || "off",
+            "data-1p-ignore": "true",
+            "data-form-type": "other",
+            "data-lpignore": "true",
+            inputMode: "text",
+            spellCheck: false,
+            type: "text"
+        }
+        : elementProps;
+    const controlProps = htmlElementProps.placeholder
+        ? htmlElementProps
+        : {
+            ...htmlElementProps,
+            placeholder: htmlElementProps.name
         };
     const control =
         createElement(
             "input",
-            appendClassName(controlProps, "form-control grove-control"),
+            appendClassName(
+                controlProps,
+                [
+                    "form-control grove-control",
+                    isSetPassword ? "grove-setpass-control" : ""
+                ].filter(Boolean).join(" ")
+            ),
             ...children
         );
     const shouldShowClear =

@@ -18,6 +18,7 @@ const pageContent = props =>
 export const CenterPanel = (props = {}) => {
     const {
         className = "",
+        hideToolbar = false,
         title = "",
         ...panelProps
     } = props;
@@ -30,6 +31,7 @@ export const CenterPanel = (props = {}) => {
     const [stack, setStack] = useState([
         {
             content,
+            hideToolbar,
             title
         }
     ]);
@@ -38,12 +40,13 @@ export const CenterPanel = (props = {}) => {
         setStack([
             {
                 content,
+                hideToolbar,
                 title
             }
         ]);
         actionsRef.current = null;
         setActions(null);
-    }, [title]);
+    }, [title, hideToolbar]);
 
     useEffect(() => {
         const updateFullscreen = () => {
@@ -110,6 +113,7 @@ export const CenterPanel = (props = {}) => {
         : stack;
     const panelClassName = [
         "grove-center-panel",
+        activePage.hideToolbar ? "grove-center-panel-toolbar-hidden" : "",
         className
     ]
         .filter(Boolean)
@@ -124,8 +128,10 @@ export const CenterPanel = (props = {}) => {
                 className: panelClassName,
                 id: panelId
             },
-            Div(
-                { className: "grove-center-panel-topbar" },
+            activePage.hideToolbar
+                ? null
+                : Div(
+                    { className: "grove-center-panel-topbar" },
                 Div(
                     {
                         "aria-label": "Current location",

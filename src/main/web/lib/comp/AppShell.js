@@ -142,6 +142,7 @@ export const AppShell = (props = {}) => {
             ? createElement(
                 CenterPanel,
                 {
+                    hideToolbar: activePage?.hideToolbar === true,
                     title: activeCenterTitle
                 },
                 centerContent

@@ -1,6 +1,5 @@
 import {
     Button,
-    Card,
     createElement,
     Page,
     StatusText,
@@ -11,7 +10,7 @@ import {
     useState
 } from "../../lib/Grove.js";
 import { AppContext } from "../../application/AppContext.js";
-import PersonForm from "./PersonForm.js";
+import PersonForm from "./PersonForm.js?v=dev-20260607-01";
 import {
     createPerson,
     deletePersonById,
@@ -149,6 +148,7 @@ const PersonList = () => {
                 PersonForm,
                 {
                     isBusy,
+                    canEditPasswordChangeRequired: roleOf(loggedInPerson) === SUPER_ADMIN,
                     mode,
                     person: normalizedPerson,
                     readOnly: isView || !canUpdate,
@@ -209,25 +209,19 @@ const PersonList = () => {
 
     return Page(
         { layout: "fill" },
-        Card(
-            {
-                align: "center",
-                kind: "list"
-            },
-            statusMessage
-                ? StatusText({ value: statusMessage })
-                : null,
-            PersonTable({
-                persons,
-                onDelete: deletePerson,
-                onUpdate: person => openPersonForm("update", person),
-                onView: person => openPersonForm("view", person),
-                canDelete: person => canDeletePerson(loggedInPerson, person),
-                canUpdate: person => canUpdatePerson(loggedInPerson, person),
-                isBusy,
-                toolbarActions
-            })
-        )
+        statusMessage
+            ? StatusText({ value: statusMessage })
+            : null,
+        PersonTable({
+            persons,
+            onDelete: deletePerson,
+            onUpdate: person => openPersonForm("update", person),
+            onView: person => openPersonForm("view", person),
+            canDelete: person => canDeletePerson(loggedInPerson, person),
+            canUpdate: person => canUpdatePerson(loggedInPerson, person),
+            isBusy,
+            toolbarActions
+        })
     );
 };
 

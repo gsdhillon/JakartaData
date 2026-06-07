@@ -1,6 +1,5 @@
 import {
     Button,
-    Card,
     createElement,
     Page,
     StatusText,
@@ -183,24 +182,18 @@ const TaskList = () => {
 
     return Page(
         { layout: "fill" },
-        Card(
-            {
-                align: "center",
-                kind: "list"
-            },
-            statusMessage
-                ? StatusText({ value: statusMessage })
-                : null,
-            TaskTable({
-                isBusy,
-                loggedInUserId,
-                tasks,
-                toolbarActions,
-                onDelete: deleteTask,
-                onUpdate: task => openTaskForm("update", task),
-                onView: task => openTaskForm("view", task)
-            })
-        )
+        statusMessage
+            ? StatusText({ value: statusMessage })
+            : null,
+        TaskTable({
+            isBusy,
+            loggedInUserId,
+            tasks,
+            toolbarActions,
+            onDelete: deleteTask,
+            onUpdate: task => openTaskForm("update", task),
+            onView: task => openTaskForm("view", task)
+        })
     );
 };
 

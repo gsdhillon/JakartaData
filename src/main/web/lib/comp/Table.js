@@ -393,8 +393,10 @@ const renderColumnFilter = options => {
         activeColumnFilter,
         column,
         columnFilters,
+        filterMetrics,
         setActiveColumnFilter,
-        setColumnFilters
+        setColumnFilters,
+        setFilterMetrics
     } = options;
     const key = columnKey(column);
     const value = columnFilters[key] || "";
@@ -414,6 +416,20 @@ const renderColumnFilter = options => {
                 type: "button",
                 onClick(event) {
                     event.stopPropagation?.();
+                    const headerCell = event.currentTarget.closest("th");
+
+                    if (headerCell) {
+                        const rect = headerCell.getBoundingClientRect();
+
+                        setFilterMetrics(current => ({
+                            ...current,
+                            [key]: {
+                                height: `${Math.round(rect.height)}px`,
+                                width: `${Math.round(rect.width + 60)}px`
+                            }
+                        }));
+                    }
+
                     setActiveColumnFilter(current => current === key ? null : key);
                 }
             },
@@ -423,6 +439,12 @@ const renderColumnFilter = options => {
             ? Div(
                 {
                     className: "grove-table-column-filter-popover",
+                    style: filterMetrics[key]
+                        ? {
+                            "--grove-table-column-filter-height": filterMetrics[key].height,
+                            "--grove-table-column-filter-width": filterMetrics[key].width
+                        }
+                        : null,
                     onClick(event) {
                         event.stopPropagation?.();
                     }
@@ -517,6 +539,7 @@ const Table = (props = {}) => {
     const query = "";
     const [columnFilters, setColumnFilters] = useState({});
     const [activeColumnFilter, setActiveColumnFilter] = useState(null);
+    const [filterMetrics, setFilterMetrics] = useState({});
     const [sort, setSort] = useState({
         key: null,
         direction: null
@@ -650,8 +673,10 @@ const Table = (props = {}) => {
                                         activeColumnFilter,
                                         column,
                                         columnFilters,
+                                        filterMetrics,
                                         setActiveColumnFilter,
-                                        setColumnFilters
+                                        setColumnFilters,
+                                        setFilterMetrics
                                     })
                             )
                         );

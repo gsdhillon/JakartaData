@@ -7,13 +7,11 @@
 import { createElement } from "../Grove.js";
 import {
     openRestDialog,
-    RestTapToggle,
-    useRestTapState
+    RestTapToggle
 } from "./REST.js";
 import { Text } from "./Text.js";
 
 const groveLogoUrl = new URL("../grove-logo.svg", import.meta.url).href;
-const groveLogoHighlightUrl = new URL("../grove-logo-R.svg", import.meta.url).href;
 
 /**
  * Creates an application footer.
@@ -31,10 +29,6 @@ export const Footer = (props = {}) => {
         themeMode = "light",
         ...footerProps
     } = props;
-    const restTapState = useRestTapState();
-    const currentLogo = restTapState.entries.length > 0
-        ? groveLogoHighlightUrl
-        : logo;
     const footerClassName = [
         "grove-footer",
         "text-body",
@@ -94,7 +88,7 @@ export const Footer = (props = {}) => {
             "div",
             { className: "grove-footer-right" },
             createElement(RestTapToggle),
-            currentLogo
+            logo
                 ? createElement(
                     "button",
                     {
@@ -108,7 +102,7 @@ export const Footer = (props = {}) => {
                         {
                             alt: "Grove logo",
                             className: "grove-footer-logo",
-                            src: currentLogo
+                            src: logo
                         }
                     )
                 )

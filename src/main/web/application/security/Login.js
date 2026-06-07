@@ -1,7 +1,6 @@
 import {
     Alert,
     Button,
-    Card,
     Form,
     FormHeader,
     Input,
@@ -87,8 +86,12 @@ const Login = props => {
 
     return Page(
         { layout: "center" },
-        Card(
-            { kind: "login" },
+        Form({
+            centerActions: false,
+            className: "grove-auth-form",
+            data: credentials,
+            layout: "center",
+            main: [
             FormHeader({
                 icon: "box-arrow-in-right",
                 title: "Login"
@@ -96,40 +99,35 @@ const Login = props => {
             message
                 ? Alert({ look: "warning", value: message })
                 : null,
-            Form({
-                centerActions: false,
-                data: credentials,
-                main: [
-                    Input({
-                        label: "Person Id:",
-                        name: "personId",
-                        type: "number"
-                    }),
-                    Input({
-                        label: "Password:",
-                        name: "password",
-                        type: "password"
-                    })
-                ],
-                actions,
-                onDataChange: setCredentials,
-                async onSubmit(event) {
-                    event.preventDefault();
-                    setIsBusy(true);
-                    setMessage("");
+                Input({
+                    label: "Person Id:",
+                    name: "personId",
+                    type: "number"
+                }),
+                Input({
+                    label: "Password:",
+                    name: "password",
+                    type: "password"
+                })
+            ],
+            actions,
+            onDataChange: setCredentials,
+            async onSubmit(event) {
+                event.preventDefault();
+                setIsBusy(true);
+                setMessage("");
 
-                    try {
-                        const session = await login(credentials);
-                        loginSession(session, loginInfoOf(session));
-                        props.onLogin?.(session);
-                    } catch {
-                        setMessage("Login failed.");
-                    } finally {
-                        setIsBusy(false);
-                    }
+                try {
+                    const session = await login(credentials);
+                    loginSession(session, loginInfoOf(session));
+                    props.onLogin?.(session);
+                } catch {
+                    setMessage("Login failed.");
+                } finally {
+                    setIsBusy(false);
                 }
-            })
-        )
+            }
+        })
     );
 };
 

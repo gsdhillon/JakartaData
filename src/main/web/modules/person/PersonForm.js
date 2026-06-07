@@ -11,6 +11,7 @@ import {
     useMemo,
     useState
 } from "../../lib/Grove.js";
+import { OptBoolean } from "../../lib/comp/OptBoolean.js";
 import { normalizePerson } from "./PersonService.js";
 
 const PersonForm = props => {
@@ -81,6 +82,7 @@ const PersonForm = props => {
                     readOnly: true
                 }),
                 Input({
+                    autoComplete: "off",
                     label: "EMail:",
                     name: "email",
                     readOnly,
@@ -112,26 +114,28 @@ const PersonForm = props => {
                 }),
                 isAdd
                     ? Input({
+                        autoComplete: "off",
                         label: "Initial Password:",
                         name: "rawPassword",
                         readOnly,
-                        type: "password"
+                        type: "setpass"
                     })
                     : null,
                 isAdd
                     ? Input({
+                        autoComplete: "off",
                         label: "Confirm Password:",
                         name: "confirmPassword",
                         readOnly,
-                        type: "password"
+                        type: "setpass"
                     })
                     : null,
                 isAdd
-                    ? Input({
+                    ? OptBoolean({
+                        disabled: readOnly || !props.canEditPasswordChangeRequired,
                         label: "Force Password Change:",
                         name: "passwordChangeRequired",
-                        readOnly,
-                        type: "checkbox"
+                        nullable: false
                     })
                     : null
             ],
@@ -141,6 +145,7 @@ const PersonForm = props => {
                 readOnly
             }),
             actions,
+            autoComplete: isAdd ? "off" : undefined,
             onDataChange: setPerson,
             onSubmit(event) {
                 event.preventDefault();
