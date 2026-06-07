@@ -10,11 +10,13 @@
 }
 
 .grove-theme-light {
-    --grove-app-surface: #F2E2D2;
+    --grove-app-surface: #F4F4F4;
+    --grove-app-surface-panel-opacity: 80%;
 }
 
 .grove-theme-dark {
-    --grove-app-surface: #2A2A1A;
+    --grove-app-surface: #202020;
+    --grove-app-surface-panel-opacity: 80%;
 }
 
 .grove-app-shell-body {
@@ -45,7 +47,11 @@
 
 .grove-center-panel {
     --grove-form-label-width: 170px;
-    background: var(--grove-app-surface, var(--app-panel-bg, var(--bs-body-bg)));
+    background: color-mix(
+        in srgb,
+        var(--grove-app-surface, var(--app-panel-bg, var(--bs-body-bg))) var(--grove-app-surface-panel-opacity, 80%),
+        transparent
+    );
     border: 1px solid var(--app-border, var(--bs-border-color));
     border-radius: 8px;
     display: grid;
@@ -57,7 +63,11 @@
 }
 
 .grove-center-panel:fullscreen {
-    background: var(--grove-app-surface, var(--app-panel-bg, var(--bs-body-bg)));
+    background: color-mix(
+        in srgb,
+        var(--grove-app-surface, var(--app-panel-bg, var(--bs-body-bg))) var(--grove-app-surface-panel-opacity, 80%),
+        transparent
+    );
     border-radius: 0;
     height: 100vh;
 }
@@ -138,7 +148,11 @@
 }
 
 .grove-page {
-    background: var(--grove-app-surface, transparent);
+    background: color-mix(
+        in srgb,
+        var(--grove-app-surface, transparent) var(--grove-app-surface-panel-opacity, 80%),
+        transparent
+    );
     min-height: 0;
     width: 100%;
 }
