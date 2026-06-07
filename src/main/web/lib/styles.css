@@ -11,12 +11,12 @@
 
 .grove-theme-light {
     --grove-app-surface: #F4F4F4;
-    --grove-app-surface-panel-opacity: 80%;
+    --grove-app-surface-panel-opacity: 20%;
 }
 
 .grove-theme-dark {
     --grove-app-surface: #202020;
-    --grove-app-surface-panel-opacity: 80%;
+    --grove-app-surface-panel-opacity: 20%;
 }
 
 .grove-app-shell-body {
