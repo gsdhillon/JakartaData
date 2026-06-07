@@ -443,6 +443,12 @@ const renderColumnFilter = options => {
                                 ...current,
                                 [key]: nextValue
                             }));
+                        },
+                        onKeyDown(event) {
+                            if (event.key === "Enter") {
+                                event.preventDefault?.();
+                                setActiveColumnFilter(null);
+                            }
                         }
                     }),
                     value
