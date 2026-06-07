@@ -3,10 +3,18 @@
     display: grid;
     grid-template-rows: auto minmax(0, 1fr) auto;
     overflow: hidden;
-    background-color: transparent !important;
+    background-color: var(--grove-app-surface) !important;
     background-position: center;
     background-size: cover;
     color: var(--bs-body-color);
+}
+
+.grove-theme-light {
+    --grove-app-surface: #F2E2D2;
+}
+
+.grove-theme-dark {
+    --grove-app-surface: #2A2A1A;
 }
 
 .grove-app-shell-body {
@@ -37,7 +45,7 @@
 
 .grove-center-panel {
     --grove-form-label-width: 170px;
-    background: var(--app-panel-bg, var(--bs-body-bg));
+    background: var(--grove-app-surface, var(--app-panel-bg, var(--bs-body-bg)));
     border: 1px solid var(--app-border, var(--bs-border-color));
     border-radius: 8px;
     display: grid;
@@ -49,7 +57,7 @@
 }
 
 .grove-center-panel:fullscreen {
-    background: var(--app-panel-bg, var(--bs-body-bg));
+    background: var(--grove-app-surface, var(--app-panel-bg, var(--bs-body-bg)));
     border-radius: 0;
     height: 100vh;
 }
@@ -130,6 +138,7 @@
 }
 
 .grove-page {
+    background: var(--grove-app-surface, transparent);
     min-height: 0;
     width: 100%;
 }
@@ -501,7 +510,7 @@
 }
 
 .grove-card {
-    background: var(--bs-body-bg);
+    background: var(--grove-app-surface, var(--bs-body-bg));
     border: 1px solid color-mix(in srgb, var(--app-border, var(--bs-border-color)) 72%, transparent);
     border-radius: 0.75rem;
     box-shadow: 0 0.5rem 1rem rgba(15, 23, 42, 0.12);
