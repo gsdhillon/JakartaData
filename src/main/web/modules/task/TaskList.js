@@ -2,7 +2,7 @@ import {
     Button,
     createElement,
     Page,
-    StatusText,
+    showAppError,
     useCenterPanel,
     useContext,
     useEffect,
@@ -28,18 +28,15 @@ const TaskList = () => {
     const { authToken, loggedInPerson } = useContext(AppContext);
     const loggedInUserId = loggedInPerson?.id ?? null;
     const [tasks, setTasks] = useState([]);
-    const [statusMessage, setStatusMessage] = useState("Loading tasks...");
     const [isBusy, setIsBusy] = useState(false);
 
     const loadTasks = async () => {
         setIsBusy(true);
-        setStatusMessage("Loading tasks...");
 
         try {
             setTasks(await findAllTasks(loggedInUserId, authToken));
-            setStatusMessage("");
         } catch {
-            setStatusMessage("Unable to load tasks from server.");
+            showAppError("Unable to load tasks from server.");
         } finally {
             setIsBusy(false);
         }
@@ -56,7 +53,6 @@ const TaskList = () => {
 
     const submitTask = async (task, mode, id) => {
         setIsBusy(true);
-        setStatusMessage("");
 
         try {
             await saveTask(task, mode, id);
@@ -70,12 +66,11 @@ const TaskList = () => {
 
     const markCompleted = async task => {
         if (!task.id) {
-            setStatusMessage("Unable to complete task without id.");
+            showAppError("Unable to complete task without id.");
             return;
         }
 
         setIsBusy(true);
-        setStatusMessage("");
 
         try {
             await completeTaskById(task.id, loggedInUserId, authToken);
@@ -89,7 +84,7 @@ const TaskList = () => {
 
     const openTaskForm = (mode, task = null) => {
         if (!loggedInUserId) {
-            setStatusMessage("Login before adding a task.");
+            showAppError("Login before adding a task.");
             return;
         }
 
@@ -137,12 +132,11 @@ const TaskList = () => {
 
     const deleteTask = async task => {
         if (!task.id) {
-            setStatusMessage("Unable to delete task without id.");
+            showAppError("Unable to delete task without id.");
             return;
         }
 
         setIsBusy(true);
-        setStatusMessage("");
 
         try {
             await deleteTaskById(task.id, loggedInUserId, authToken);
@@ -182,9 +176,6 @@ const TaskList = () => {
 
     return Page(
         { layout: "fill" },
-        statusMessage
-            ? StatusText({ value: statusMessage })
-            : null,
         TaskTable({
             isBusy,
             loggedInUserId,

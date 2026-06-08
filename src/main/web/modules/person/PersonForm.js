@@ -1,5 +1,4 @@
 import {
-    Alert,
     Button,
     Form,
     Input,
@@ -8,6 +7,7 @@ import {
     Page,
     Photo,
     Select,
+    showAppError,
     useMemo,
     useState
 } from "../../lib/Grove.js";
@@ -18,7 +18,6 @@ const PersonForm = props => {
     const [person, setPerson] = useState(
         normalizePerson(props.person)
     );
-    const [message, setMessage] = useState("");
     const readOnly = props.readOnly === true;
     const isAdd = props.mode === "add";
     const actions = useMemo(
@@ -39,9 +38,6 @@ const PersonForm = props => {
 
     return Page(
         { layout: "fill" },
-        message
-            ? Alert({ look: "warning", value: message })
-            : null,
         Form({
             data: person,
             editableFields: {
@@ -151,11 +147,10 @@ const PersonForm = props => {
                 event.preventDefault();
 
                 if (isAdd && person.rawPassword !== person.confirmPassword) {
-                    setMessage("Initial password and confirm password do not match.");
+                    showAppError("Initial password and confirm password do not match.");
                     return;
                 }
 
-                setMessage("");
                 props.onSubmit?.({ ...person });
             }
         })

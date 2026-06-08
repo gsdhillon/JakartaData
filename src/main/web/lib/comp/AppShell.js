@@ -78,6 +78,7 @@ const targetPageKey = (page, authenticated, loginPageKey, forcedPageKey) =>
 export const AppShell = (props = {}) => {
     const {
         actions,
+        avatarPages,
         avtarPages = [],
         Center,
         centerTitle = "",
@@ -100,13 +101,16 @@ export const AppShell = (props = {}) => {
         themeMode = "light",
         ...shellProps
     } = props;
+    const resolvedAvatarPages = avatarPages !== undefined
+        ? avatarPages
+        : avtarPages;
     const shellPages = useMemo(
         () => pages.length
             ? pages
             : menuPages.length
-                ? menuPages.concat(avtarPages)
-                : avtarPages,
-        [pages, menuPages, avtarPages]
+                ? menuPages.concat(resolvedAvatarPages)
+                : resolvedAvatarPages,
+        [pages, menuPages, resolvedAvatarPages]
     );
     const firstPage = shellPages.find(page => !page.action) || shellPages[0];
     const [activePageKey, setActivePageKey] = useState(
@@ -200,16 +204,6 @@ export const AppShell = (props = {}) => {
             links: mainMenuLinks
         })
         : null;
-    const avatarMenuItems = avtarPages
-        .filter(page => visibleForAuth(page, authenticated))
-        .map(page =>
-            page.action
-                ? page
-                : {
-                    ...page,
-                    page: pageKeyOf(page)
-                }
-        );
     const mobileMenuItems = resolvedMenuPages.map(page => ({
         ...page,
         active: pageKeyOf(page) === activePageKey,
@@ -222,7 +216,7 @@ export const AppShell = (props = {}) => {
                 ...Header.props,
                 actions: Header.props.actions !== undefined ? Header.props.actions : actions,
                 authenticated,
-                menuItems: Header.props.menuItems !== undefined ? Header.props.menuItems : avatarMenuItems,
+                avatarPages: Header.props.avatarPages !== undefined ? Header.props.avatarPages : resolvedAvatarPages,
                 mobileMenuItems: Header.props.mobileMenuItems !== undefined ? Header.props.mobileMenuItems : mobileMenuItems
             }
         }

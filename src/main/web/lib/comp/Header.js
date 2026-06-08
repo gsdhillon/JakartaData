@@ -67,12 +67,21 @@ const defaultIconFor = item => {
         return "box-arrow-right";
     }
 
-    if (item.page === "login") {
+    if (item.page === "login" || item.key === "login") {
         return "box-arrow-in-right";
     }
 
     return null;
 };
+
+const pageKeyOf = page =>
+    page
+        ? page.key !== undefined
+            ? page.key
+            : page.label !== undefined
+                ? page.label
+                : page.title
+        : undefined;
 
 const menuItemsToAvatarMenu = (menuItems, authenticated, actions) =>
     menuItems
@@ -88,6 +97,11 @@ const menuItemsToAvatarMenu = (menuItems, authenticated, actions) =>
 
                 if (item.page) {
                     openHeaderPage(item.page);
+                    return;
+                }
+
+                if (!item.action) {
+                    openHeaderPage(pageKeyOf(item));
                     return;
                 }
 
@@ -108,6 +122,7 @@ export const Header = (props = {}) => {
     const {
         avatar,
         avatarMenu = [],
+        avatarPages,
         menuItems,
         actions,
         authenticated = true,
@@ -139,7 +154,9 @@ export const Header = (props = {}) => {
     }, [avatarMenuOpen, mobileMenuOpen]);
     const resolvedAvatarMenu = menuItems
         ? menuItemsToAvatarMenu(menuItems, authenticated, actions)
-        : avatarMenu;
+        : avatarPages
+            ? menuItemsToAvatarMenu(avatarPages, authenticated, actions)
+            : avatarMenu;
     const resolvedMobileMenu = menuItemsToAvatarMenu(
         mobileMenuItems,
         authenticated,

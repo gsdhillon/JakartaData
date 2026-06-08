@@ -3,8 +3,9 @@ setlocal
 
 set "APP_NAME=jakarta-data-person"
 set "CONTEXT_ROOT=jakarta-data-person"
-set "SOURCE_DIR=%~dp0src\main\web"
-set "TARGET_DIR=%~dp0target\%APP_NAME%"
+set "ROOT_DIR=%~dp0.."
+set "SOURCE_DIR=%ROOT_DIR%\src\main\web"
+set "TARGET_DIR=%ROOT_DIR%\target\%APP_NAME%"
 set "APP_URL=http://localhost:8080/%CONTEXT_ROOT%/"
 
 if not exist "%TARGET_DIR%" (

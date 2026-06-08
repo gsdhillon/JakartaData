@@ -1,10 +1,10 @@
 import {
-    Alert,
     Button,
     Form,
     FormHeader,
     Input,
     Page,
+    showAppError,
     useMemo,
     useState
 } from "../../lib/Grove.js";
@@ -68,7 +68,6 @@ const Login = props => {
         personId: "",
         password: ""
     });
-    const [message, setMessage] = useState("");
     const [isBusy, setIsBusy] = useState(false);
     const actions = useMemo(
         () => [
@@ -96,9 +95,6 @@ const Login = props => {
                 icon: "box-arrow-in-right",
                 title: "Login"
             }),
-            message
-                ? Alert({ look: "warning", value: message })
-                : null,
                 Input({
                     label: "Person Id:",
                     name: "personId",
@@ -115,7 +111,6 @@ const Login = props => {
             async onSubmit(event) {
                 event.preventDefault();
                 setIsBusy(true);
-                setMessage("");
 
                 try {
                     const session = await login(credentials);
@@ -124,7 +119,7 @@ const Login = props => {
                         props.onLogin(session);
                     }
                 } catch {
-                    setMessage("Login failed.");
+                    showAppError("Login failed.");
                 } finally {
                     setIsBusy(false);
                 }

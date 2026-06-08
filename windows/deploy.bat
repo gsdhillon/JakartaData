@@ -4,7 +4,8 @@ setlocal
 set "APP_NAME=jakarta-data-person"
 set "CONTEXT_ROOT=jakarta-data-person"
 set "JDBC_RESOURCE=jdbc/personDS"
-set "APP_DIR=%~dp0target\%APP_NAME%"
+set "ROOT_DIR=%~dp0.."
+set "APP_DIR=%ROOT_DIR%\target\%APP_NAME%"
 set "APP_URL=http://localhost:8080/%CONTEXT_ROOT%/"
 
 where asadmin >nul 2>nul
@@ -35,7 +36,7 @@ if not errorlevel 1 (
 )
 
 echo Building exploded app directory...
-call mvn clean package
+call mvn -f "%ROOT_DIR%\pom.xml" clean package
 if errorlevel 1 exit /b %ERRORLEVEL%
 
 if not exist "%APP_DIR%" (

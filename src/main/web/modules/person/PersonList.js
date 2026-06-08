@@ -2,7 +2,7 @@ import {
     Button,
     createElement,
     Page,
-    StatusText,
+    showAppError,
     useCenterPanel,
     useContext,
     useEffect,
@@ -75,27 +75,23 @@ const PersonList = () => {
     const centerPanel = useCenterPanel();
     const { authToken, loggedInPerson } = useContext(AppContext);
     const [persons, setPersons] = useState([]);
-    const [statusMessage, setStatusMessage] = useState("Loading persons...");
     const [isBusy, setIsBusy] = useState(false);
     const canCreateRoles = creatableRoles(loggedInPerson);
 
     const loadPersons = async () => {
         if (!authToken) {
             setPersons([]);
-            setStatusMessage("Login to view persons.");
             return;
         }
 
         setIsBusy(true);
-        setStatusMessage("Loading persons...");
 
         try {
             const loadedPersons = await findAllPersons(authToken);
 
             setPersons(loadedPersons);
-            setStatusMessage("");
         } catch {
-            setStatusMessage("Unable to load persons from server.");
+            showAppError("Unable to load persons from server.");
         } finally {
             setIsBusy(false);
         }
@@ -111,7 +107,6 @@ const PersonList = () => {
 
     const submitPerson = async (person, mode, id) => {
         setIsBusy(true);
-        setStatusMessage("");
 
         try {
             await savePerson(person, mode, id);
@@ -165,12 +160,11 @@ const PersonList = () => {
 
     const deletePerson = async person => {
         if (!person.id) {
-            setStatusMessage("Unable to delete person without id.");
+            showAppError("Unable to delete person without id.");
             return;
         }
 
         setIsBusy(true);
-        setStatusMessage("");
 
         try {
             await deletePersonById(person.id, authToken);
@@ -209,9 +203,6 @@ const PersonList = () => {
 
     return Page(
         { layout: "fill" },
-        statusMessage
-            ? StatusText({ value: statusMessage })
-            : null,
         PersonTable({
             persons,
             onDelete: deletePerson,

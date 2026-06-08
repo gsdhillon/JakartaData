@@ -25,11 +25,13 @@ export const AppProvider = props => {
     const [sessionVersion, setSessionVersion] = useState(0);
     const loggedIn = Boolean(authToken && loginInfo);
 
-    const clearSession = () => {
+    const clearSession = (options = {}) => {
         setAuthToken(null);
         setLoggedInPerson(null);
         setLoginInfo(null);
-        setSessionVersion(version => version + 1);
+        if (options.resetPage !== false) {
+            setSessionVersion(version => version + 1);
+        }
     };
 
     const value = useMemo(
@@ -45,8 +47,8 @@ export const AppProvider = props => {
                 setLoggedInPerson(session.person || null);
                 setLoginInfo(nextLoginInfo || null);
             },
-            logoutSession() {
-                clearSession();
+            logoutSession(options) {
+                clearSession(options);
             },
             markPasswordChanged() {
                 setLoggedInPerson(currentPerson =>

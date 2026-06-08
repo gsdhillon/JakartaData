@@ -12,11 +12,12 @@ import {
 import PersonList from "../modules/person/PersonList.js?v=dev-20260607-01";
 import ChangePass from "./security/ChangePass.js";
 import Login from "./security/Login.js";
+import Logout from "./security/Logout.js";
 import TaskList from "../modules/task/TaskList.js";
 
 const appLogo = new URL("./logo.png", import.meta.url).href;
 
-const avtarPages = [
+const avatarPages = [
     {
         component: Login,
         hideToolbar: true, // Page layout behavior: hide CenterPanel toolbar.
@@ -35,9 +36,12 @@ const avtarPages = [
         visibleWhen: "loggedIn"
     },
     {
-        action: "logout",
+        component: Logout,
+        hideToolbar: true,
+        icon: "box-arrow-right",
         key: "logout",
         label: "Logout",
+        requiresLogin: false,
         visibleWhen: "loggedIn"
     }
 ];
@@ -66,15 +70,14 @@ const AppLayout = () => {
         loggedInPerson,
         loginInfo,
         markPasswordChanged,
-        logoutSession,
         sessionVersion
     } = useAppContext();
     const passwordChangeRequired = Boolean(
         loggedInPerson && loggedInPerson.passwordChangeRequired
     );
 
-    const resolvedAvtarPages = useMemo(
-        () => avtarPages.map(page => page.key === "changePass"
+    const resolvedAvatarPages = useMemo(
+        () => avatarPages.map(page => page.key === "changePass"
             ? {
                 ...page,
                 props: {
@@ -86,23 +89,17 @@ const AppLayout = () => {
         [authToken, markPasswordChanged]
     );
 
-    return createElement(AppShell, {
-        actions: {
-            logout: logoutSession
-        },
+    return AppShell({
         authenticated: loggedIn,
         forcedPageKey: passwordChangeRequired ? "changePass" : null,
         initialPage: loggedIn ? "persons" : "login",
         loginPageKey: "login",
         menuPages,
         resetKey: sessionVersion,
-        avtarPages: resolvedAvtarPages,
+        avatarPages: resolvedAvatarPages,
         Header: createElement(
             Header,
             {
-                actions: {
-                    logout: logoutSession
-                },
                 authenticated: loggedIn,
                 appLogo,
                 avatar: loggedInPerson ? loggedInPerson.photo || undefined : undefined,
@@ -119,10 +116,11 @@ const AppLayout = () => {
     });
 };
 
-const App = () => createElement(
-    AppProvider,
-    null,
-    createElement(AppLayout)
-);
 
-createRoot(document.getElementById("app")).render(createElement(App));
+createRoot(document.getElementById("app")).render(
+    createElement(
+        AppProvider,
+        null,
+        createElement(AppLayout)
+    )
+);

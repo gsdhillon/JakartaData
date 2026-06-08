@@ -1,10 +1,10 @@
 import {
-    Alert,
     Button,
     Form,
     FormHeader,
     Input,
     Page,
+    showAppError,
     useMemo,
     useState
 } from "../../lib/Grove.js";
@@ -16,7 +16,6 @@ const ChangePass = props => {
         newPassword: "",
         confirmPassword: ""
     });
-    const [message, setMessage] = useState("");
     const [isBusy, setIsBusy] = useState(false);
     const actions = useMemo(
         () => [
@@ -44,12 +43,6 @@ const ChangePass = props => {
                 icon: "key",
                 title: "Change Password"
             }),
-            !props.authToken
-                ? Alert({ look: "info", value: "Login before changing password." })
-                : null,
-            message
-                ? Alert({ look: "warning", value: message })
-                : null,
                 Input({
                     label: "Current Password:",
                     name: "currentPassword",
@@ -72,12 +65,11 @@ const ChangePass = props => {
                 event.preventDefault();
 
                 if (passwords.newPassword !== passwords.confirmPassword) {
-                    setMessage("New password and confirm password do not match.");
+                    showAppError("New password and confirm password do not match.");
                     return;
                 }
 
                 setIsBusy(true);
-                setMessage("");
 
                 let redirected = false;
 
@@ -86,6 +78,8 @@ const ChangePass = props => {
                         currentPassword: passwords.currentPassword,
                         newPassword: passwords.newPassword
                     });
+
+                    showAppError("Password changed.");
 
                     if (props.onPasswordChanged) {
                         redirected = true;
@@ -98,9 +92,8 @@ const ChangePass = props => {
                         newPassword: "",
                         confirmPassword: ""
                     });
-                    setMessage("Password changed.");
                 } catch {
-                    setMessage("Unable to change password.");
+                    showAppError("Unable to change password.");
                 } finally {
                     if (!redirected) {
                         setIsBusy(false);

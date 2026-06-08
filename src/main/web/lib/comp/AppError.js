@@ -72,8 +72,7 @@ export const showAppError = error => {
         typeof error === "string"
             ? {
                 errors: [error],
-                status: "ERR",
-                statusText: "Error"
+                statusText: "Message"
             }
             : error || {};
 
@@ -106,6 +105,11 @@ export const AppErrorToasts = () => {
         return null;
     }
 
+    const titleOf = toast =>
+        toast.status !== undefined
+            ? `HTTP ${toast.status} ${toast.statusText || ""} Content-Type: ${toast.contentType || "unknown"}`.trim()
+            : toast.statusText || "Message";
+
     return createElement(
         "div",
         {
@@ -131,7 +135,7 @@ export const AppErrorToasts = () => {
                     { className: "grove-rest-error-body" },
                     Div(
                         { className: "grove-rest-error-title" },
-                        `HTTP ${toast.status} ${toast.statusText || ""} Content-Type: ${toast.contentType || "unknown"}`.trim()
+                        titleOf(toast)
                     ),
                     toast.errors?.length
                         ? createElement(

@@ -1,7 +1,7 @@
 @echo off
 setlocal
 
-cd /d "%~dp0"
+cd /d "%~dp0.."
 
 git rev-parse --is-inside-work-tree >nul 2>&1
 if errorlevel 1 (

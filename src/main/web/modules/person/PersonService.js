@@ -50,7 +50,6 @@ const personPayload = person => {
 
 export const findAllPersons = async authToken => {
     const persons = await requestJson(personsApiUrl, { authToken });
-
     return (persons || []).map(normalizePerson);
 };
 

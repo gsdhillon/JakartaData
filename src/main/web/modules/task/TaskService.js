@@ -28,9 +28,10 @@ const taskPayload = task => ({
     deadLine: task.deadLine || null
 });
 
-export const findAllTasks = (loggedInUserId, authToken) =>
-    requestJson(tasksApiUrl, { authToken })
-        .then(tasks => (tasks || []).map(task => normalizeTask(task, loggedInUserId)));
+export const findAllTasks = async (loggedInUserId, authToken) => {
+    const tasks = await requestJson(tasksApiUrl, { authToken });
+    return (tasks || []).map(task => normalizeTask(task, loggedInUserId));
+};
 
 export const createTask = (task, loggedInUserId, authToken) =>
     requestJson(
