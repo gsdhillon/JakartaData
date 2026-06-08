@@ -2,6 +2,7 @@ package com.gurmeet.modules.task;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.ForbiddenException;
 import jakarta.ws.rs.NotFoundException;
 
@@ -61,6 +62,10 @@ public class TaskService {
 
         if (!loggedInUserId.equals(task.getAssignedTo())) {
             throw new ForbiddenException("Only the assigned user can mark this task completed.");
+        }
+
+        if (task.getCompletedOn() != null) {
+            throw new BadRequestException("Task is already completed.");
         }
 
         task.setCompletedOn(Instant.now());

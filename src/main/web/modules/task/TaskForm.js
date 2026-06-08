@@ -16,7 +16,6 @@ const TaskForm = props => {
         normalizeTask(props.task, props.loggedInUserId)
     );
     const showSubmit = props.showSubmit !== false;
-    const showMarkCompleted = props.showMarkCompleted === true;
     const actions = useMemo(
         () => [
             showSubmit
@@ -27,19 +26,6 @@ const TaskForm = props => {
                     name: "submit",
                     disabled: props.isBusy || props.readOnly,
                     type: "submit"
-                })
-                : null,
-            showMarkCompleted
-                ? Button({
-                    icon: "check-circle",
-                    label: "Mark Completed",
-                    look: "ut",
-                    name: "completeTask",
-                    disabled: props.isBusy,
-                    type: "button",
-                    onClick() {
-                        props.onMarkCompleted?.({ ...task });
-                    }
                 })
                 : null,
             Button({
@@ -54,7 +40,6 @@ const TaskForm = props => {
         ],
         [
             showSubmit,
-            showMarkCompleted,
             props.isBusy,
             props.readOnly,
             props.onClose,

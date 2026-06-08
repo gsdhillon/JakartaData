@@ -1,4 +1,6 @@
 import {
+    createElement,
+    Div,
     Form,
     FormHeader,
     Page,
@@ -25,12 +27,19 @@ const Logout = () => {
             main: [
                 FormHeader({
                     icon: "box-arrow-right",
-                    title: "Logout"
+                    title: "Logged Out"
                 }),
-                Text({
-                    look: "body",
-                    value: "Thanks"
-                })
+                Div(
+                    { className: "grove-auth-caption" },
+                    createElement("i", {
+                        "aria-hidden": "true",
+                        className: "bi bi-check-circle"
+                    }),
+                    Text({
+                        look: "caption",
+                        value: "Thanks"
+                    })
+                )
             ]
         })
     );

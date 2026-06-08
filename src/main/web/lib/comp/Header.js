@@ -131,7 +131,7 @@ export const Header = (props = {}) => {
         avtar,
         appLogo,
         className = "",
-        height = "90px",
+        height = "85px",
         logo = defaultLogo,
         subTitle,
         title,

@@ -96,11 +96,6 @@ const TaskList = () => {
         const readOnly =
             isView ||
             (normalizedTask && !sameUser(normalizedTask.addBy, loggedInUserId));
-        const canComplete =
-            isView &&
-            normalizedTask &&
-            sameUser(normalizedTask.assignedTo, loggedInUserId) &&
-            !normalizedTask.completedOn;
 
         centerPanel?.pushPage({
             title: mode === "update"
@@ -115,13 +110,11 @@ const TaskList = () => {
                     loggedInUserId,
                     mode,
                     readOnly,
-                    showMarkCompleted: canComplete,
                     showSubmit: !isView,
                     task: normalizedTask,
                     onClose() {
                         centerPanel?.goBack();
                     },
-                    onMarkCompleted: markCompleted,
                     onSubmit(formTask) {
                         return submitTask(formTask, mode, id);
                     }
@@ -182,6 +175,7 @@ const TaskList = () => {
             tasks,
             toolbarActions,
             onDelete: deleteTask,
+            onMarkCompleted: markCompleted,
             onUpdate: task => openTaskForm("update", task),
             onView: task => openTaskForm("view", task)
         })

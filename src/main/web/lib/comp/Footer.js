@@ -22,7 +22,7 @@ export const Footer = (props = {}) => {
     const {
         brand = "",
         className = "",
-        height = "25px",
+        height = "30px",
         logo = groveLogoUrl,
         onLogoClick = openRestDialog,
         onThemeToggle,

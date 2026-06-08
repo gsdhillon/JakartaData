@@ -32,15 +32,17 @@ const formatDateTime = value => {
 const columns = [
     { key: "id", label: "Id" },
     { key: "taskName", label: "Task" },
-    { key: "addBy", label: "Add By" },
-    { key: "assignedTo", label: "Assigned To" },
+    { essential: false, key: "addBy", label: "Add By" },
+    { essential: false, key: "assignedTo", label: "Assigned To" },
     {
+        essential: false,
         key: "deadLine",
         label: "Deadline",
         render: task => formatDateTime(task.deadLine),
         value: task => formatDateTime(task.deadLine)
     },
     {
+        essential: false,
         key: "completedOn",
         label: "Completed",
         render: task => formatInstantLocal(task.completedOn),
@@ -52,6 +54,9 @@ const sameUser = (left, right) => String(left || "") === String(right || "");
 
 const renderActions = props => (task, index) => {
     const canUpdate = sameUser(task.addBy, props.loggedInUserId);
+    const canComplete =
+        sameUser(task.assignedTo, props.loggedInUserId) &&
+        !task.completedOn;
 
     return [
         Button({
@@ -78,6 +83,23 @@ const renderActions = props => (task, index) => {
             type: "button",
             onClick() {
                 props.onUpdate?.(task, index);
+            }
+        }),
+        Button({
+            id: `completeTask-${index}`,
+            icon: "check-circle",
+            label: null,
+            look: "ut",
+            name: "completeTask",
+            disabled: props.isBusy || !canComplete,
+            title: task.completedOn
+                ? "Task already completed"
+                : canComplete
+                    ? "Mark completed"
+                    : "Only Assigned To user can complete",
+            type: "button",
+            onClick() {
+                props.onMarkCompleted?.(task, index);
             }
         }),
         Button({

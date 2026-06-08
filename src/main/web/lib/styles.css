@@ -22,12 +22,24 @@
 .grove-theme-light {
     --grove-app-surface: #D0E0FF;
     --grove-app-surface-panel-opacity: 40%;
+    --grove-photo-bg: color-mix(in srgb, var(--bs-light, #f8f9fa) 78%, transparent);
+    --grove-photo-border: color-mix(in srgb, var(--bs-secondary-color, #6c757d) 24%, transparent);
+    --grove-photo-highlight: rgba(255, 255, 255, 0.64);
+    --grove-photo-preview-bg:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.68), rgba(248, 249, 250, 0.38)),
+        color-mix(in srgb, var(--bs-light, #f8f9fa) 84%, var(--bs-secondary-bg, #e9ecef));
     --grove-text-title-fg: #16384a;
 }
 
 .grove-theme-dark {
     --grove-app-surface: #204050;
     --grove-app-surface-panel-opacity: 30%;
+    --grove-photo-bg: color-mix(in srgb, #102733 82%, transparent);
+    --grove-photo-border: color-mix(in srgb, #d7e9ef 22%, transparent);
+    --grove-photo-highlight: rgba(255, 255, 255, 0.08);
+    --grove-photo-preview-bg:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(15, 39, 51, 0.42)),
+        color-mix(in srgb, #0f2632 86%, #d7e9ef);
     --grove-text-title-fg: #fff2c2;
 }
 
@@ -112,7 +124,7 @@
     align-items: center;
     display: inline-flex;
     flex: 0 0 auto;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 4px;
 }
 
@@ -165,12 +177,21 @@
     margin-bottom: 0;
 }
 
-.grove-center-panel-actions .grove-button {
+.grove-center-panel-topbar .grove-button {
     --bs-btn-font-size: 0.875rem;
     --bs-btn-line-height: 1.25;
     --bs-btn-padding-x: 0.5rem;
     --bs-btn-padding-y: 0.25rem;
     min-height: calc(1.25em + 0.5rem + 2px);
+}
+
+.grove-center-panel-system-actions .grove-button {
+    align-items: center;
+    display: inline-grid;
+    justify-content: center;
+    min-width: calc(1.25em + 0.5rem + 2px);
+    padding-left: 0.35rem;
+    padding-right: 0.35rem;
 }
 
 .grove-center-panel-content {
@@ -208,7 +229,7 @@
 }
 
 .grove-header {
-    min-height: 70px;
+    min-height: 65px;
     display: grid;
     grid-template-columns: minmax(54px, auto) minmax(0, 1fr) minmax(42px, auto);
     gap: 0.875rem;
@@ -233,8 +254,8 @@
 }
 
 .grove-header-avatar-image {
-    width: 42px;
-    height: 42px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     object-fit: cover;
 }
@@ -377,7 +398,7 @@
 
 .grove-footer {
     position: relative;
-    height: 25px;
+    height: 30px;
     overflow: hidden;
     background: transparent !important;
     font-size: 12px;
@@ -640,6 +661,13 @@
     margin-top: 1rem;
 }
 
+.grove-auth-caption {
+    align-items: center;
+    color: var(--bs-secondary-color);
+    display: inline-flex;
+    gap: 0.4rem;
+}
+
 .grove-form-header {
     align-items: center;
     display: flex;
@@ -805,8 +833,13 @@
 }
 
 .grove-photo-picker {
+    background: var(--grove-photo-bg);
+    border: 1px solid var(--grove-photo-border);
+    border-radius: 0.75rem;
+    box-shadow: inset 0 1px 0 var(--grove-photo-highlight);
     display: grid;
     gap: 0.75rem;
+    padding: 0.75rem;
     width: 240px;
 }
 
@@ -824,14 +857,16 @@
 }
 
 .grove-photo-preview {
-    width: 240px;
-    height: 320px;
+    background: var(--grove-photo-preview-bg);
+    border: 1px dashed var(--grove-photo-border);
+    border-radius: 0.65rem;
+    color: var(--bs-secondary-color);
     display: grid;
+    font-weight: 700;
+    height: 320px;
     place-items: center;
     overflow: hidden;
-    border: 1px dashed var(--bs-border-color);
-    border-radius: var(--bs-border-radius);
-    font-weight: 700;
+    width: 100%;
 }
 
 .grove-photo-preview img {
@@ -1392,10 +1427,36 @@
     }
 
     .grove-center-panel-actions {
-        border-top: 1px solid color-mix(in srgb, var(--app-border, var(--bs-border-color)) 48%, transparent);
+        border-top: 0;
         justify-content: flex-end;
-        padding-top: 4px;
-        width: 100%;
+        padding-top: 0;
+        width: auto;
+    }
+
+    .grove-center-panel-content > .grove-page-fill {
+        padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+        scroll-padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    .grove-page-center {
+        align-items: flex-start;
+        box-sizing: border-box;
+        min-height: 100%;
+        overflow: auto;
+        padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px));
+        position: static;
+    }
+
+    .grove-page-center .grove-auth-form {
+        margin: auto 0;
+    }
+
+    .grove-form {
+        margin-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    .grove-form-main > .grove-photo-picker {
+        justify-self: center;
     }
 
     .grove-rest-list {

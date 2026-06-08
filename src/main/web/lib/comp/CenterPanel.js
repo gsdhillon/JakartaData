@@ -182,6 +182,12 @@ export const CenterPanel = (props = {}) => {
                                 );
                             })
                         ),
+                        actions
+                            ? Div(
+                                { className: "grove-center-panel-actions" },
+                                actions
+                            )
+                            : null,
                         Div(
                             { className: "grove-center-panel-system-actions" },
                             stack.length > 1
@@ -197,19 +203,13 @@ export const CenterPanel = (props = {}) => {
                             Button({
                                 icon: fullscreen ? "fullscreen-exit" : "fullscreen",
                                 label: null,
-                                look: "dn",
+                                look: "sc",
                                 onClick: toggleFullscreen,
                                 title: fullscreen ? "Restore" : "Maximize",
                                 type: "button"
                             })
                         )
-                    ),
-                    actions
-                        ? Div(
-                            { className: "grove-center-panel-actions" },
-                            actions
-                        )
-                        : null
+                    )
                 ),
             Div(
                 { className: "grove-center-panel-content" },
