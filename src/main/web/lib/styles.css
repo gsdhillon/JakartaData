@@ -1358,6 +1358,25 @@
     word-break: break-word;
 }
 
+.grove-rest-combined-payload {
+    min-height: 0;
+    overflow: auto;
+}
+
+.grove-rest-payload-title {
+    padding: 0.85rem 1rem 0;
+    color: #6b7280;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.grove-rest-payload-separator {
+    border-top: 1px dotted #9ca3af;
+    margin: 0 1rem;
+}
+
 @media (max-width: 768px) {
     .grove-app-shell-body,
     .grove-rest-dialog-body,

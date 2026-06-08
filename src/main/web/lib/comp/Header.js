@@ -43,6 +43,10 @@ const defaultLogo = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg
 const visibleForAuth = (item, authenticated) => {
     const visibility = item.visibleWhen ?? item.visible ?? "always";
 
+    if (visibility === "always") {
+        return true;
+    }
+
     if (visibility === "loggedIn" || visibility === "authenticated") {
         return authenticated;
     }

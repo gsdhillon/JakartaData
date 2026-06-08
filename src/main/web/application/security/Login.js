@@ -120,7 +120,9 @@ const Login = props => {
                 try {
                     const session = await login(credentials);
                     loginSession(session, loginInfoOf(session));
-                    props.onLogin?.(session);
+                    if (typeof props.onLogin === "function") {
+                        props.onLogin(session);
+                    }
                 } catch {
                     setMessage("Login failed.");
                 } finally {

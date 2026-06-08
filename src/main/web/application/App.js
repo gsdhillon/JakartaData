@@ -16,26 +16,14 @@ import TaskList from "../modules/task/TaskList.js";
 
 const appLogo = new URL("./logo.png", import.meta.url).href;
 
-const pages = [
-    {
-        component: PersonList,
-        key: "persons",
-        label: "Persons",
-        requiresLogin: true
-    },
-    {
-        component: TaskList,
-        key: "tasks",
-        label: "Tasks",
-        requiresLogin: true
-    },
+const avtarPages = [
     {
         component: Login,
-        hideToolbar: true,
+        hideToolbar: true, // Page layout behavior: hide CenterPanel toolbar.
         key: "login",
         label: "Login",
-        requiresLogin: false,
-        visibleWhen: "loggedOut"
+        requiresLogin: false, // Access behavior: page can open without login.
+        visibleWhen: "loggedOut" // Visibility behavior: show only before login.
     },
     {
         component: ChangePass,
@@ -54,38 +42,22 @@ const pages = [
     }
 ];
 
-const pageKeyOf = page =>
-    page?.key ?? page?.label ?? page?.title;
-
-const visibleForAuth = (item, authenticated) => {
-    const visibility = item.visibleWhen ?? item.visible;
-
-    if (visibility === "loggedIn" || visibility === "authenticated") {
-        return authenticated;
+const menuPages = [
+    {
+        component: PersonList,
+        key: "persons",
+        label: "Persons",
+        requiresLogin: true,
+        visibleWhen: "always"
+    },
+    {
+        component: TaskList,
+        key: "tasks",
+        label: "Tasks",
+        requiresLogin: true,
+        visibleWhen: "loggedIn"
     }
-
-    if (visibility === "loggedOut" || visibility === "anonymous") {
-        return !authenticated;
-    }
-
-    if (item.requiresLogin) {
-        return authenticated;
-    }
-
-    return true;
-};
-
-const pageMenuItem = page => page.action
-    ? page
-    : {
-        ...page,
-        page: pageKeyOf(page)
-    };
-
-const mobilePageMenuItem = page => ({
-    ...pageMenuItem(page),
-    active: false
-});
+];
 
 const AppLayout = () => {
     const {
@@ -94,12 +66,15 @@ const AppLayout = () => {
         loggedInPerson,
         loginInfo,
         markPasswordChanged,
-        logoutSession
+        logoutSession,
+        sessionVersion
     } = useAppContext();
-    const passwordChangeRequired = Boolean(loggedInPerson?.passwordChangeRequired);
+    const passwordChangeRequired = Boolean(
+        loggedInPerson && loggedInPerson.passwordChangeRequired
+    );
 
-    const resolvedPages = useMemo(
-        () => pages.map(page => page.key === "changePass"
+    const resolvedAvtarPages = useMemo(
+        () => avtarPages.map(page => page.key === "changePass"
             ? {
                 ...page,
                 props: {
@@ -110,24 +85,18 @@ const AppLayout = () => {
             : page),
         [authToken, markPasswordChanged]
     );
-    const menuPages = resolvedPages.filter(page =>
-        ["persons", "tasks"].includes(page.key)
-    );
-    const avatarPages = resolvedPages
-        .filter(page =>
-            ["login", "changePass", "logout"].includes(page.key) &&
-            visibleForAuth(page, loggedIn)
-        )
-        .map(pageMenuItem);
-    const mobileMenuPages = menuPages.map(mobilePageMenuItem);
 
-    return AppShell({
+    return createElement(AppShell, {
+        actions: {
+            logout: logoutSession
+        },
         authenticated: loggedIn,
         forcedPageKey: passwordChangeRequired ? "changePass" : null,
         initialPage: loggedIn ? "persons" : "login",
         loginPageKey: "login",
         menuPages,
-        pages: resolvedPages,
+        resetKey: sessionVersion,
+        avtarPages: resolvedAvtarPages,
         Header: createElement(
             Header,
             {
@@ -136,10 +105,8 @@ const AppLayout = () => {
                 },
                 authenticated: loggedIn,
                 appLogo,
-                avatar: loggedInPerson?.photo || undefined,
+                avatar: loggedInPerson ? loggedInPerson.photo || undefined : undefined,
                 loginInfo,
-                menuItems: avatarPages,
-                mobileMenuItems: mobileMenuPages,
                 title: "Jakarta Data Person",
                 subTitle: loginInfo
                     ? `Signed in as ${loginInfo.name}`

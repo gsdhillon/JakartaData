@@ -4,7 +4,12 @@
  * @email gsdhillon@gmail.com
  */
 
-import { createElement, useEffect, useState } from "../Grove.js";
+import {
+    createElement,
+    useEffect,
+    useMemo,
+    useState
+} from "../Grove.js";
 import { AppErrorToasts } from "./AppError.js";
 import { CenterPanel } from "./CenterPanel.js";
 import { Div } from "./Div.js";
@@ -16,6 +21,7 @@ const bgByTheme = {
     dark: new URL("../grove-bg-dark.svg", import.meta.url).href,
     light: new URL("../grove-bg-light.svg", import.meta.url).href
 };
+const emptyPages = [];
 const openPageEventName = "grove-app-open-page";
 
 export const openAppPage = key => {
@@ -25,10 +31,22 @@ export const openAppPage = key => {
 };
 
 const pageKeyOf = page =>
-    page?.key ?? page?.label ?? page?.title;
+    page
+        ? page.key !== undefined
+            ? page.key
+            : page.label !== undefined
+                ? page.label
+                : page.title
+        : undefined;
 
 const visibleForAuth = (item, authenticated) => {
-    const visibility = item.visibleWhen ?? item.visible;
+    const visibility = item.visibleWhen !== undefined
+        ? item.visibleWhen
+        : item.visible;
+
+    if (visibility === "always") {
+        return true;
+    }
 
     if (visibility === "loggedIn" || visibility === "authenticated") {
         return authenticated;
@@ -46,7 +64,7 @@ const visibleForAuth = (item, authenticated) => {
 };
 
 const targetPageKey = (page, authenticated, loginPageKey, forcedPageKey) =>
-    page?.requiresLogin && !authenticated
+    page && page.requiresLogin && !authenticated
         ? loginPageKey
         : authenticated && forcedPageKey && pageKeyOf(page) !== forcedPageKey
             ? forcedPageKey
@@ -59,15 +77,18 @@ const targetPageKey = (page, authenticated, loginPageKey, forcedPageKey) =>
  */
 export const AppShell = (props = {}) => {
     const {
+        actions,
+        avtarPages = [],
         Center,
         centerTitle = "",
         Footer,
         Header,
         Menu,
         forcedPageKey = null,
-        menuPages,
-        pages = [],
+        menuPages = emptyPages,
+        pages = emptyPages,
         initialPage,
+        resetKey,
         authenticated = true,
         loginPageKey = "login",
         center,
@@ -79,15 +100,25 @@ export const AppShell = (props = {}) => {
         themeMode = "light",
         ...shellProps
     } = props;
-    const firstPage = pages.find(page => !page.action) ?? pages[0];
+    const shellPages = useMemo(
+        () => pages.length
+            ? pages
+            : menuPages.length
+                ? menuPages.concat(avtarPages)
+                : avtarPages,
+        [pages, menuPages, avtarPages]
+    );
+    const firstPage = shellPages.find(page => !page.action) || shellPages[0];
     const [activePageKey, setActivePageKey] = useState(
-        initialPage ?? firstPage?.key ?? firstPage?.label ?? firstPage?.title
+        initialPage !== undefined
+            ? initialPage
+            : pageKeyOf(firstPage)
     );
     const [activeThemeMode, setActiveThemeMode] = useState(
         themeMode === "dark" ? "dark" : "light"
     );
     const activePage =
-        pages.find(page => pageKeyOf(page) === activePageKey) ?? firstPage;
+        shellPages.find(page => pageKeyOf(page) === activePageKey) || firstPage;
     const normalizedTheme = activeThemeMode === "dark"
         ? "dark"
         : "light";
@@ -100,8 +131,8 @@ export const AppShell = (props = {}) => {
         .join(" ");
     useEffect(() => {
         const openPage = event => {
-            const nextKey = event.detail?.key;
-            const nextPage = pages.find(page => pageKeyOf(page) === nextKey);
+            const nextKey = event.detail && event.detail.key;
+            const nextPage = shellPages.find(page => pageKeyOf(page) === nextKey);
 
             if (nextPage) {
                 setActivePageKey(targetPageKey(nextPage, authenticated, loginPageKey, forcedPageKey));
@@ -110,7 +141,7 @@ export const AppShell = (props = {}) => {
 
         window.addEventListener(openPageEventName, openPage);
         return () => window.removeEventListener(openPageEventName, openPage);
-    }, [pages, authenticated, loginPageKey, forcedPageKey]);
+    }, [shellPages, authenticated, loginPageKey, forcedPageKey]);
 
     useEffect(() => {
         if (authenticated && forcedPageKey && activePageKey !== forcedPageKey) {
@@ -119,25 +150,47 @@ export const AppShell = (props = {}) => {
     }, [authenticated, forcedPageKey, activePageKey]);
 
     useEffect(() => {
-        if (!authenticated && activePage?.requiresLogin && activePageKey !== loginPageKey) {
+        if (initialPage !== undefined) {
+            setActivePageKey(initialPage);
+        }
+    }, [resetKey]);
+
+    useEffect(() => {
+        if (!authenticated && activePage && activePage.requiresLogin && activePageKey !== loginPageKey) {
             setActivePageKey(loginPageKey);
         }
     }, [authenticated, activePage, activePageKey, loginPageKey]);
 
     useEffect(() => {
+        if (!authenticated || activePageKey !== loginPageKey || initialPage === undefined) {
+            return;
+        }
+
+        const initialPageConfig = shellPages.find(page => pageKeyOf(page) === initialPage);
+
+        if (initialPageConfig) {
+            setActivePageKey(targetPageKey(initialPageConfig, authenticated, loginPageKey, forcedPageKey));
+        }
+    }, [authenticated, activePageKey, initialPage, shellPages, loginPageKey, forcedPageKey]);
+
+    useEffect(() => {
         setActiveThemeMode(themeMode === "dark" ? "dark" : "light");
     }, [themeMode]);
 
-    const resolvedMenuPages = menuPages ?? pages.filter(page =>
-        page.menu !== false &&
-        !page.action &&
+    const configuredMenuPages = menuPages.length
+        ? menuPages
+        : shellPages.filter(page =>
+            page.menu !== false &&
+            !page.action
+        );
+    const resolvedMenuPages = configuredMenuPages.filter(page =>
         visibleForAuth(page, authenticated)
     );
     const mainMenuLinks = resolvedMenuPages.map(page => ({
         active: page === activePage,
         icon: page.icon,
         key: pageKeyOf(page),
-        label: page.label ?? page.title,
+        label: page.label !== undefined ? page.label : page.title,
         onClick() {
             setActivePageKey(targetPageKey(page, authenticated, loginPageKey, forcedPageKey));
         }
@@ -147,17 +200,54 @@ export const AppShell = (props = {}) => {
             links: mainMenuLinks
         })
         : null;
-    const generatedCenter = activePage?.component
+    const avatarMenuItems = avtarPages
+        .filter(page => visibleForAuth(page, authenticated))
+        .map(page =>
+            page.action
+                ? page
+                : {
+                    ...page,
+                    page: pageKeyOf(page)
+                }
+        );
+    const mobileMenuItems = resolvedMenuPages.map(page => ({
+        ...page,
+        active: pageKeyOf(page) === activePageKey,
+        page: pageKeyOf(page)
+    }));
+    const resolvedHeader = Header && Header.props
+        ? {
+            ...Header,
+            props: {
+                ...Header.props,
+                actions: Header.props.actions !== undefined ? Header.props.actions : actions,
+                authenticated,
+                menuItems: Header.props.menuItems !== undefined ? Header.props.menuItems : avatarMenuItems,
+                mobileMenuItems: Header.props.mobileMenuItems !== undefined ? Header.props.mobileMenuItems : mobileMenuItems
+            }
+        }
+        : Header;
+    const generatedCenter = activePage && activePage.component
         ? createElement(activePage.component, activePage.props || {})
-        : activePage?.content;
-    const activeCenterTitle = activePage?.title ?? activePage?.label ?? centerTitle;
-    const centerContent = Center ?? center ?? generatedCenter;
+        : activePage
+            ? activePage.content
+            : undefined;
+    const activeCenterTitle = activePage && activePage.title !== undefined
+        ? activePage.title
+        : activePage && activePage.label !== undefined
+            ? activePage.label
+            : centerTitle;
+    const centerContent = Center !== undefined
+        ? Center
+        : center !== undefined
+            ? center
+            : generatedCenter;
     const wrappedCenterContent =
         centerContent !== null && centerContent !== undefined
             ? createElement(
                 CenterPanel,
                 {
-                    hideToolbar: activePage?.hideToolbar === true,
+                    hideToolbar: activePage && activePage.hideToolbar === true,
                     title: activeCenterTitle
                 },
                 centerContent
@@ -175,10 +265,10 @@ export const AppShell = (props = {}) => {
         FooterComponent,
         {
             ...footerProps,
-            onThemeToggle: footerProps.onThemeToggle ?? (() => {
+            onThemeToggle: footerProps.onThemeToggle !== undefined ? footerProps.onThemeToggle : (() => {
                 setActiveThemeMode(current => current === "dark" ? "light" : "dark");
             }),
-            themeMode: footerProps.themeMode ?? normalizedTheme
+            themeMode: footerProps.themeMode !== undefined ? footerProps.themeMode : normalizedTheme
         }
     );
 
@@ -192,10 +282,10 @@ export const AppShell = (props = {}) => {
                 backgroundImage: `url("${bgByTheme[normalizedTheme]}")`
             }
         },
-        Header ?? header,
+        resolvedHeader !== undefined ? resolvedHeader : header,
         Div(
             { className: "grove-app-shell-body" },
-            Menu ?? menu ?? generatedMenu,
+            Menu !== undefined ? Menu : menu !== undefined ? menu : generatedMenu,
             createElement(
                 "main",
                 {
@@ -209,7 +299,7 @@ export const AppShell = (props = {}) => {
                 className: "grove-app-shell-right-strip"
             })
         ),
-        Footer ?? footer ?? generatedFooter,
+        Footer !== undefined ? Footer : footer !== undefined ? footer : generatedFooter,
         createElement(AppErrorToasts),
         createElement(RestTap)
     );

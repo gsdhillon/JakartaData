@@ -5,7 +5,6 @@ import {
     useMemo,
     useState
 } from "../lib/Grove.js";
-import { logout as logoutRequest } from "./security/SecurityService.js";
 
 export const AppContext = createContext({
     authToken: null,
@@ -15,6 +14,7 @@ export const AppContext = createContext({
     loginSession() {},
     logoutSession() {},
     markPasswordChanged() {},
+    sessionVersion: 0,
     setLoginInfo() {}
 });
 
@@ -22,12 +22,14 @@ export const AppProvider = props => {
     const [authToken, setAuthToken] = useState(null);
     const [loggedInPerson, setLoggedInPerson] = useState(null);
     const [loginInfo, setLoginInfo] = useState(null);
+    const [sessionVersion, setSessionVersion] = useState(0);
     const loggedIn = Boolean(authToken && loginInfo);
 
     const clearSession = () => {
         setAuthToken(null);
         setLoggedInPerson(null);
         setLoginInfo(null);
+        setSessionVersion(version => version + 1);
     };
 
     const value = useMemo(
@@ -36,26 +38,15 @@ export const AppProvider = props => {
             loggedIn,
             loggedInPerson,
             loginInfo,
+            sessionVersion,
             setLoginInfo,
             loginSession(session, nextLoginInfo) {
                 setAuthToken(session.token);
                 setLoggedInPerson(session.person || null);
                 setLoginInfo(nextLoginInfo || null);
-                setTimeout(
-                    () => openAppPage(session.person?.passwordChangeRequired ? "changePass" : "persons"),
-                    0
-                );
             },
-            async logoutSession() {
-                try {
-                    if (authToken) {
-                        await logoutRequest(authToken);
-                    }
-                } catch {
-                } finally {
-                    clearSession();
-                    setTimeout(() => openAppPage("login"), 0);
-                }
+            logoutSession() {
+                clearSession();
             },
             markPasswordChanged() {
                 setLoggedInPerson(currentPerson =>
@@ -69,7 +60,7 @@ export const AppProvider = props => {
                 setTimeout(() => openAppPage("persons"), 0);
             }
         }),
-        [authToken, loggedIn, loggedInPerson, loginInfo]
+        [authToken, loggedIn, loggedInPerson, loginInfo, sessionVersion]
     );
 
     return AppContext.Provider({

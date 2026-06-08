@@ -11,13 +11,18 @@ import {
 } from "../Grove.js";
 import { Button } from "./Button.js";
 import { Div } from "./Div.js";
-import { showAppError } from "./AppError.js";
+import {
+    clearAppErrors,
+    showAppError
+} from "./AppError.js";
 import { Text } from "./Text.js";
 
 const openEventName = "grove-rest-open";
 const groveLogoUrl = new URL("../grove-logo.svg", import.meta.url).href;
 const maxEntries = 10;
 const maxConsoleEntries = 100;
+const maxErrorEntries = 100;
+const maxCapturedBodyBytes = 100000;
 const defaultComposerHeaders = "Content-Type: application/json\nAccept: application/json";
 const bootstrapAdminSampleBody = JSON.stringify(
     {
@@ -33,6 +38,7 @@ const state = {
     consoleEntries: [],
     enabled: false,
     entries: [],
+    errorEntries: [],
     installed: false,
     originalConsole: {},
     originalFetch: null,
@@ -46,7 +52,9 @@ const notify = () => {
     if (typeof document !== "undefined") {
         document.documentElement.classList.toggle(
             "grove-rest-tap-has-entries",
-            state.entries.length > 0 || state.consoleEntries.length > 0
+            state.entries.length > 0 ||
+                state.consoleEntries.length > 0 ||
+                state.errorEntries.length > 0
         );
         document.documentElement.classList.toggle(
             "grove-rest-tap-waiting",
@@ -58,6 +66,7 @@ const notify = () => {
         enabled: state.enabled,
         consoleEntries: [...state.consoleEntries],
         entries: [...state.entries],
+        errorEntries: [...state.errorEntries],
         pending: state.pending
     }));
 };
@@ -70,6 +79,8 @@ const toggleRestTap = () => {
 const clearRestEntries = () => {
     state.consoleEntries = [];
     state.entries = [];
+    state.errorEntries = [];
+    clearAppErrors();
     notify();
 };
 
@@ -155,8 +166,22 @@ const requestMeta = async (input, init = {}) => {
     };
 };
 
+const capturedBodyText = async response => {
+    const contentLength = Number(response.headers.get("Content-Length") || 0);
+
+    if (contentLength > maxCapturedBodyBytes) {
+        return `[Body omitted: ${contentLength} bytes exceeds REST capture limit.]`;
+    }
+
+    const body = await response.clone().text();
+
+    return body.length > maxCapturedBodyBytes
+        ? `[Body omitted: ${body.length} characters exceeds REST capture limit.]`
+        : body;
+};
+
 const responseMeta = async response => ({
-    body: await response.clone().text(),
+    body: await capturedBodyText(response),
     headers: headersToObject(response.headers),
     ok: response.ok,
     status: response.status,
@@ -193,33 +218,64 @@ const parseErrorBody = async response => {
     }
 };
 
-const notifyHttpError = async response => {
+const notifyHttpError = async (response, request = null) => {
     const errors = await parseErrorBody(response);
     const contentType = response.headers.get("Content-Type") || "unknown";
-
-    showAppError({
-        errors,
+    const error = {
         contentType,
+        errors,
+        request,
         status: response.status,
-        statusText: response.statusText
-    });
+        statusText: response.statusText,
+        url: response.url
+    };
+
+    addErrorEntry(error);
+
+    showAppError(error);
 };
 
 export const requestJson = async (url, options = {}) => {
     const {
         authToken,
+        timeoutMs = 15000,
         userId,
         ...fetchOptions
     } = options;
-    const response = await fetch(url, {
-        ...fetchOptions,
-        headers: {
-            ...(fetchOptions.body ? { "Content-Type": "application/json" } : {}),
-            ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-            ...(userId ? { "X-User-Id": String(userId) } : {}),
-            ...(fetchOptions.headers || {})
+    const canAbort =
+        typeof AbortController !== "undefined" &&
+        !fetchOptions.signal &&
+        timeoutMs > 0;
+    const controller = canAbort
+        ? new AbortController()
+        : null;
+    const timeoutId = controller
+        ? setTimeout(() => controller.abort(), timeoutMs)
+        : null;
+    let response;
+
+    try {
+        response = await fetch(url, {
+            ...fetchOptions,
+            signal: controller ? controller.signal : fetchOptions.signal,
+            headers: {
+                ...(fetchOptions.body ? { "Content-Type": "application/json" } : {}),
+                ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+                ...(userId ? { "X-User-Id": String(userId) } : {}),
+                ...(fetchOptions.headers || {})
+            }
+        });
+    } catch (error) {
+        if (error && error.name === "AbortError") {
+            throw new Error("Request timed out.");
         }
-    });
+
+        throw error;
+    } finally {
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+        }
+    }
 
     if (!response.ok) {
         throw new Error(response.statusText || "Request failed");
@@ -333,6 +389,23 @@ const formatConsoleEntries = entries =>
             .join("\n\n")
         : "No console logs captured yet.";
 
+const formatErrorEntries = entries =>
+    entries.length
+        ? entries
+            .map(entry => [
+                `[${entry.time}] HTTP ${entry.status} ${entry.statusText || ""}`.trim(),
+                entry.request
+                    ? `${entry.request.method} ${entry.request.url}`
+                    : entry.url || "",
+                `Content-Type: ${entry.contentType || "unknown"}`,
+                "",
+                entry.errors && entry.errors.length
+                    ? entry.errors.join("\n")
+                    : "No response error body."
+            ].filter(line => line !== "").join("\n"))
+            .join("\n\n")
+        : "No REST errors captured yet.";
+
 const parseHeaderText = headerText => {
     const headers = {};
 
@@ -373,6 +446,18 @@ const addConsoleEntry = entry => {
         entry,
         ...state.consoleEntries
     ].slice(0, maxConsoleEntries);
+    notify();
+};
+
+const addErrorEntry = entry => {
+    state.errorEntries = [
+        {
+            id: `${Date.now()}-${Math.random()}`,
+            time: now(),
+            ...entry
+        },
+        ...state.errorEntries
+    ].slice(0, maxErrorEntries);
     notify();
 };
 
@@ -434,7 +519,7 @@ const sendRestApiRequest = async ({
         addEntry(entry);
 
         if (!response.ok) {
-            await notifyHttpError(response);
+            await notifyHttpError(response, request);
         }
 
         return entry;
@@ -449,11 +534,15 @@ const sendRestApiRequest = async ({
         };
 
         addEntry(entry);
-        showAppError({
+        const restError = {
             errors: [error.message || String(error)],
+            request,
             status: "ERR",
             statusText: "Network Error"
-        });
+        };
+
+        addErrorEntry(restError);
+        showAppError(restError);
 
         throw error;
     } finally {
@@ -503,9 +592,10 @@ export const installRestTap = () => {
 
         try {
             const response = await state.originalFetch(input, init);
-            const responseData = await responseMeta(response);
 
             if (state.enabled) {
+                const responseData = await responseMeta(response);
+
                 addEntry({
                     id: `${Date.now()}-${Math.random()}`,
                     durationMs: Math.round(performance.now() - startedAt),
@@ -516,7 +606,7 @@ export const installRestTap = () => {
             }
 
             if (!response.ok) {
-                await notifyHttpError(response);
+                await notifyHttpError(response, request);
             }
 
             return response;
@@ -532,11 +622,15 @@ export const installRestTap = () => {
                 });
             }
 
-            showAppError({
+            const restError = {
                 errors: [error.message || String(error)],
+                request,
                 status: "ERR",
                 statusText: "Network Error"
-            });
+            };
+
+            addErrorEntry(restError);
+            showAppError(restError);
 
             throw error;
         } finally {
@@ -556,6 +650,7 @@ export const RestTapToggle = () => {
         consoleEntries: [...state.consoleEntries],
         enabled: state.enabled,
         entries: [...state.entries],
+        errorEntries: [...state.errorEntries],
         pending: state.pending
     });
 
@@ -567,6 +662,7 @@ export const RestTapToggle = () => {
             consoleEntries: [...state.consoleEntries],
             enabled: state.enabled,
             entries: [...state.entries],
+            errorEntries: [...state.errorEntries],
             pending: state.pending
         });
 
@@ -606,6 +702,7 @@ export const useRestTapState = () => {
         consoleEntries: [...state.consoleEntries],
         enabled: state.enabled,
         entries: [...state.entries],
+        errorEntries: [...state.errorEntries],
         pending: state.pending
     });
 
@@ -617,6 +714,7 @@ export const useRestTapState = () => {
             consoleEntries: [...state.consoleEntries],
             enabled: state.enabled,
             entries: [...state.entries],
+            errorEntries: [...state.errorEntries],
             pending: state.pending
         });
 
@@ -631,10 +729,11 @@ export const useRestTapState = () => {
 export const RestTap = () => {
     const [consoleEntries, setConsoleEntries] = useState([...state.consoleEntries]);
     const [entries, setEntries] = useState([...state.entries]);
+    const [errorEntries, setErrorEntries] = useState([...state.errorEntries]);
     const [maximized, setMaximized] = useState(false);
     const [open, setOpen] = useState(false);
     const [selectedId, setSelectedId] = useState(state.entries[0]?.id ?? null);
-    const [tab, setTab] = useState("request");
+    const [tab, setTab] = useState("details");
     const [composerMethod, setComposerMethod] = useState("GET");
     const [composerEndpoint, setComposerEndpoint] = useState("");
     const [composerHeaders, setComposerHeaders] = useState(defaultComposerHeaders);
@@ -648,6 +747,7 @@ export const RestTap = () => {
         const syncEntries = nextState => {
             setConsoleEntries(nextState.consoleEntries);
             setEntries(nextState.entries);
+            setErrorEntries(nextState.errorEntries);
             setSelectedId(currentId =>
                 currentId && nextState.entries.some(entry => entry.id === currentId)
                     ? currentId
@@ -657,6 +757,7 @@ export const RestTap = () => {
         const openDialog = () => {
             setConsoleEntries([...state.consoleEntries]);
             setEntries([...state.entries]);
+            setErrorEntries([...state.errorEntries]);
             setSelectedId(currentId =>
                 currentId && state.entries.some(entry => entry.id === currentId)
                     ? currentId
@@ -671,6 +772,7 @@ export const RestTap = () => {
             enabled: state.enabled,
             consoleEntries: [...state.consoleEntries],
             entries: [...state.entries],
+            errorEntries: [...state.errorEntries],
             pending: state.pending
         });
 
@@ -701,7 +803,7 @@ export const RestTap = () => {
             });
 
             setSelectedId(entry.id);
-            setTab("response");
+            setTab("details");
             setComposerMessage(`Sent ${entry.request.method} ${entry.response?.status ?? "ERR"}`);
         } catch (error) {
             setComposerMessage(error.message || String(error));
@@ -758,6 +860,7 @@ export const RestTap = () => {
                                     type: "button",
                                     onClick() {
                                         setSelectedId(entry.id);
+                                        setTab("details");
                                     }
                                 },
                                 Div(
@@ -780,32 +883,21 @@ export const RestTap = () => {
                     Div(
                         { className: "p-2 border-bottom d-flex gap-2 align-items-center grove-rest-tabs" },
                         Button({
-                            className: tab === "request" ? "grove-rest-tab-active" : "",
-                            disabled: !selectedEntry,
-                            label: "Request",
-                            look: tab === "request" ? "pm" : "sc",
-                            type: "button",
-                            onClick() {
-                                setTab("request");
-                            }
-                        }),
-                        Button({
-                            className: tab === "response" ? "grove-rest-tab-active" : "",
-                            disabled: !selectedEntry,
-                            label: "Response",
-                            look: tab === "response" ? "pm" : "sc",
-                            type: "button",
-                            onClick() {
-                                setTab("response");
-                            }
-                        }),
-                        Button({
                             className: tab === "console" ? "grove-rest-tab-active" : "",
                             label: `Console${consoleEntries.length ? ` (${consoleEntries.length})` : ""}`,
                             look: tab === "console" ? "pm" : "sc",
                             type: "button",
                             onClick() {
                                 setTab("console");
+                            }
+                        }),
+                        Button({
+                            className: tab === "errors" ? "grove-rest-tab-active" : "",
+                            label: `Server Errors${errorEntries.length ? ` (${errorEntries.length})` : ""}`,
+                            look: tab === "errors" ? "pm" : "sc",
+                            type: "button",
+                            onClick() {
+                                setTab("errors");
                             }
                         }),
                         Div({ className: "flex-grow-1" }),
@@ -828,7 +920,9 @@ export const RestTap = () => {
                             onClick: composeBootstrapAdmin
                         }),
                         Button({
-                            disabled: entries.length === 0,
+                            disabled: entries.length === 0 &&
+                                consoleEntries.length === 0 &&
+                                errorEntries.length === 0,
                             label: "Clear All",
                             look: "dn",
                             type: "button",
@@ -963,13 +1057,34 @@ export const RestTap = () => {
                             { className: "grove-rest-payload grove-rest-console-payload" },
                             formatConsoleEntries(consoleEntries)
                         )
-                    : selectedEntry
+                    : tab === "errors"
                         ? createElement(
                             "pre",
-                            { className: "grove-rest-payload" },
-                            tab === "request"
-                                ? formatRequest(selectedEntry)
-                                : formatResponse(selectedEntry)
+                            { className: "grove-rest-payload grove-rest-console-payload" },
+                            formatErrorEntries(errorEntries)
+                        )
+                    : selectedEntry
+                        ? Div(
+                            { className: "grove-rest-combined-payload" },
+                            Div(
+                                { className: "grove-rest-payload-title" },
+                                "Request"
+                            ),
+                            createElement(
+                                "pre",
+                                { className: "grove-rest-payload" },
+                                formatRequest(selectedEntry)
+                            ),
+                            Div({ className: "grove-rest-payload-separator" }),
+                            Div(
+                                { className: "grove-rest-payload-title" },
+                                "Response"
+                            ),
+                            createElement(
+                                "pre",
+                                { className: "grove-rest-payload" },
+                                formatResponse(selectedEntry)
+                            )
                         )
                         : Div(
                             { className: "grove-rest-empty" },
