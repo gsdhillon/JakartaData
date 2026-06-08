@@ -99,6 +99,23 @@
     padding: 4px 7px 4px 12px;
 }
 
+.grove-center-panel-system-row {
+    align-items: center;
+    display: flex;
+    flex: 1 1 auto;
+    gap: 8px;
+    justify-content: space-between;
+    min-width: 0;
+}
+
+.grove-center-panel-system-actions {
+    align-items: center;
+    display: inline-flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
 .grove-center-panel-path {
     align-items: center;
     display: flex;
@@ -231,6 +248,20 @@
     background: transparent;
 }
 
+.grove-header-menu-button {
+    align-items: center;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.36);
+    border-radius: 10px;
+    color: inherit;
+    display: none;
+    font-size: 1.25rem;
+    height: 38px;
+    justify-content: center;
+    padding: 0;
+    width: 38px;
+}
+
 .grove-header-avatar-menu {
     position: absolute;
     top: calc(100% + 8px);
@@ -244,6 +275,20 @@
     color: var(--bs-body-color);
 }
 
+.grove-header-mobile-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 48px;
+    z-index: 1100;
+    min-width: 190px;
+    padding: 6px;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 10px;
+    background: var(--bs-body-bg);
+    color: var(--bs-body-color);
+}
+
+.grove-header-mobile-menu-item,
 .grove-header-avatar-menu-item {
     display: flex;
     gap: 8px;
@@ -258,6 +303,8 @@
     text-align: left;
 }
 
+.grove-header-mobile-menu-item:hover,
+.grove-header-mobile-menu-item-active,
 .grove-header-avatar-menu-item:hover {
     background: var(--bs-tertiary-bg);
 }
@@ -666,6 +713,38 @@
 .grove-table-actions {
     align-items: center;
     flex-wrap: nowrap;
+}
+
+.grove-table-action-menu {
+    display: none;
+    position: relative;
+}
+
+.grove-table-action-menu-toggle {
+    align-items: center;
+    background: transparent;
+    border: 1px solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius-sm);
+    color: inherit;
+    display: inline-flex;
+    height: 32px;
+    justify-content: center;
+    padding: 0;
+    width: 32px;
+}
+
+.grove-table-action-menu-popover {
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 8px;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.22);
+    display: flex;
+    gap: 4px;
+    padding: 6px;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 4px);
+    z-index: 40;
 }
 
 .grove-field-label {
@@ -1279,21 +1358,19 @@
     word-break: break-word;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
     .grove-app-shell-body,
     .grove-rest-dialog-body,
     .grove-form-main {
         grid-template-columns: 1fr;
     }
 
-    .grove-menu {
-        width: auto !important;
+    .grove-app-shell-body {
+        grid-template-rows: minmax(0, 1fr);
     }
 
-    .grove-menu-links {
-        grid-auto-flow: column;
-        grid-auto-columns: max-content;
-        overflow-x: auto;
+    .grove-menu {
+        display: none;
     }
 
     .grove-app-shell-right-strip {
@@ -1305,12 +1382,44 @@
         padding: 8px 14px 14px;
     }
 
+    .grove-header-subtitle {
+        display: none;
+    }
+
+    .grove-header-menu-button {
+        display: inline-flex;
+    }
+
+    .grove-center-panel {
+        grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    .grove-center-panel-topbar {
+        align-items: stretch;
+        display: grid;
+        gap: 4px;
+        grid-template-columns: 1fr;
+        justify-content: stretch;
+        padding: 5px 7px;
+    }
+
+    .grove-center-panel-system-row {
+        width: 100%;
+    }
+
+    .grove-center-panel-actions {
+        border-top: 1px solid color-mix(in srgb, var(--app-border, var(--bs-border-color)) 48%, transparent);
+        justify-content: flex-end;
+        padding-top: 4px;
+        width: 100%;
+    }
+
     .grove-rest-list {
         max-height: 180px;
     }
 
     .grove-field-label {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(88px, 34%) minmax(0, 1fr);
     }
 
     .grove-photo-picker,
@@ -1321,6 +1430,18 @@
     .grove-photo-preview {
         height: auto;
         aspect-ratio: 3 / 4;
+    }
+
+    .grove-table-col-nonessential {
+        display: none;
+    }
+
+    .grove-table-actions {
+        display: none;
+    }
+
+    .grove-table-action-menu {
+        display: inline-flex;
     }
 }
 

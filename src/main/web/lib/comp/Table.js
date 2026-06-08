@@ -21,6 +21,11 @@ import { Input } from "./Input.js";
 
 const columnKey = column => column.key ?? column.field;
 
+const columnClassName = column =>
+    column.essential === false
+        ? "grove-table-col-nonessential"
+        : "";
+
 const defaultValue = (row, column) => row?.[columnKey(column)];
 
 const normalizeValue = value =>
@@ -415,7 +420,9 @@ const renderColumnFilter = options => {
                 ].filter(Boolean).join(" "),
                 type: "button",
                 onClick(event) {
-                    event.stopPropagation?.();
+                    if (typeof event.stopPropagation === "function") {
+                        event.stopPropagation();
+                    }
                     const headerCell = event.currentTarget.closest("th");
 
                     if (headerCell) {
@@ -446,7 +453,9 @@ const renderColumnFilter = options => {
                         }
                         : null,
                     onClick(event) {
-                        event.stopPropagation?.();
+                        if (typeof event.stopPropagation === "function") {
+                            event.stopPropagation();
+                        }
                     }
                 },
                 Div(
@@ -468,7 +477,9 @@ const renderColumnFilter = options => {
                         },
                         onKeyDown(event) {
                             if (event.key === "Enter") {
-                                event.preventDefault?.();
+                                if (typeof event.preventDefault === "function") {
+                                    event.preventDefault();
+                                }
                                 setActiveColumnFilter(null);
                             }
                         }
@@ -498,6 +509,7 @@ const renderColumnFilter = options => {
 
 const renderCell = (row, column, rowIndex, query, columnFilters) => {
     const key = columnKey(column);
+    const className = columnClassName(column);
     const rendered = typeof column.render === "function"
         ? column.render(row, column, rowIndex)
         : null;
@@ -505,7 +517,10 @@ const renderCell = (row, column, rowIndex, query, columnFilters) => {
     if (rendered !== null && rendered !== undefined && typeof rendered !== "string" && typeof rendered !== "number") {
         return createElement(
             "td",
-            { key },
+            {
+                className,
+                key
+            },
             rendered
         );
     }
@@ -515,9 +530,44 @@ const renderCell = (row, column, rowIndex, query, columnFilters) => {
 
     return createElement(
         "td",
-        { key },
+        {
+            className,
+            key
+        },
         highlightText(text, search)
     );
+};
+
+const cloneActionForMenu = (vnode, closeMenu) => {
+    if (
+        vnode === null ||
+        vnode === undefined ||
+        typeof vnode === "string" ||
+        typeof vnode === "number"
+    ) {
+        return vnode;
+    }
+
+    const props = vnode.props || {};
+    const nextProps = {
+        ...props,
+        id: undefined
+    };
+
+    if (typeof props.onClick === "function") {
+        nextProps.onClick = event => {
+            props.onClick(event);
+            closeMenu();
+        };
+    }
+
+    return {
+        ...vnode,
+        props: nextProps,
+        children: (vnode.children || []).map(child =>
+            cloneActionForMenu(child, closeMenu)
+        )
+    };
 };
 
 const Table = (props = {}) => {
@@ -544,18 +594,20 @@ const Table = (props = {}) => {
         key: null,
         direction: null
     });
+    const [activeActionRow, setActiveActionRow] = useState(null);
     useEffect(() => {
-        if (!activeColumnFilter) {
+        if (!activeColumnFilter && activeActionRow === null) {
             return undefined;
         }
 
-        const closeColumnFilter = () => {
+        const closeFloatingControls = () => {
             setActiveColumnFilter(null);
+            setActiveActionRow(null);
         };
 
-        document.addEventListener("click", closeColumnFilter);
-        return () => document.removeEventListener("click", closeColumnFilter);
-    }, [activeColumnFilter]);
+        document.addEventListener("click", closeFloatingControls);
+        return () => document.removeEventListener("click", closeFloatingControls);
+    }, [activeColumnFilter, activeActionRow]);
     const visibleRows =
         useMemo(
             () => sortedRows(
@@ -649,6 +701,7 @@ const Table = (props = {}) => {
                                         ? "ascending"
                                         : "descending"
                                     : "none",
+                                className: columnClassName(column),
                                 key
                             },
                             Div(
@@ -696,32 +749,81 @@ const Table = (props = {}) => {
                 ...(
                     visibleRows.length
                         ? visibleRows.map((row, rowIndex) =>
-                            createElement(
-                                "tr",
-                                {
-                                    key: String(
-                                        typeof getRowKey === "function"
-                                            ? getRowKey(row, rowIndex)
-                                            : row?.id ?? rowIndex
-                                    )
-                                },
-                                ...columns.map(column =>
-                                    renderCell(row, column, rowIndex, query, columnFilters)
-                                ),
-                                hasActions
-                                    ? createElement(
-                                        "td",
-                                        {
-                                            className: "grove-table-actions-cell",
-                                            key: "actions"
-                                        },
-                                        Div(
-                                            { className: "grove-table-actions" },
-                                            renderActions(row, rowIndex)
+                            {
+                                const rowKey = String(
+                                    typeof getRowKey === "function"
+                                        ? getRowKey(row, rowIndex)
+                                        : row?.id ?? rowIndex
+                                );
+                                const rowActions = hasActions
+                                    ? renderActions(row, rowIndex)
+                                    : null;
+                                const rowMenuActions = Array.isArray(rowActions)
+                                    ? rowActions.map(action =>
+                                        cloneActionForMenu(
+                                            action,
+                                            () => setActiveActionRow(null)
                                         )
                                     )
-                                    : null
-                            )
+                                    : cloneActionForMenu(
+                                        rowActions,
+                                        () => setActiveActionRow(null)
+                                    );
+
+                                return createElement(
+                                    "tr",
+                                    { key: rowKey },
+                                    ...columns.map(column =>
+                                        renderCell(row, column, rowIndex, query, columnFilters)
+                                    ),
+                                    hasActions
+                                        ? createElement(
+                                            "td",
+                                            {
+                                                className: "grove-table-actions-cell",
+                                                key: "actions"
+                                            },
+                                            Div(
+                                                { className: "grove-table-actions" },
+                                                rowActions
+                                            ),
+                                            Div(
+                                                {
+                                                    className: "grove-table-action-menu",
+                                                    onClick(event) {
+                                                        if (typeof event.stopPropagation === "function") {
+                                                            event.stopPropagation();
+                                                        }
+                                                    }
+                                                },
+                                                createElement(
+                                                    "button",
+                                                    {
+                                                        "aria-expanded": activeActionRow === rowKey,
+                                                        "aria-label": "Row actions",
+                                                        className: "grove-table-action-menu-toggle",
+                                                        type: "button",
+                                                        onClick() {
+                                                            setActiveActionRow(current =>
+                                                                current === rowKey
+                                                                    ? null
+                                                                    : rowKey
+                                                            );
+                                                        }
+                                                    },
+                                                    icon("three-dots-vertical")
+                                                ),
+                                                activeActionRow === rowKey
+                                                    ? Div(
+                                                        { className: "grove-table-action-menu-popover" },
+                                                        rowMenuActions
+                                                    )
+                                                    : null
+                                            )
+                                        )
+                                        : null
+                                );
+                            }
                         )
                         : [
                             createElement(

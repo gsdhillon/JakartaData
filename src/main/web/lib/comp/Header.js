@@ -6,12 +6,19 @@
 
 import {
     createElement,
-    openAppPage,
     useEffect,
     useState
 } from "../Grove.js";
 import { Div } from "./Div.js";
 import { Text } from "./Text.js";
+
+const openPageEventName = "grove-app-open-page";
+
+const openHeaderPage = key => {
+    if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent(openPageEventName, { detail: { key } }));
+    }
+};
 
 const renderImageSlot = (value, className, alt) => {
     if (!value) {
@@ -70,13 +77,20 @@ const menuItemsToAvatarMenu = (menuItems, authenticated, actions) =>
             ...item,
             icon: defaultIconFor(item),
             onClick() {
+                if (item.onClick) {
+                    item.onClick(item);
+                    return;
+                }
+
                 if (item.page) {
-                    openAppPage(item.page);
+                    openHeaderPage(item.page);
                     return;
                 }
 
                 if (item.action) {
-                    actions?.[item.action]?.(item);
+                    if (actions && typeof actions[item.action] === "function") {
+                        actions[item.action](item);
+                    }
                 }
             }
         }));
@@ -94,6 +108,7 @@ export const Header = (props = {}) => {
         actions,
         authenticated = true,
         loginInfo,
+        mobileMenuItems = [],
         avtar,
         appLogo,
         className = "",
@@ -104,21 +119,28 @@ export const Header = (props = {}) => {
         ...headerProps
     } = props;
     const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     useEffect(() => {
-        if (!avatarMenuOpen) {
+        if (!avatarMenuOpen && !mobileMenuOpen) {
             return undefined;
         }
 
-        const closeAvatarMenu = () => {
+        const closeMenus = () => {
             setAvatarMenuOpen(false);
+            setMobileMenuOpen(false);
         };
 
-        document.addEventListener("click", closeAvatarMenu);
-        return () => document.removeEventListener("click", closeAvatarMenu);
-    }, [avatarMenuOpen]);
+        document.addEventListener("click", closeMenus);
+        return () => document.removeEventListener("click", closeMenus);
+    }, [avatarMenuOpen, mobileMenuOpen]);
     const resolvedAvatarMenu = menuItems
         ? menuItemsToAvatarMenu(menuItems, authenticated, actions)
         : avatarMenu;
+    const resolvedMobileMenu = menuItemsToAvatarMenu(
+        mobileMenuItems,
+        authenticated,
+        actions
+    );
     const resolvedAvatar =
         avtar ??
         avatar ??
@@ -169,9 +191,30 @@ export const Header = (props = {}) => {
             {
                 className: "grove-header-avatar",
                 onClick(event) {
-                    event.stopPropagation?.();
+                    if (typeof event.stopPropagation === "function") {
+                        event.stopPropagation();
+                    }
                 }
             },
+            resolvedMobileMenu.length
+                ? createElement(
+                    "button",
+                    {
+                        "aria-expanded": mobileMenuOpen,
+                        "aria-label": "Main menu",
+                        className: "grove-header-menu-button",
+                        type: "button",
+                        onClick() {
+                            setAvatarMenuOpen(false);
+                            setMobileMenuOpen(open => !open);
+                        }
+                    },
+                    createElement("i", {
+                        "aria-hidden": "true",
+                        className: "bi bi-list"
+                    })
+                )
+                : null,
             createElement(
                 "button",
                 {
@@ -180,11 +223,44 @@ export const Header = (props = {}) => {
                     className: "grove-header-avatar-button",
                     type: "button",
                     onClick() {
+                        setMobileMenuOpen(false);
                         setAvatarMenuOpen(open => !open);
                     }
                 },
                 renderImageSlot(resolvedAvatar, "grove-header-avatar-image", "User avatar")
             ),
+            mobileMenuOpen && resolvedMobileMenu.length
+                ? Div(
+                    { className: "grove-header-mobile-menu shadow" },
+                    ...resolvedMobileMenu.map((item, index) =>
+                        createElement(
+                            "button",
+                            {
+                                className: [
+                                    "grove-header-mobile-menu-item",
+                                    item.active ? "grove-header-mobile-menu-item-active" : ""
+                                ].filter(Boolean).join(" "),
+                                disabled: item.disabled,
+                                key: item.key || item.label || index,
+                                type: "button",
+                                onClick() {
+                                    setMobileMenuOpen(false);
+                                    if (typeof item.onClick === "function") {
+                                        item.onClick();
+                                    }
+                                }
+                            },
+                            item.icon
+                                ? createElement("i", {
+                                    "aria-hidden": "true",
+                                    className: `bi bi-${item.icon}`
+                                })
+                                : null,
+                            item.label
+                        )
+                    )
+                )
+                : null,
             avatarMenuOpen && resolvedAvatarMenu.length
                 ? Div(
                     { className: "grove-header-avatar-menu shadow" },
@@ -198,7 +274,9 @@ export const Header = (props = {}) => {
                                 type: "button",
                                 onClick() {
                                     setAvatarMenuOpen(false);
-                                    item.onClick?.();
+                                    if (typeof item.onClick === "function") {
+                                        item.onClick();
+                                    }
                                 }
                             },
                             item.icon

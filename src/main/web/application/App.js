@@ -34,40 +34,58 @@ const pages = [
         hideToolbar: true,
         key: "login",
         label: "Login",
-        menu: false,
-        requiresLogin: false
+        requiresLogin: false,
+        visibleWhen: "loggedOut"
     },
     {
         component: ChangePass,
         hideToolbar: true,
-        key: "changePass",
-        label: "Change Password",
-        menu: false,
-        requiresLogin: true
-    }
-];
-
-const accountMenuItems = [
-    {
-        key: "login",
-        label: "Login",
-        page: "login",
-        visibleWhen: "loggedOut"
-    },
-    {
         icon: "key",
         key: "changePass",
         label: "Change Password",
-        page: "changePass",
+        requiresLogin: true,
         visibleWhen: "loggedIn"
     },
     {
+        action: "logout",
         key: "logout",
         label: "Logout",
-        action: "logout",
         visibleWhen: "loggedIn"
     }
 ];
+
+const pageKeyOf = page =>
+    page?.key ?? page?.label ?? page?.title;
+
+const visibleForAuth = (item, authenticated) => {
+    const visibility = item.visibleWhen ?? item.visible;
+
+    if (visibility === "loggedIn" || visibility === "authenticated") {
+        return authenticated;
+    }
+
+    if (visibility === "loggedOut" || visibility === "anonymous") {
+        return !authenticated;
+    }
+
+    if (item.requiresLogin) {
+        return authenticated;
+    }
+
+    return true;
+};
+
+const pageMenuItem = page => page.action
+    ? page
+    : {
+        ...page,
+        page: pageKeyOf(page)
+    };
+
+const mobilePageMenuItem = page => ({
+    ...pageMenuItem(page),
+    active: false
+});
 
 const AppLayout = () => {
     const {
@@ -92,27 +110,42 @@ const AppLayout = () => {
             : page),
         [authToken, markPasswordChanged]
     );
+    const menuPages = resolvedPages.filter(page =>
+        ["persons", "tasks"].includes(page.key)
+    );
+    const avatarPages = resolvedPages
+        .filter(page =>
+            ["login", "changePass", "logout"].includes(page.key) &&
+            visibleForAuth(page, loggedIn)
+        )
+        .map(pageMenuItem);
+    const mobileMenuPages = menuPages.map(mobilePageMenuItem);
 
     return AppShell({
         authenticated: loggedIn,
         forcedPageKey: passwordChangeRequired ? "changePass" : null,
         initialPage: loggedIn ? "persons" : "login",
         loginPageKey: "login",
+        menuPages,
         pages: resolvedPages,
-        Header: Header({
-            actions: {
-                logout: logoutSession
-            },
-            authenticated: loggedIn,
-            appLogo,
-            avatar: loggedInPerson?.photo || undefined,
-            loginInfo,
-            menuItems: accountMenuItems,
-            title: "Jakarta Data Person",
-            subTitle: loginInfo
-                ? `Signed in as ${loginInfo.name}`
-                : "Person and task management"
-        }),
+        Header: createElement(
+            Header,
+            {
+                actions: {
+                    logout: logoutSession
+                },
+                authenticated: loggedIn,
+                appLogo,
+                avatar: loggedInPerson?.photo || undefined,
+                loginInfo,
+                menuItems: avatarPages,
+                mobileMenuItems: mobileMenuPages,
+                title: "Jakarta Data Person",
+                subTitle: loginInfo
+                    ? `Signed in as ${loginInfo.name}`
+                    : "Person and task management"
+            }
+        ),
         footerProps: {
             brand: "Jakarta Data Person"
         }

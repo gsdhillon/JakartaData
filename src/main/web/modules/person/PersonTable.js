@@ -6,11 +6,11 @@ import {
 const columns = [
     { key: "id", label: "Id" },
     { key: "name", label: "Name" },
-    { key: "designation", label: "Designation" },
-    { key: "email", label: "EMail" },
+    { essential: false, key: "designation", label: "Designation" },
+    { essential: false, key: "email", label: "EMail" },
     { key: "gender", label: "Gender" },
     { key: "role", label: "Role" },
-    { key: "mobileNo", label: "MobileNo" }
+    { essential: false, key: "mobileNo", label: "MobileNo" }
 ];
 
 const renderActions = props => (person, index) => [

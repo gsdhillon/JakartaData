@@ -13,7 +13,11 @@ import { AppErrorToasts } from "./AppError.js";
 import { Text } from "./Text.js";
 
 const pageContent = props =>
-    props.content ?? props.children?.[0] ?? null;
+    props.content !== undefined
+        ? props.content
+        : props.children && props.children.length
+            ? props.children[0]
+            : null;
 
 export const CenterPanel = (props = {}) => {
     const {
@@ -50,7 +54,7 @@ export const CenterPanel = (props = {}) => {
 
     useEffect(() => {
         const updateFullscreen = () => {
-            setFullscreen(document.fullscreenElement?.id === panelId);
+            setFullscreen(document.fullscreenElement && document.fullscreenElement.id === panelId);
         };
 
         document.addEventListener("fullscreenchange", updateFullscreen);
@@ -64,7 +68,11 @@ export const CenterPanel = (props = {}) => {
             return;
         }
 
-        await document.getElementById(panelId)?.requestFullscreen?.();
+        const panelElement = document.getElementById(panelId);
+
+        if (panelElement && typeof panelElement.requestFullscreen === "function") {
+            await panelElement.requestFullscreen();
+        }
         setFullscreen(true);
     }, [panelId]);
 
@@ -132,69 +140,77 @@ export const CenterPanel = (props = {}) => {
                 ? null
                 : Div(
                     { className: "grove-center-panel-topbar" },
-                Div(
-                    {
-                        "aria-label": "Current location",
-                        className: "grove-center-panel-path"
-                    },
-                    ...visiblePath.map((page, index) => {
-                        const isLast = index === visiblePath.length - 1;
-
-                        return Div(
+                    Div(
+                        { className: "grove-center-panel-system-row" },
+                        Div(
                             {
-                                className: "grove-center-panel-path-part",
-                                key: index
+                                "aria-label": "Current location",
+                                className: "grove-center-panel-path"
                             },
-                            index > 0
-                                ? createElement(
-                                    "span",
-                                    { className: "grove-center-panel-path-separator" },
-                                    "/"
-                                )
-                                : null,
-                            isLast
-                                ? Text({
-                                    look: "title",
-                                    value: page.title
-                                })
-                                : createElement(
-                                    "button",
+                            ...visiblePath.map((page, index) => {
+                                const isLast = index === visiblePath.length - 1;
+
+                                return Div(
                                     {
-                                        className: "grove-center-panel-path-button",
-                                        onClick: () => popTo(index),
-                                        type: "button"
+                                        className: "grove-center-panel-path-part",
+                                        key: index
                                     },
-                                    Text({
-                                        look: "title",
-                                        value: page.title
-                                    })
-                                )
-                        );
-                    })
+                                    index > 0
+                                        ? createElement(
+                                            "span",
+                                            { className: "grove-center-panel-path-separator" },
+                                            "/"
+                                        )
+                                        : null,
+                                    isLast
+                                        ? Text({
+                                            look: "title",
+                                            value: page.title
+                                        })
+                                        : createElement(
+                                            "button",
+                                            {
+                                                className: "grove-center-panel-path-button",
+                                                onClick: () => popTo(index),
+                                                type: "button"
+                                            },
+                                            Text({
+                                                look: "title",
+                                                value: page.title
+                                            })
+                                        )
+                                );
+                            })
+                        ),
+                        Div(
+                            { className: "grove-center-panel-system-actions" },
+                            stack.length > 1
+                                ? Button({
+                                    icon: "arrow-left",
+                                    label: null,
+                                    look: "sc",
+                                    onClick: goBack,
+                                    title: "Back",
+                                    type: "button"
+                                })
+                                : null,
+                            Button({
+                                icon: fullscreen ? "fullscreen-exit" : "fullscreen",
+                                label: null,
+                                look: "dn",
+                                onClick: toggleFullscreen,
+                                title: fullscreen ? "Restore" : "Maximize",
+                                type: "button"
+                            })
+                        )
+                    ),
+                    actions
+                        ? Div(
+                            { className: "grove-center-panel-actions" },
+                            actions
+                        )
+                        : null
                 ),
-                Div(
-                    { className: "grove-center-panel-actions" },
-                    actions,
-                    stack.length > 1
-                        ? Button({
-                            icon: "arrow-left",
-                            label: null,
-                            look: "sc",
-                            onClick: goBack,
-                            title: "Back",
-                            type: "button"
-                        })
-                        : null,
-                    Button({
-                        icon: fullscreen ? "fullscreen-exit" : "fullscreen",
-                        label: null,
-                        look: "dn",
-                        onClick: toggleFullscreen,
-                        title: fullscreen ? "Restore" : "Maximize",
-                        type: "button"
-                    })
-                )
-            ),
             Div(
                 { className: "grove-center-panel-content" },
                 activePage.content

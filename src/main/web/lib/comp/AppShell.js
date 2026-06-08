@@ -27,6 +27,24 @@ export const openAppPage = key => {
 const pageKeyOf = page =>
     page?.key ?? page?.label ?? page?.title;
 
+const visibleForAuth = (item, authenticated) => {
+    const visibility = item.visibleWhen ?? item.visible;
+
+    if (visibility === "loggedIn" || visibility === "authenticated") {
+        return authenticated;
+    }
+
+    if (visibility === "loggedOut" || visibility === "anonymous") {
+        return !authenticated;
+    }
+
+    if (item.requiresLogin) {
+        return authenticated;
+    }
+
+    return true;
+};
+
 const targetPageKey = (page, authenticated, loginPageKey, forcedPageKey) =>
     page?.requiresLogin && !authenticated
         ? loginPageKey
@@ -47,6 +65,7 @@ export const AppShell = (props = {}) => {
         Header,
         Menu,
         forcedPageKey = null,
+        menuPages,
         pages = [],
         initialPage,
         authenticated = true,
@@ -60,7 +79,7 @@ export const AppShell = (props = {}) => {
         themeMode = "light",
         ...shellProps
     } = props;
-    const firstPage = pages[0];
+    const firstPage = pages.find(page => !page.action) ?? pages[0];
     const [activePageKey, setActivePageKey] = useState(
         initialPage ?? firstPage?.key ?? firstPage?.label ?? firstPage?.title
     );
@@ -100,36 +119,32 @@ export const AppShell = (props = {}) => {
     }, [authenticated, forcedPageKey, activePageKey]);
 
     useEffect(() => {
-        if (!authenticated || activePageKey !== loginPageKey) {
-            return;
+        if (!authenticated && activePage?.requiresLogin && activePageKey !== loginPageKey) {
+            setActivePageKey(loginPageKey);
         }
-
-        const nextPage =
-            pages.find(page => page.menu !== false && page.requiresLogin) ??
-            pages.find(page => pageKeyOf(page) !== loginPageKey);
-        const nextKey = pageKeyOf(nextPage);
-
-        if (nextKey && nextKey !== loginPageKey) {
-            setActivePageKey(nextKey);
-        }
-    }, [authenticated, activePageKey, loginPageKey, pages]);
+    }, [authenticated, activePage, activePageKey, loginPageKey]);
 
     useEffect(() => {
         setActiveThemeMode(themeMode === "dark" ? "dark" : "light");
     }, [themeMode]);
 
-    const menuPages = pages.filter(page => page.menu !== false);
-    const generatedMenu = menuPages.length
+    const resolvedMenuPages = menuPages ?? pages.filter(page =>
+        page.menu !== false &&
+        !page.action &&
+        visibleForAuth(page, authenticated)
+    );
+    const mainMenuLinks = resolvedMenuPages.map(page => ({
+        active: page === activePage,
+        icon: page.icon,
+        key: pageKeyOf(page),
+        label: page.label ?? page.title,
+        onClick() {
+            setActivePageKey(targetPageKey(page, authenticated, loginPageKey, forcedPageKey));
+        }
+    }));
+    const generatedMenu = resolvedMenuPages.length
         ? MenuComponent({
-            links: menuPages.map(page => {
-                return {
-                    active: page === activePage,
-                    label: page.label ?? page.title,
-                    onClick() {
-                        setActivePageKey(targetPageKey(page, authenticated, loginPageKey, forcedPageKey));
-                    }
-                };
-            })
+            links: mainMenuLinks
         })
         : null;
     const generatedCenter = activePage?.component
