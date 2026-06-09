@@ -1,4 +1,4 @@
-package com.gurmeet.modules.security;
+package com.gurmeet.application.security;
 
 import jakarta.enterprise.context.ApplicationScoped;
 

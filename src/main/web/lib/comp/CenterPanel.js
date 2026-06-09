@@ -92,6 +92,26 @@ export const CenterPanel = (props = {}) => {
         );
     }, []);
 
+    const updatePreviousPage = useCallback(updater => {
+        if (typeof updater !== "function") {
+            return;
+        }
+
+        setStack(current => {
+            if (current.length < 2) {
+                return current;
+            }
+
+            const previousIndex = current.length - 2;
+
+            return current.map((page, index) =>
+                index === previousIndex
+                    ? updater(page)
+                    : page
+            );
+        });
+    }, []);
+
     const popTo = useCallback(index => {
         setStack(current => current.slice(0, index + 1));
     }, []);
@@ -111,9 +131,10 @@ export const CenterPanel = (props = {}) => {
         () => ({
             goBack,
             pushPage,
-            setActions: setToolbarActions
+            setActions: setToolbarActions,
+            updatePreviousPage
         }),
-        [goBack, pushPage, setToolbarActions]
+        [goBack, pushPage, setToolbarActions, updatePreviousPage]
     );
     const activePage = stack[stack.length - 1] || {};
     const visiblePath = activePage.currentTitleOnly

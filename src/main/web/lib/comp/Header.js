@@ -123,6 +123,8 @@ export const Header = (props = {}) => {
         avatar,
         avatarMenu = [],
         avatarPages,
+        avatarTitle,
+        avatarSubTitle,
         menuItems,
         actions,
         authenticated = true,
@@ -285,6 +287,23 @@ export const Header = (props = {}) => {
             avatarMenuOpen && resolvedAvatarMenu.length
                 ? Div(
                     { className: "grove-header-avatar-menu shadow" },
+                    avatarTitle || avatarSubTitle
+                        ? Div(
+                            { className: "grove-header-avatar-menu-account" },
+                            avatarTitle
+                                ? Text({
+                                    className: "grove-header-avatar-menu-title",
+                                    value: avatarTitle
+                                })
+                                : null,
+                            avatarSubTitle
+                                ? Text({
+                                    className: "grove-header-avatar-menu-subtitle",
+                                    value: avatarSubTitle
+                                })
+                                : null
+                        )
+                        : null,
                     ...resolvedAvatarMenu.map((item, index) =>
                         createElement(
                             "button",

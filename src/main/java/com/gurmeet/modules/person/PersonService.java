@@ -1,8 +1,8 @@
 package com.gurmeet.modules.person;
 
 import com.gurmeet.application.EditableFields;
-import com.gurmeet.modules.security.PersonAccessPolicy;
-import com.gurmeet.modules.security.PasswordService;
+import com.gurmeet.application.security.PasswordService;
+import com.gurmeet.application.security.UserAccessPolicy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.json.JsonObject;
@@ -41,7 +41,7 @@ public class PersonService {
 
     public Person create(Person person) {
         person.setId(null);
-        person.setRole(PersonAccessPolicy.normalizeRole(person.getRole()));
+        person.setRole(UserAccessPolicy.normalizeRole(person.getRole()));
 
         var violations = validator.validate(person, Person.Create.class);
 
@@ -70,6 +70,12 @@ public class PersonService {
         }
     }
 
+    public Person createBootstrapUser(Person person) {
+        person.setId(null);
+        person.setRole(UserAccessPolicy.normalizeRole(person.getRole()));
+        return personRepository.save(person);
+    }
+
     public Optional<Person> findById(Long id) {
         return personRepository.findById(id);
     }
@@ -87,7 +93,7 @@ public class PersonService {
 
         Person person = optionalPerson.get();
         EditableFields.copyEditableFields(updatedPerson, person);
-        person.setRole(PersonAccessPolicy.normalizeRole(person.getRole()));
+        person.setRole(UserAccessPolicy.normalizeRole(person.getRole()));
         return personRepository.save(person);
     }
 

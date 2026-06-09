@@ -1,5 +1,9 @@
-package com.gurmeet.modules.security;
+package com.gurmeet.application.security;
 
+import com.gurmeet.application.security.bootstrap.BootstrapAdminRequest;
+import com.gurmeet.application.security.bootstrap.BootstrapAdminService;
+import com.gurmeet.application.security.login.ChangePasswordRequest;
+import com.gurmeet.application.security.login.LoginRequest;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;

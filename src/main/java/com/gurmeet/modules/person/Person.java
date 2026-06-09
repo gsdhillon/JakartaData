@@ -5,7 +5,7 @@ import java.time.LocalDate;
 
 import com.gurmeet.application.EditableField;
 import com.gurmeet.application.ValidationRules;
-import com.gurmeet.modules.security.PersonAccessPolicy;
+import com.gurmeet.application.security.UserAccessPolicy;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -57,7 +57,7 @@ public class Person {
     private String gender;
 
     @EditableField
-    private String role = PersonAccessPolicy.USER;
+    private String role = UserAccessPolicy.USER;
 
     @EditableField
     private String mobileNo;
@@ -150,11 +150,11 @@ public class Person {
     }
 
     public String getRole() {
-        return PersonAccessPolicy.normalizeRole(role);
+        return UserAccessPolicy.normalizeRole(role);
     }
 
     public void setRole(String role) {
-        this.role = PersonAccessPolicy.normalizeRole(role);
+        this.role = UserAccessPolicy.normalizeRole(role);
     }
 
     public String getMobileNo() {

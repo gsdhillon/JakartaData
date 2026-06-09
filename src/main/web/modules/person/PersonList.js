@@ -4,12 +4,11 @@ import {
     Page,
     showAppError,
     useCenterPanel,
-    useContext,
     useEffect,
     useMemo,
     useState
 } from "../../lib/Grove.js";
-import { AppContext } from "../../application/AppContext.js";
+import { useAuth } from "../../application/AppContext.js";
 import PersonForm from "./PersonForm.js?v=dev-20260607-01";
 import {
     createPerson,
@@ -73,10 +72,10 @@ const canDeletePerson = (actor, person) => {
 
 const PersonList = () => {
     const centerPanel = useCenterPanel();
-    const { authToken, loggedInPerson } = useContext(AppContext);
+    const { authToken, loggedInUser } = useAuth();
     const [persons, setPersons] = useState([]);
     const [isBusy, setIsBusy] = useState(false);
-    const canCreateRoles = creatableRoles(loggedInPerson);
+    const canCreateRoles = creatableRoles(loggedInUser);
 
     const loadPersons = async () => {
         if (!authToken) {
@@ -126,10 +125,10 @@ const PersonList = () => {
         const isView = mode === "view";
         const canUpdate = mode === "add"
             ? canCreateRoles.length > 0
-            : canUpdatePerson(loggedInPerson, normalizedPerson);
+            : canUpdatePerson(loggedInUser, normalizedPerson);
         const roleOptions = mode === "add"
             ? canCreateRoles
-            : roleOf(loggedInPerson) === SUPER_ADMIN && !samePerson(loggedInPerson?.id, normalizedPerson?.id)
+            : roleOf(loggedInUser) === SUPER_ADMIN && !samePerson(loggedInUser?.id, normalizedPerson?.id)
                 ? [ADMIN, USER]
                 : [roleOf(normalizedPerson)];
 
@@ -143,7 +142,7 @@ const PersonList = () => {
                 PersonForm,
                 {
                     isBusy,
-                    canEditPasswordChangeRequired: roleOf(loggedInPerson) === SUPER_ADMIN,
+                    canEditPasswordChangeRequired: roleOf(loggedInUser) === SUPER_ADMIN,
                     mode,
                     person: normalizedPerson,
                     readOnly: isView || !canUpdate,
@@ -198,7 +197,7 @@ const PersonList = () => {
                 onClick: loadPersons
             })
         ],
-        [isBusy, authToken, loggedInPerson]
+        [isBusy, authToken, loggedInUser]
     );
 
     return Page(
@@ -208,8 +207,8 @@ const PersonList = () => {
             onDelete: deletePerson,
             onUpdate: person => openPersonForm("update", person),
             onView: person => openPersonForm("view", person),
-            canDelete: person => canDeletePerson(loggedInPerson, person),
-            canUpdate: person => canUpdatePerson(loggedInPerson, person),
+            canDelete: person => canDeletePerson(loggedInUser, person),
+            canUpdate: person => canUpdatePerson(loggedInUser, person),
             isBusy,
             toolbarActions
         })

@@ -13,7 +13,7 @@ const columns = [
     { essential: false, key: "mobileNo", label: "MobileNo" }
 ];
 
-const renderActions = props => (person, index) => [
+const defaultActions = props => (person, index) => [
     Button({
         id: `viewPerson-${index}`,
         icon: "eye",
@@ -55,6 +55,15 @@ const renderActions = props => (person, index) => [
     })
 ];
 
+const renderActions = props => (person, index) => [
+    ...(typeof props.renderActions === "function"
+        ? props.renderActions(person, index)
+        : []),
+    ...(props.defaultActions === false
+        ? []
+        : defaultActions(props)(person, index))
+];
+
 const PersonTable = (props = {}) =>
     Table({
         columns,
@@ -64,7 +73,7 @@ const PersonTable = (props = {}) =>
         renderActions: renderActions(props),
         rows: props.persons || [],
         toolbarActions: props.toolbarActions,
-        title: "Persons"
+        title: props.title || "Persons"
     });
 
 export default PersonTable;

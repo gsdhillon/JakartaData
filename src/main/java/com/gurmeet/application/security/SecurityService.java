@@ -1,7 +1,7 @@
-package com.gurmeet.modules.security;
+package com.gurmeet.application.security;
 
-import com.gurmeet.modules.person.Person;
-import com.gurmeet.modules.person.PersonService;
+import com.gurmeet.application.security.login.ChangePasswordRequest;
+import com.gurmeet.application.security.login.LoginRequest;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.json.Json;
@@ -24,47 +24,48 @@ public class SecurityService {
     private static final String JWT_ALGORITHM = "HmacSHA256";
     private static final String JWT_SECRET = "JakartaDataPersonChangeThisSecret";
 
-    private PersonService personService;
+    private AuthUserStore authUserStore;
     private PasswordService passwordService;
 
     public SecurityService() {
     }
 
     @Inject
-    public SecurityService(PersonService personService, PasswordService passwordService) {
-        this.personService = personService;
+    public SecurityService(AuthUserStore authUserStore, PasswordService passwordService) {
+        this.authUserStore = authUserStore;
         this.passwordService = passwordService;
     }
 
     public AuthResponse login(LoginRequest request) {
-        if (request.getPersonId() == null) {
-            throw new BadRequestException("Person id is required.");
+        if (request.getUserId() == null) {
+            throw new BadRequestException("User id is required.");
         }
 
-        Person person = personService.findById(request.getPersonId())
+        AuthUser user = authUserStore.findById(request.getUserId())
                 .orElseThrow(() -> new NotAuthorizedException("Invalid login."));
 
-        if (!passwordService.verifyPassword(request.getPassword(), person.getPassword())) {
+        if (!passwordService.verifyPassword(request.getPassword(), user.getPassword())) {
             throw new NotAuthorizedException("Invalid login.");
         }
 
-        if (passwordService.needsPasswordUpgrade(person.getPassword())) {
-            personService.changePassword(person.getId(), passwordService.hashPassword(request.getPassword()));
+        if (passwordService.needsPasswordUpgrade(user.getPassword())) {
+            authUserStore.changePassword(user.getId(), passwordService.hashPassword(request.getPassword()));
+            user.setPasswordChangeRequired(false);
         }
 
-        return new AuthResponse(person, createToken(person));
+        return new AuthResponse(user, createToken(user));
     }
 
     public void changePassword(String authorizationHeader, ChangePasswordRequest request) {
-        Long personId = requireUserId(authorizationHeader);
-        Person person = personService.findById(personId)
+        Long userId = requireUserId(authorizationHeader);
+        AuthUser user = authUserStore.findById(userId)
                 .orElseThrow(() -> new NotAuthorizedException("Invalid token."));
 
-        if (!passwordService.verifyPassword(request.getCurrentPassword(), person.getPassword())) {
+        if (!passwordService.verifyPassword(request.getCurrentPassword(), user.getPassword())) {
             throw new NotAuthorizedException("Current password is not valid.");
         }
 
-        personService.changePassword(personId, passwordService.hashPassword(request.getNewPassword()));
+        authUserStore.changePassword(userId, passwordService.hashPassword(request.getNewPassword()));
     }
 
     public Long requireUserId(String authorizationHeader) {
@@ -84,17 +85,17 @@ public class SecurityService {
         return payload.getJsonNumber("sub").longValue();
     }
 
-    public Person requirePerson(String authorizationHeader) {
-        Long personId = requireUserId(authorizationHeader);
+    public AuthUser requireUser(String authorizationHeader) {
+        Long userId = requireUserId(authorizationHeader);
 
-        return personService.findById(personId)
+        return authUserStore.findById(userId)
                 .orElseThrow(() -> new NotAuthorizedException("Invalid token."));
     }
 
-    private String createToken(Person person) {
+    private String createToken(AuthUser user) {
         long expiresAt = Instant.now().getEpochSecond() + TOKEN_TTL_SECONDS;
         String header = "{\"alg\":\"HS256\",\"typ\":\"JWT\"}";
-        String payload = "{\"sub\":" + person.getId() + ",\"name\":\"" + escapeJson(person.getName()) + "\",\"role\":\"" + escapeJson(person.getRole()) + "\",\"exp\":" + expiresAt + "}";
+        String payload = "{\"sub\":" + user.getId() + ",\"name\":\"" + escapeJson(user.getName()) + "\",\"role\":\"" + escapeJson(user.getRole()) + "\",\"exp\":" + expiresAt + "}";
         String unsignedToken = base64Url(header.getBytes(StandardCharsets.UTF_8)) + "." + base64Url(payload.getBytes(StandardCharsets.UTF_8));
 
         return unsignedToken + "." + sign(unsignedToken);

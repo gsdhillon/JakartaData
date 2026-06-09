@@ -6,7 +6,7 @@ export const login = credentials =>
     requestJson(`${securityApiUrl}/login`, {
         method: "POST",
         body: JSON.stringify({
-            personId: Number(credentials.personId),
+            userId: Number(credentials.userId),
             password: credentials.password
         })
     });

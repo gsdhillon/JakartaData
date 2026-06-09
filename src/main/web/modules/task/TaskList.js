@@ -4,12 +4,11 @@ import {
     Page,
     showAppError,
     useCenterPanel,
-    useContext,
     useEffect,
     useMemo,
     useState
 } from "../../lib/Grove.js";
-import { AppContext } from "../../application/AppContext.js";
+import { useAuth } from "../../application/AppContext.js";
 import TaskForm from "./TaskForm.js";
 import {
     completeTaskById,
@@ -25,8 +24,8 @@ const sameUser = (left, right) => String(left || "") === String(right || "");
 
 const TaskList = () => {
     const centerPanel = useCenterPanel();
-    const { authToken, loggedInPerson } = useContext(AppContext);
-    const loggedInUserId = loggedInPerson?.id ?? null;
+    const { authToken, loggedInUser } = useAuth();
+    const loggedInUserId = loggedInUser?.id ?? null;
     const [tasks, setTasks] = useState([]);
     const [isBusy, setIsBusy] = useState(false);
 
@@ -107,6 +106,8 @@ const TaskList = () => {
                 TaskForm,
                 {
                     isBusy,
+                    authToken,
+                    centerPanel,
                     loggedInUserId,
                     mode,
                     readOnly,
@@ -164,7 +165,7 @@ const TaskList = () => {
                 onClick: loadTasks
             })
         ],
-        [isBusy, loggedInUserId]
+        [isBusy, loggedInUserId, authToken]
     );
 
     return Page(

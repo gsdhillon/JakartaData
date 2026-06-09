@@ -1,4 +1,4 @@
-package com.gurmeet.application;
+package com.gurmeet.application.mappers;
 
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;

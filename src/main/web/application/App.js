@@ -47,6 +47,7 @@ const avatarPages = [
 ];
 
 const menuPages = [
+    // BOILERPLATE-FRONTEND-PAGES: add custom application pages here.
     {
         component: PersonList,
         key: "persons",
@@ -67,13 +68,13 @@ const AppLayout = () => {
     const {
         authToken,
         loggedIn,
-        loggedInPerson,
+        loggedInUser,
         loginInfo,
         markPasswordChanged,
         sessionVersion
     } = useAppContext();
     const passwordChangeRequired = Boolean(
-        loggedInPerson && loggedInPerson.passwordChangeRequired
+        loggedInUser && loggedInUser.passwordChangeRequired
     );
 
     const resolvedAvatarPages = useMemo(
@@ -102,12 +103,12 @@ const AppLayout = () => {
             {
                 authenticated: loggedIn,
                 appLogo,
-                avatar: loggedInPerson ? loggedInPerson.photo || undefined : undefined,
+                avatar: loggedInUser ? loggedInUser.avatar || undefined : undefined,
+                avatarTitle: loggedInUser?.name || "",
+                avatarSubTitle: loggedInUser?.role || "",
                 loginInfo,
                 title: "Jakarta Data Person",
-                subTitle: loginInfo
-                    ? `Signed in as ${loginInfo.name}`
-                    : "Person and task management"
+                subTitle: "Person and task management"
             }
         ),
         footerProps: {

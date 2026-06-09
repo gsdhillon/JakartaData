@@ -30,10 +30,13 @@ const clearInputValue = event => {
 };
 
 const togglePasswordVisibility = event => {
+    event.preventDefault();
+    event.stopPropagation();
+
     const button = event.currentTarget;
     const input = button
         .closest(".grove-password-control")
-        ?.querySelector("input");
+        ?.querySelector("input[type='password'], input[type='text']");
     const icon = button.querySelector("i");
 
     if (!input) {
@@ -123,6 +126,7 @@ export const Input = (props = {}, ...children) => {
                         "aria-label": `Show ${label || controlProps.name || "password"}`,
                         className: "grove-password-toggle",
                         "data-grove-password-name": label || controlProps.name || "password",
+                        tabIndex: -1,
                         title: "Show password",
                         type: "button",
                         onClick: togglePasswordVisibility

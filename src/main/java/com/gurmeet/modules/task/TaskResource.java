@@ -1,6 +1,6 @@
 package com.gurmeet.modules.task;
 
-import com.gurmeet.modules.security.SecurityService;
+import com.gurmeet.application.security.SecurityService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.BadRequestException;

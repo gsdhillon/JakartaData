@@ -1,4 +1,4 @@
-package com.gurmeet.modules.security;
+package com.gurmeet.application.security.login;
 
 import com.gurmeet.application.ValidationRules;
 import jakarta.validation.constraints.NotBlank;

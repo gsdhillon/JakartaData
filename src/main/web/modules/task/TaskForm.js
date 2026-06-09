@@ -1,21 +1,112 @@
 import {
     Button,
+    createElement,
+    Div,
     Form,
     Input,
     Instant,
     LocalDateTime,
     Page,
+    showAppError,
     TextArea,
     useMemo,
     useState
 } from "../../lib/Grove.js";
+import PersonTable from "../person/PersonTable.js";
+import { findAllPersons } from "../person/PersonService.js";
 import { normalizeTask } from "./TaskService.js";
 
+const PickPersonPage = props =>
+    Page(
+        { layout: "fill" },
+        createElement(
+            PersonTable,
+            {
+                defaultActions: false,
+                isBusy: false,
+                persons: props.persons,
+                title: "Pick Person",
+                renderActions: (person, index) => [
+                    Button({
+                        id: `pickPerson-${index}`,
+                        icon: "check2-circle",
+                        label: "Pick",
+                        look: "pm",
+                        name: "pickPerson",
+                        type: "button",
+                        onClick() {
+                            props.onPick?.(person);
+                        }
+                    })
+                ]
+            }
+        )
+    );
+
 const TaskForm = props => {
+    const centerPanel = props.centerPanel;
     const [task, setTask] = useState(
         normalizeTask(props.task, props.loggedInUserId)
     );
+    const [pickerBusy, setPickerBusy] = useState(false);
     const showSubmit = props.showSubmit !== false;
+    const pickPerson = person => {
+        const pickedTask = {
+            ...task,
+            assignedTo: person.id
+        };
+
+        centerPanel?.updatePreviousPage?.(page => ({
+            ...page,
+            content: createElement(TaskForm, {
+                ...props,
+                task: pickedTask
+            })
+        }));
+        setTask(currentTask => ({
+            ...currentTask,
+            assignedTo: person.id
+        }));
+        centerPanel?.goBack();
+    };
+    const openPersonPicker = async () => {
+        if (props.readOnly) {
+            return;
+        }
+
+        if (!centerPanel) {
+            showAppError("Unable to open picker because the center panel is not available.");
+            return;
+        }
+
+        if (!props.authToken) {
+            showAppError("Login token is missing. Please logout and login again.");
+            return;
+        }
+
+        setPickerBusy(true);
+
+        let persons = [];
+
+        try {
+            persons = await findAllPersons(props.authToken);
+        } catch (error) {
+            showAppError(error?.message
+                ? `Unable to load persons for picker: ${error.message}`
+                : "Unable to load persons for picker.");
+            return;
+        } finally {
+            setPickerBusy(false);
+        }
+
+        centerPanel?.pushPage({
+            title: "Pick Person",
+            content: createElement(PickPersonPage, {
+                persons,
+                onPick: pickPerson
+            })
+        });
+    };
     const actions = useMemo(
         () => [
             showSubmit
@@ -77,12 +168,24 @@ const TaskForm = props => {
                     readOnly: true,
                     type: "number"
                 }),
-                Input({
-                    label: "Assigned To:",
-                    name: "assignedTo",
-                    readOnly: props.readOnly,
-                    type: "number"
-                }),
+                Div(
+                    { className: "task-person-picker" },
+                    Input({
+                        label: "Assigned To:",
+                        name: "assignedTo",
+                        readOnly: props.readOnly,
+                        type: "number"
+                    }),
+                    Button({
+                        icon: "person-check",
+                        label: pickerBusy ? "Loading Persons" : "Pick Person",
+                        look: "sc",
+                        name: "pickAssignedPerson",
+                        disabled: props.readOnly || pickerBusy || !props.authToken,
+                        type: "button",
+                        onClick: openPersonPicker
+                    })
+                ),
                 LocalDateTime({
                     label: "Deadline:",
                     name: "deadLine",

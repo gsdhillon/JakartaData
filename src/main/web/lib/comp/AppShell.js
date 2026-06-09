@@ -23,6 +23,43 @@ const bgByTheme = {
 };
 const emptyPages = [];
 const openPageEventName = "grove-app-open-page";
+const themeStorageKey = "grove.themeMode";
+
+const normalizeThemeMode = value =>
+    value === "dark" ? "dark" : "light";
+
+const savedThemeMode = () => {
+    if (typeof localStorage === "undefined") {
+        return null;
+    }
+
+    const value = localStorage.getItem(themeStorageKey);
+
+    return value === null ? null : normalizeThemeMode(value);
+};
+
+const saveThemeMode = value => {
+    if (typeof localStorage !== "undefined") {
+        localStorage.setItem(themeStorageKey, normalizeThemeMode(value));
+    }
+};
+
+const pageKeyFromHash = () =>
+    typeof window === "undefined"
+        ? null
+        : window.location.hash.replace(/^#/, "") || null;
+
+const setPageHash = key => {
+    if (typeof window === "undefined" || !key) {
+        return;
+    }
+
+    const nextHash = `#${key}`;
+
+    if (window.location.hash !== nextHash) {
+        window.location.hash = nextHash;
+    }
+};
 
 export const openAppPage = key => {
     if (typeof window !== "undefined") {
@@ -113,13 +150,20 @@ export const AppShell = (props = {}) => {
         [pages, menuPages, resolvedAvatarPages]
     );
     const firstPage = shellPages.find(page => !page.action) || shellPages[0];
-    const [activePageKey, setActivePageKey] = useState(
-        initialPage !== undefined
+    const hashPageKey = pageKeyFromHash();
+    const hashPage = hashPageKey
+        ? shellPages.find(page => pageKeyOf(page) === hashPageKey)
+        : null;
+    const initialPageKey = hashPage
+        ? targetPageKey(hashPage, authenticated, loginPageKey, forcedPageKey)
+        : initialPage !== undefined
             ? initialPage
-            : pageKeyOf(firstPage)
+            : pageKeyOf(firstPage);
+    const [activePageKey, setActivePageKey] = useState(
+        initialPageKey
     );
     const [activeThemeMode, setActiveThemeMode] = useState(
-        themeMode === "dark" ? "dark" : "light"
+        savedThemeMode() || normalizeThemeMode(themeMode)
     );
     const activePage =
         shellPages.find(page => pageKeyOf(page) === activePageKey) || firstPage;
@@ -146,6 +190,26 @@ export const AppShell = (props = {}) => {
         window.addEventListener(openPageEventName, openPage);
         return () => window.removeEventListener(openPageEventName, openPage);
     }, [shellPages, authenticated, loginPageKey, forcedPageKey]);
+
+    useEffect(() => {
+        const openHashPage = () => {
+            const nextKey = pageKeyFromHash();
+            const nextPage = nextKey
+                ? shellPages.find(page => pageKeyOf(page) === nextKey)
+                : null;
+
+            if (nextPage) {
+                setActivePageKey(targetPageKey(nextPage, authenticated, loginPageKey, forcedPageKey));
+            }
+        };
+
+        window.addEventListener("hashchange", openHashPage);
+        return () => window.removeEventListener("hashchange", openHashPage);
+    }, [shellPages, authenticated, loginPageKey, forcedPageKey]);
+
+    useEffect(() => {
+        setPageHash(activePageKey);
+    }, [activePageKey]);
 
     useEffect(() => {
         if (authenticated && forcedPageKey && activePageKey !== forcedPageKey) {
@@ -178,7 +242,9 @@ export const AppShell = (props = {}) => {
     }, [authenticated, activePageKey, initialPage, shellPages, loginPageKey, forcedPageKey]);
 
     useEffect(() => {
-        setActiveThemeMode(themeMode === "dark" ? "dark" : "light");
+        if (savedThemeMode() === null) {
+            setActiveThemeMode(normalizeThemeMode(themeMode));
+        }
     }, [themeMode]);
 
     const configuredMenuPages = menuPages.length
@@ -260,7 +326,12 @@ export const AppShell = (props = {}) => {
         {
             ...footerProps,
             onThemeToggle: footerProps.onThemeToggle !== undefined ? footerProps.onThemeToggle : (() => {
-                setActiveThemeMode(current => current === "dark" ? "light" : "dark");
+                setActiveThemeMode(current => {
+                    const nextThemeMode = current === "dark" ? "light" : "dark";
+
+                    saveThemeMode(nextThemeMode);
+                    return nextThemeMode;
+                });
             }),
             themeMode: footerProps.themeMode !== undefined ? footerProps.themeMode : normalizedTheme
         }

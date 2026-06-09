@@ -1,4 +1,4 @@
-package com.gurmeet.application;
+package com.gurmeet.application.mappers;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;

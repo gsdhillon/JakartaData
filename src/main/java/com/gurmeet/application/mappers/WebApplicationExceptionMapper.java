@@ -1,4 +1,4 @@
-package com.gurmeet.application;
+package com.gurmeet.application.mappers;
 
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;

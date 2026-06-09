@@ -40,6 +40,7 @@ const state = {
     entries: [],
     errorEntries: [],
     installed: false,
+    installedErrorHandlers: false,
     originalConsole: {},
     originalFetch: null,
     pending: 0
@@ -449,6 +450,44 @@ const addConsoleEntry = entry => {
     notify();
 };
 
+const installBrowserErrorCapture = () => {
+    if (
+        state.installedErrorHandlers ||
+        typeof window === "undefined"
+    ) {
+        return;
+    }
+
+    state.installedErrorHandlers = true;
+
+    window.addEventListener("error", event => {
+        addConsoleEntry({
+            id: `${Date.now()}-${Math.random()}`,
+            level: "error",
+            message: [
+                event.message || "Uncaught error",
+                event.filename ? `${event.filename}:${event.lineno || 0}:${event.colno || 0}` : "",
+                event.error?.stack || ""
+            ].filter(Boolean).join("\n"),
+            time: now()
+        });
+    });
+
+    window.addEventListener("unhandledrejection", event => {
+        const reason = event.reason;
+        const message = reason instanceof Error
+            ? reason.stack || reason.message
+            : String(reason || "Unhandled promise rejection");
+
+        addConsoleEntry({
+            id: `${Date.now()}-${Math.random()}`,
+            level: "error",
+            message,
+            time: now()
+        });
+    });
+};
+
 const addErrorEntry = entry => {
     state.errorEntries = [
         {
@@ -551,6 +590,8 @@ const sendRestApiRequest = async ({
 };
 
 export const installRestTap = () => {
+    installBrowserErrorCapture();
+
     if (
         state.installed ||
         typeof window === "undefined" ||
@@ -561,6 +602,7 @@ export const installRestTap = () => {
 
     state.installed = true;
     state.originalFetch = window.fetch.bind(window);
+    installBrowserErrorCapture();
 
     ["log", "info", "warn", "error", "debug"].forEach(level => {
         if (typeof console?.[level] !== "function") {

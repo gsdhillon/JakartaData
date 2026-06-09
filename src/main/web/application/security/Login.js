@@ -4,7 +4,6 @@ import {
     FormHeader,
     Input,
     Page,
-    showAppError,
     useMemo,
     useState
 } from "../../lib/Grove.js";
@@ -65,7 +64,7 @@ const loginInfoOf = session => {
 const Login = props => {
     const { loginSession } = useAppContext();
     const [credentials, setCredentials] = useState({
-        personId: "",
+        userId: "",
         password: ""
     });
     const [isBusy, setIsBusy] = useState(false);
@@ -96,8 +95,8 @@ const Login = props => {
                 title: "Login"
             }),
                 Input({
-                    label: "Person Id:",
-                    name: "personId",
+                    label: "User Id:",
+                    name: "userId",
                     type: "number"
                 }),
                 Input({
@@ -119,7 +118,6 @@ const Login = props => {
                         props.onLogin(session);
                     }
                 } catch {
-                    showAppError("Login failed.");
                 } finally {
                     setIsBusy(false);
                 }

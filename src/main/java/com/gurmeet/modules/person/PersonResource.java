@@ -1,7 +1,8 @@
 package com.gurmeet.modules.person;
 
-import com.gurmeet.modules.security.PersonAccessPolicy;
-import com.gurmeet.modules.security.SecurityService;
+import com.gurmeet.application.security.AuthUser;
+import com.gurmeet.application.security.SecurityService;
+import com.gurmeet.application.security.UserAccessPolicy;
 import jakarta.inject.Inject;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
@@ -37,9 +38,9 @@ public class PersonResource {
     @POST
     // Method name is not used in the URL. @POST decides the HTTP action.
     public Response create(@HeaderParam("Authorization") String authorizationHeader, @Valid Person person) {
-        Person actor = securityService.requirePerson(authorizationHeader);
+        AuthUser actor = securityService.requireUser(authorizationHeader);
 
-        PersonAccessPolicy.requireCanCreate(actor, person);
+        UserAccessPolicy.requireCanCreate(actor, person.getRole(), person.isPasswordChangeRequired());
         Person savedPerson = personService.create(person);
         return Response.created(URI.create("/api/persons/" + savedPerson.getId()))
                 .entity(savedPerson)
@@ -71,10 +72,10 @@ public class PersonResource {
             @PathParam("id") Long id,
             @Valid Person person
     ) {
-        Person actor = securityService.requirePerson(authorizationHeader);
+        AuthUser actor = securityService.requireUser(authorizationHeader);
         Person existingPerson = personService.findRequiredById(id);
 
-        PersonAccessPolicy.requireCanUpdate(actor, existingPerson, person);
+        UserAccessPolicy.requireCanUpdate(actor, existingPerson.getId(), existingPerson.getRole(), person.getRole());
         return personService.update(id, person);
     }
 
@@ -85,14 +86,14 @@ public class PersonResource {
             @PathParam("id") Long id,
             JsonObject patch
     ) {
-        Person actor = securityService.requirePerson(authorizationHeader);
+        AuthUser actor = securityService.requireUser(authorizationHeader);
         Person existingPerson = personService.findRequiredById(id);
         Person requestedPerson = new Person();
 
         requestedPerson.setRole(patch.containsKey("role") && !patch.isNull("role")
                 ? patch.getString("role")
                 : existingPerson.getRole());
-        PersonAccessPolicy.requireCanUpdate(actor, existingPerson, requestedPerson);
+        UserAccessPolicy.requireCanUpdate(actor, existingPerson.getId(), existingPerson.getRole(), requestedPerson.getRole());
         return personService.patch(id, patch);
     }
 
@@ -100,10 +101,10 @@ public class PersonResource {
     @Path("/{id}")
     // Method name is not used in the URL. @DELETE and @Path decide the endpoint.
     public Response delete(@HeaderParam("Authorization") String authorizationHeader, @PathParam("id") Long id) {
-        Person actor = securityService.requirePerson(authorizationHeader);
+        AuthUser actor = securityService.requireUser(authorizationHeader);
         Person targetPerson = personService.findRequiredById(id);
 
-        PersonAccessPolicy.requireCanDelete(actor, targetPerson);
+        UserAccessPolicy.requireCanDelete(actor, targetPerson.getRole());
         personService.delete(id);
         return Response.noContent().build();
     }

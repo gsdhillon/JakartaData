@@ -1,27 +1,58 @@
-# Jakarta Data Person
+# Jakarta Data Person Boilerplate
 
-Minimal Jakarta EE 11 project for teaching Jakarta Data first.
+Reusable Jakarta EE + Grove frontend starter with JWT login, first-admin bootstrap, password change, logout, avatar/header layout, and an included `Person` module.
 
-## Package Structure
+## Strategy
+
+The reusable backend security code lives in:
 
 ```text
-com.gurmeet
-+-- application
-+-- modules
-    +-- person
-    +-- security
-    +-- task
+src/main/java/com/gurmeet/application/security
 ```
 
-## Database
+Security does not depend on the `Person` entity. It depends on this small contract:
 
-The application expects this Payara JDBC resource:
+```text
+AuthUserStore -> supplies users to login, bootstrap, password change, and JWT validation
+AuthUser      -> generic logged-in user shape: id, name, role, avatar, password, passwordChangeRequired
+```
+
+The included `Person` module wires the `Person` table to security through:
+
+```text
+src/main/java/com/gurmeet/modules/person/PersonAuthUserStore.java
+```
+
+Look for these code comments when customizing:
+
+```text
+BOILERPLATE-AUTH-STORE       Backend interface to implement when replacing Person
+BOILERPLATE-REPLACE-PERSON   Default Person-to-AuthUser mapping example
+BOILERPLATE-FRONTEND-AUTH    Frontend hook for authToken/loggedInUser/role checks
+BOILERPLATE-FRONTEND-PAGES   Frontend place to register custom pages/menu items
+```
+
+## Database Requirement
+
+The application supports an empty user table. It does not support running without a working database.
+
+Required startup condition:
+
+```text
+Database connection works
+JPA can create or access the mapped tables
+Person table may be empty
+```
+
+This project is configured for Option A: JPA/EclipseLink creates or extends mapped tables using `persistence.xml`.
+
+Current Payara JDBC resource expected by the project:
 
 ```text
 jdbc/personDS
 ```
 
-Current local MySQL settings used by the scripts:
+Current local MySQL defaults used by the scripts:
 
 ```text
 Database: person
@@ -31,61 +62,36 @@ URL:      jdbc:mysql://localhost:3306/person
 Pool:     personPool
 ```
 
-Create the database and application user in MySQL:
+Create the database/user if needed:
 
 ```sql
 CREATE DATABASE IF NOT EXISTS person;
-
 CREATE USER IF NOT EXISTS 'ishjyot'@'localhost' IDENTIFIED BY 'fw0r';
-
-GRANT CREATE, ALTER, SELECT, INSERT, UPDATE, DELETE
-ON person.*
-TO 'ishjyot'@'localhost';
-
+GRANT CREATE, ALTER, SELECT, INSERT, UPDATE, DELETE ON person.* TO 'ishjyot'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
-If you recreate the database during development:
+## Initial Use With Included Person Module
 
-```sql
-DROP DATABASE IF EXISTS person;
-CREATE DATABASE person;
+For a new clone, keep the included `Person` module as the default user store.
 
-GRANT CREATE, ALTER, SELECT, INSERT, UPDATE, DELETE
-ON person.*
-TO 'ishjyot'@'localhost';
-
-FLUSH PRIVILEGES;
-```
-
-## Fresh PC Setup
-
-Prerequisites:
+Flow:
 
 ```text
-JDK 17+
-Maven
-Payara Server
-MySQL Server
-asadmin on PATH
+1. Configure database and Payara JDBC resource.
+2. Build and deploy the app.
+3. Bootstrap the first SUPER-ADMIN while no users exist.
+4. Login using the returned user id and bootstrap password.
+5. Use the UI to create ADMIN/USER accounts.
 ```
 
-First-time application setup:
+Build and deploy:
 
 ```bat
 mvn clean package
 payara
 jdbc
 deploy
-```
-
-What each command does:
-
-```text
-mvn clean package  Builds the app and downloads runtime dependencies, including MySQL Connector/J.
-payara             Starts the Payara domain.
-jdbc               Installs the MySQL driver into Payara if missing, creates personPool, creates jdbc/personDS, and pings the pool.
-deploy             Builds and deploys the exploded application directory. Payara and JDBC must already be ready.
 ```
 
 Application URL:
@@ -94,64 +100,113 @@ Application URL:
 http://localhost:8080/jakarta-data-person/
 ```
 
-## Day-To-Day Workflow
-
-Start Payara only:
-
-```bat
-payara
-```
-
-Configure or repair JDBC resources:
-
-```bat
-jdbc
-```
-
-Deploy after Java, REST API, entity, persistence, dependency, or backend configuration changes. Payara must already be running and jdbc/personDS must already exist:
-
-```bat
-deploy
-```
-
-Sync frontend-only changes under `src/main/web`:
-
-```bat
-web
-```
-
-Then refresh the browser.
-
-## MySQL Driver And Payara
-
-The MySQL driver comes from Maven:
-
-```xml
-<dependency>
-    <groupId>com.mysql</groupId>
-    <artifactId>mysql-connector-j</artifactId>
-    <version>${mysql.connector.version}</version>
-    <scope>runtime</scope>
-</dependency>
-```
-
-After `mvn clean package`, Maven copies it into the exploded app:
+Bootstrap endpoint:
 
 ```text
-target\jakarta-data-person\WEB-INF\lib\mysql-connector-j-9.7.0.jar
+POST /api/security/bootstrap-admin
 ```
 
-`jdbc.bat` installs that jar into Payara common libraries using:
+Sample body:
 
-```bat
-asadmin add-library --type common target\jakarta-data-person\WEB-INF\lib\mysql-connector-j-9.7.0.jar
+```json
+{
+  "name": "Admin User",
+  "designation": "Administrator",
+  "email": "admin@example.com",
+  "gender": "Female",
+  "dob": "2000-01-01",
+  "mobileNo": "9999999999",
+  "password": "changeit"
+}
 ```
 
-Payara is restarted after adding the library because server-level JDBC pools need the driver on Payara's classpath.
+Bootstrap creates only `SUPER-ADMIN`. It is allowed only when no users exist.
 
-## First User And Roles
+## Replacing Person With Employee, Customer, Or Another User Table
 
-Current roles:
+If your application uses another table, create your own implementation of:
+
+```text
+com.gurmeet.application.security.AuthUserStore
+```
+
+Example names:
+
+```text
+EmployeeAuthUserStore implements AuthUserStore
+CustomerAuthUserStore implements AuthUserStore
+AccountAuthUserStore implements AuthUserStore
+```
+
+Your implementation must map your entity to `AuthUser`:
+
+```text
+id -> AuthUser.id
+name/displayName -> AuthUser.name
+role -> AuthUser.role
+passwordHash -> AuthUser.password
+avatar/photo -> AuthUser.avatar
+passwordChangeRequired -> AuthUser.passwordChangeRequired
+```
+
+Then remove or disable the included `PersonAuthUserStore` so CDI has only one `AuthUserStore` bean.
+
+Use `PersonAuthUserStore.java` as the reference implementation. Search for:
+
+```text
+BOILERPLATE-REPLACE-PERSON
+```
+
+## Frontend Custom Modules
+
+Reusable frontend pieces are split like this:
+
+```text
+src/main/web/lib                  reusable Grove UI/runtime components
+src/main/web/application/security reusable login/logout/change-password API and pages
+src/main/web/application/AppContext.js reusable session/auth context
+src/main/web/application/App.js   application composition root
+src/main/web/modules              custom application modules
+```
+
+Application programmers normally edit only:
+
+```text
+src/main/web/application/App.js
+src/main/web/modules/*
+```
+
+To add a page/menu item, import your page in `App.js` and add it to `menuPages`. Search for:
+
+```text
+BOILERPLATE-FRONTEND-PAGES
+```
+
+Custom modules should read auth state through `useAuth()`:
+
+```js
+import { useAuth } from "../../application/AppContext.js";
+
+const MyPage = () => {
+    const { authToken, loggedInUser, hasAnyRole, isSelf } = useAuth();
+
+    if (!hasAnyRole(["ADMIN", "SUPER-ADMIN"])) {
+        return "Not allowed";
+    }
+
+    return "Hello " + loggedInUser.name;
+};
+```
+
+Search for:
+
+```text
+BOILERPLATE-FRONTEND-AUTH
+```
+
+## Roles
+
+Built-in roles:
 
 ```text
 SUPER-ADMIN
@@ -159,7 +214,7 @@ ADMIN
 USER
 ```
 
-Current access model:
+Default rules:
 
 ```text
 SUPER-ADMIN can create ADMIN and USER accounts.
@@ -167,40 +222,18 @@ ADMIN can create USER accounts.
 USER can update only their own allowed fields.
 ```
 
-First SUPER-ADMIN bootstrap:
+Role checks live in:
 
 ```text
-POST /api/security/bootstrap-admin
+src/main/java/com/gurmeet/application/security/UserAccessPolicy.java
 ```
 
-This endpoint is intentionally allowed only while no users exist. Once the first user has been created, bootstrap returns an error and normal authorization rules apply.
-
-Sample body:
-
-```json
-{
-  "name": "Ishjyot Kaur",
-  "designation": "Student",
-  "email": "ishjyot@gmail.com",
-  "gender": "Female",
-  "dob": "2004-09-23",
-  "mobileNo": "9920351796",
-  "password": "changeit"
-}
-```
-
-The endpoint always creates `SUPER-ADMIN`; it does not accept a role from the request. The password is stored as a PBKDF2 hash, not plain text.
-
-After bootstrap, log in using the returned person `id` and the password from the request. Then use the application UI to create further `ADMIN` and `USER` accounts.
-
-## Build
+## Development Commands
 
 ```bat
-mvn clean package
-```
-
-The exploded application directory is:
-
-```text
-target\jakarta-data-person
+mvn clean package   build backend and web app
+payara              start Payara
+jdbc                configure JDBC resource
+deploy              build and deploy exploded app
+web                 sync frontend-only changes
 ```

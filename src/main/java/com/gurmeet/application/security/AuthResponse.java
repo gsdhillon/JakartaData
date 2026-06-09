@@ -1,26 +1,24 @@
-package com.gurmeet.modules.security;
-
-import com.gurmeet.modules.person.Person;
+package com.gurmeet.application.security;
 
 public class AuthResponse {
 
-    private Person person;
+    private AuthUser user;
     private String token;
 
     public AuthResponse() {
     }
 
-    public AuthResponse(Person person, String token) {
-        this.person = person;
+    public AuthResponse(AuthUser user, String token) {
+        this.user = user;
         this.token = token;
     }
 
-    public Person getPerson() {
-        return person;
+    public AuthUser getUser() {
+        return user;
     }
 
-    public void setPerson(Person person) {
-        this.person = person;
+    public void setUser(AuthUser user) {
+        this.user = user;
     }
 
     public String getToken() {

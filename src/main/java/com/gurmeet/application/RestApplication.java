@@ -1,7 +1,11 @@
 package com.gurmeet.application;
 
+import com.gurmeet.application.mappers.PersistenceExceptionMapper;
+import com.gurmeet.application.mappers.UnhandledExceptionMapper;
+import com.gurmeet.application.mappers.ValidationErrorsMapper;
+import com.gurmeet.application.mappers.WebApplicationExceptionMapper;
 import com.gurmeet.modules.person.PersonResource;
-import com.gurmeet.modules.security.SecurityResource;
+import com.gurmeet.application.security.SecurityResource;
 import com.gurmeet.modules.task.TaskResource;
 import jakarta.ws.rs.ApplicationPath;
 import jakarta.ws.rs.core.Application;

@@ -296,6 +296,24 @@
     color: var(--bs-body-color);
 }
 
+.grove-header-avatar-menu-account {
+    border-bottom: 1px solid var(--bs-border-color);
+    margin: 0 0 6px;
+    padding: 8px 10px 10px;
+}
+
+.grove-header-avatar-menu-title {
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.grove-header-avatar-menu-subtitle {
+    color: var(--bs-secondary-color);
+    font-size: 0.82rem;
+    line-height: 1.2;
+    margin-top: 2px;
+}
+
 .grove-header-mobile-menu {
     position: absolute;
     top: calc(100% + 8px);

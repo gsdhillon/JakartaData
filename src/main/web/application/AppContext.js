@@ -6,10 +6,38 @@ import {
     useState
 } from "../lib/Grove.js";
 
+const sessionStorageKey = "jakartaDataPerson.session";
+
+const readSavedSession = () => {
+    if (typeof localStorage === "undefined") {
+        return {};
+    }
+
+    try {
+        return JSON.parse(localStorage.getItem(sessionStorageKey) || "{}");
+    } catch {
+        return {};
+    }
+};
+
+const saveSession = session => {
+    if (typeof localStorage === "undefined") {
+        return;
+    }
+
+    localStorage.setItem(sessionStorageKey, JSON.stringify(session));
+};
+
+const removeSavedSession = () => {
+    if (typeof localStorage !== "undefined") {
+        localStorage.removeItem(sessionStorageKey);
+    }
+};
+
 export const AppContext = createContext({
     authToken: null,
     loggedIn: false,
-    loggedInPerson: null,
+    loggedInUser: null,
     loginInfo: null,
     loginSession() {},
     logoutSession() {},
@@ -19,16 +47,18 @@ export const AppContext = createContext({
 });
 
 export const AppProvider = props => {
-    const [authToken, setAuthToken] = useState(null);
-    const [loggedInPerson, setLoggedInPerson] = useState(null);
-    const [loginInfo, setLoginInfo] = useState(null);
+    const savedSession = readSavedSession();
+    const [authToken, setAuthToken] = useState(savedSession.authToken || null);
+    const [loggedInUser, setLoggedInUser] = useState(savedSession.loggedInUser || null);
+    const [loginInfo, setLoginInfo] = useState(savedSession.loginInfo || null);
     const [sessionVersion, setSessionVersion] = useState(0);
-    const loggedIn = Boolean(authToken && loginInfo);
+    const loggedIn = Boolean(authToken && loggedInUser);
 
     const clearSession = (options = {}) => {
         setAuthToken(null);
-        setLoggedInPerson(null);
+        setLoggedInUser(null);
         setLoginInfo(null);
+        removeSavedSession();
         if (options.resetPage !== false) {
             setSessionVersion(version => version + 1);
         }
@@ -38,31 +68,48 @@ export const AppProvider = props => {
         () => ({
             authToken,
             loggedIn,
-            loggedInPerson,
+            loggedInUser,
             loginInfo,
             sessionVersion,
             setLoginInfo,
             loginSession(session, nextLoginInfo) {
+                const nextUser = session.user || session.person || null;
+                const nextToken = session.token;
+                const nextInfo = nextLoginInfo || null;
+
                 setAuthToken(session.token);
-                setLoggedInPerson(session.person || null);
-                setLoginInfo(nextLoginInfo || null);
+                setLoggedInUser(nextUser);
+                setLoginInfo(nextInfo);
+                saveSession({
+                    authToken: nextToken,
+                    loggedInUser: nextUser,
+                    loginInfo: nextInfo
+                });
             },
             logoutSession(options) {
                 clearSession(options);
             },
             markPasswordChanged() {
-                setLoggedInPerson(currentPerson =>
-                    currentPerson
+                setLoggedInUser(currentUser => {
+                    const nextUser = currentUser
                         ? {
-                            ...currentPerson,
+                            ...currentUser,
                             passwordChangeRequired: false
                         }
-                        : currentPerson
-                );
+                        : currentUser;
+
+                    saveSession({
+                        authToken,
+                        loggedInUser: nextUser,
+                        loginInfo
+                    });
+
+                    return nextUser;
+                });
                 setTimeout(() => openAppPage("persons"), 0);
             }
         }),
-        [authToken, loggedIn, loggedInPerson, loginInfo, sessionVersion]
+        [authToken, loggedIn, loggedInUser, loginInfo, sessionVersion]
     );
 
     return AppContext.Provider({
@@ -72,3 +119,23 @@ export const AppProvider = props => {
 };
 
 export const useAppContext = () => useContext(AppContext);
+
+// BOILERPLATE-FRONTEND-AUTH: custom modules should use this hook for authToken, loggedInUser, and role checks.
+export const useAuth = () => {
+    const context = useAppContext();
+
+    return {
+        authToken: context.authToken,
+        loggedIn: context.loggedIn,
+        loggedInUser: context.loggedInUser,
+        hasRole(role) {
+            return context.loggedInUser?.role === role;
+        },
+        hasAnyRole(roles = []) {
+            return roles.includes(context.loggedInUser?.role);
+        },
+        isSelf(id) {
+            return String(context.loggedInUser?.id || "") === String(id || "");
+        }
+    };
+};
