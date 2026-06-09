@@ -179,6 +179,17 @@ export const Header = (props = {}) => {
         .filter(Boolean)
         .join(" ");
 
+    useEffect(() => {
+        if (typeof document === "undefined") {
+            return undefined;
+        }
+
+        document.documentElement.style.setProperty("--grove-header-height", height);
+        return () => {
+            document.documentElement.style.removeProperty("--grove-header-height");
+        };
+    }, [height]);
+
     return createElement(
         "header",
         {
@@ -186,6 +197,7 @@ export const Header = (props = {}) => {
             className: headerClassName,
             style: {
                 ...(headerProps.style || {}),
+                "--grove-header-height": height,
                 minHeight: height
             }
         },

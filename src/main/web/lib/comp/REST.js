@@ -5,7 +5,9 @@
  */
 
 import {
+    createContext,
     createElement,
+    useContext,
     useEffect,
     useState
 } from "../Grove.js";
@@ -24,6 +26,7 @@ const maxConsoleEntries = 100;
 const maxErrorEntries = 100;
 const maxCapturedBodyBytes = 100000;
 const defaultComposerHeaders = "Content-Type: application/json\nAccept: application/json";
+const dummyConsoleContext = createContext(null);
 const bootstrapAdminSampleBody = JSON.stringify(
     {
         name: "Ishjyot Kaur",
@@ -51,11 +54,25 @@ const now = () =>
 
 const notify = () => {
     if (typeof document !== "undefined") {
+        const hasConsoleWarning =
+            state.consoleEntries.some(entry => entry.level === "warn");
+        const hasConsoleError =
+            state.consoleEntries.some(entry => entry.level === "error") ||
+            state.errorEntries.length > 0;
+
         document.documentElement.classList.toggle(
             "grove-rest-tap-has-entries",
             state.entries.length > 0 ||
                 state.consoleEntries.length > 0 ||
                 state.errorEntries.length > 0
+        );
+        document.documentElement.classList.toggle(
+            "grove-rest-tap-has-console-warn",
+            hasConsoleWarning
+        );
+        document.documentElement.classList.toggle(
+            "grove-rest-tap-has-console-error",
+            hasConsoleError
         );
         document.documentElement.classList.toggle(
             "grove-rest-tap-waiting",
@@ -388,7 +405,129 @@ const formatConsoleEntries = entries =>
         ? entries
             .map(entry => `[${entry.time}] ${entry.level.toUpperCase()}\n${entry.message}`)
             .join("\n\n")
-        : "No console logs captured yet.";
+        : "No console logs captured yet.\n\nDouble click to generate dummy logs";
+
+const consoleLevelMeta = {
+    debug: {
+        icon: "bug",
+        label: "Debug"
+    },
+    error: {
+        icon: "x-octagon-fill",
+        label: "Error"
+    },
+    info: {
+        icon: "info-circle-fill",
+        label: "Info"
+    },
+    log: {
+        icon: "terminal",
+        label: "Log"
+    },
+    warn: {
+        icon: "exclamation-triangle-fill",
+        label: "Warning"
+    }
+};
+
+const stackFramePattern = /((?:https?:\/\/|file:\/\/\/|\/|\.\/|\.\.\/)[^\s)]+?\.js(?:\?[^:\s)]*)?):(\d+):(\d+)/;
+
+const openStackFrame = frame => {
+    if (typeof window === "undefined" || !frame?.url) {
+        return;
+    }
+
+    window.open(`${frame.url}#L${frame.line}`, "_blank", "noopener,noreferrer");
+};
+
+const stackFrameOf = line => {
+    const match = String(line || "").match(stackFramePattern);
+
+    if (!match) {
+        return null;
+    }
+
+    return {
+        column: match[3],
+        line: match[2],
+        url: match[1]
+    };
+};
+
+const renderConsoleMessage = message =>
+    Div(
+        { className: "grove-rest-console-message" },
+        ...String(message || "")
+            .split("\n")
+            .map((line, index) => {
+                const frame = stackFrameOf(line);
+
+                if (!frame) {
+                    return createElement(
+                        "span",
+                        {
+                            className: "grove-rest-console-message-line",
+                            key: index
+                        },
+                        line || " "
+                    );
+                }
+
+                return createElement(
+                    "button",
+                    {
+                        className: "grove-rest-console-message-line grove-rest-console-source-link",
+                        key: index,
+                        title: `Open ${frame.url}:${frame.line}:${frame.column}`,
+                        type: "button",
+                        onClick(event) {
+                            event.stopPropagation();
+                            openStackFrame(frame);
+                        }
+                    },
+                    line
+                );
+            })
+    );
+
+const renderConsoleEntries = entries =>
+    entries.length
+        ? entries.map(entry => {
+            const level = consoleLevelMeta[entry.level] || consoleLevelMeta.log;
+
+            return Div(
+                {
+                    className: `grove-rest-console-entry grove-rest-console-entry-${entry.level}`,
+                    key: entry.id
+                },
+                createElement("i", {
+                    "aria-hidden": "true",
+                    className: `bi bi-${level.icon} grove-rest-console-icon`
+                }),
+                Div(
+                    { className: "grove-rest-console-entry-body" },
+                    Div(
+                        { className: "grove-rest-console-entry-meta" },
+                        createElement(
+                            "span",
+                            { className: "grove-rest-console-level" },
+                            level.label
+                        ),
+                        createElement(
+                            "span",
+                            { className: "grove-rest-console-time" },
+                            entry.time
+                        )
+                    ),
+                    renderConsoleMessage(entry.message)
+                )
+            );
+        })
+        : createElement(
+            "pre",
+            { className: "grove-rest-console-empty" },
+            formatConsoleEntries(entries)
+        );
 
 const formatErrorEntries = entries =>
     entries.length
@@ -498,6 +637,18 @@ const addErrorEntry = entry => {
         ...state.errorEntries
     ].slice(0, maxErrorEntries);
     notify();
+};
+
+const generateDummyConsoleEntries = () => {
+    console.log("Grove REST dummy log message");
+    console.warn("Grove REST dummy warning message");
+    console.error("Grove REST dummy error message");
+
+    try {
+        useContext(dummyConsoleContext);
+    } catch (error) {
+        console.error(error);
+    }
 };
 
 const beginRequest = () => {
@@ -613,10 +764,6 @@ export const installRestTap = () => {
         console[level] = (...args) => {
             state.originalConsole[level](...args);
 
-            if (!state.enabled) {
-                return;
-            }
-
             addConsoleEntry({
                 id: `${Date.now()}-${Math.random()}`,
                 level,
@@ -716,13 +863,13 @@ export const RestTapToggle = () => {
     return createElement(
         "button",
         {
-            "aria-label": tapState.enabled ? "Turn REST tap off" : "Turn REST tap on",
+            "aria-label": tapState.enabled ? "Turn API tap off" : "Turn API tap on",
             "aria-pressed": tapState.enabled,
             className: [
                 "grove-rest-toggle",
                 tapState.enabled ? "grove-rest-toggle-on" : ""
             ].filter(Boolean).join(" "),
-            title: tapState.enabled ? "Tap On" : "Tap Off",
+            title: tapState.enabled ? "API Tap On" : "API Tap Off",
             type: "button",
             onClick: toggleRestTap
         },
@@ -734,7 +881,7 @@ export const RestTapToggle = () => {
         createElement(
             "span",
             { className: "grove-rest-toggle-text" },
-            "Tap"
+            "API"
         )
     );
 };
@@ -1095,9 +1242,13 @@ export const RestTap = () => {
                         )
                     : tab === "console"
                         ? createElement(
-                            "pre",
-                            { className: "grove-rest-payload grove-rest-console-payload" },
-                            formatConsoleEntries(consoleEntries)
+                            "div",
+                            {
+                                className: "grove-rest-payload grove-rest-console-payload",
+                                title: "Double click to generate dummy logs",
+                                onDblClick: generateDummyConsoleEntries
+                            },
+                            renderConsoleEntries(consoleEntries)
                         )
                     : tab === "errors"
                         ? createElement(

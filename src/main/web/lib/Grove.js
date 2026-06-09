@@ -584,35 +584,45 @@ const global = typeof window === "undefined"
         const previous = instance.hooks[index];
 
         let changed = true;
+        let previousCleanup = null;
 
         if (previous) {
             const oldDeps = previous.deps;
 
-            const cleanup = previous.cleanup;
+            previousCleanup = previous.cleanup;
 
             changed =
                 haveDepsChanged(oldDeps, deps);
-
-            // Run cleanup if dependencies changed and a cleanup function exists
-            if (changed && cleanup) {
-                cleanup();
-            }
         }
 
         // If dependencies changed, schedule the effect to run
         if (changed) {
+            const effectHook = {
+                type: "effect",
+                deps,
+                cleanup: null,
+                pending: true
+            };
+
+            instance.hooks[index] = effectHook;
+
             queueMicrotask(() => {
+                if (instance.disposed || instance.hooks[index] !== effectHook) {
+                    return;
+                }
+
+                if (typeof previousCleanup === "function") {
+                    previousCleanup();
+                }
+
                 const cleanup = callback(); // Execute the effect callback
 
                 // Store new dependencies and cleanup function
-                instance.hooks[index] = {
-                    type: "effect",
-                    deps,
-                    cleanup:
-                        typeof cleanup === "function"
-                            ? cleanup
-                            : null
-                };
+                effectHook.cleanup =
+                    typeof cleanup === "function"
+                        ? cleanup
+                        : null;
+                effectHook.pending = false;
             });
         }
 
@@ -633,30 +643,41 @@ const global = typeof window === "undefined"
         const previous = instance.hooks[index];
 
         let changed = true;
+        let previousCleanup = null;
 
         if (previous) {
-            const cleanup = previous.cleanup;
+            previousCleanup = previous.cleanup;
 
             changed =
                 haveDepsChanged(previous.deps, deps);
-
-            if (changed && cleanup) {
-                cleanup();
-            }
         }
 
         if (changed) {
+            const layoutEffectHook = {
+                type: "layoutEffect",
+                deps,
+                cleanup: null,
+                pending: true
+            };
+
+            instance.hooks[index] = layoutEffectHook;
+
             instance.renderer.enqueueLayoutEffect(() => {
+                if (instance.disposed || instance.hooks[index] !== layoutEffectHook) {
+                    return;
+                }
+
+                if (typeof previousCleanup === "function") {
+                    previousCleanup();
+                }
+
                 const cleanup = callback();
 
-                instance.hooks[index] = {
-                    type: "layoutEffect",
-                    deps,
-                    cleanup:
-                        typeof cleanup === "function"
-                            ? cleanup
-                            : null
-                };
+                layoutEffectHook.cleanup =
+                    typeof cleanup === "function"
+                        ? cleanup
+                        : null;
+                layoutEffectHook.pending = false;
             });
         }
 
@@ -678,6 +699,7 @@ const global = typeof window === "undefined"
             this.componentFn = componentFn;
             this.props = props;
             this.renderer = renderer;
+            this.disposed = false;
             /**
              * Array to store the state and cleanup functions for hooks used by this instance.
              * @type {Array<any>}
@@ -686,6 +708,8 @@ const global = typeof window === "undefined"
         }
 
         cleanup() {
+            this.disposed = true;
+
             this.hooks.forEach(hook => {
                 if (
                     (

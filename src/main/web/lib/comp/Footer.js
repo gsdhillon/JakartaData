@@ -4,7 +4,10 @@
  * @email gsdhillon@gmail.com
  */
 
-import { createElement } from "../Grove.js";
+import {
+    createElement,
+    useEffect
+} from "../Grove.js";
 import {
     openRestDialog,
     RestTapToggle
@@ -40,6 +43,17 @@ export const Footer = (props = {}) => {
         ? "dark"
         : "light";
 
+    useEffect(() => {
+        if (typeof document === "undefined") {
+            return undefined;
+        }
+
+        document.documentElement.style.setProperty("--grove-footer-height", height);
+        return () => {
+            document.documentElement.style.removeProperty("--grove-footer-height");
+        };
+    }, [height]);
+
     return createElement(
         "footer",
         {
@@ -47,6 +61,7 @@ export const Footer = (props = {}) => {
             className: footerClassName,
             style: {
                 ...(footerProps.style || {}),
+                "--grove-footer-height": height,
                 height
             }
         },

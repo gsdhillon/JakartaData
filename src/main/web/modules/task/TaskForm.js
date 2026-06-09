@@ -7,13 +7,18 @@ import {
     Instant,
     LocalDateTime,
     Page,
+    Photo,
     showAppError,
     TextArea,
+    useEffect,
     useMemo,
     useState
 } from "../../lib/Grove.js";
 import PersonTable from "../person/PersonTable.js";
-import { findAllPersons } from "../person/PersonService.js";
+import {
+    findAllPersons,
+    findPersonById
+} from "../person/PersonService.js";
 import { normalizeTask } from "./TaskService.js";
 
 const PickPersonPage = props =>
@@ -48,6 +53,7 @@ const TaskForm = props => {
     const [task, setTask] = useState(
         normalizeTask(props.task, props.loggedInUserId)
     );
+    const [assignedPerson, setAssignedPerson] = useState(props.assignedPerson || null);
     const [pickerBusy, setPickerBusy] = useState(false);
     const showSubmit = props.showSubmit !== false;
     const pickPerson = person => {
@@ -56,10 +62,12 @@ const TaskForm = props => {
             assignedTo: person.id
         };
 
+        setAssignedPerson(person);
         centerPanel?.updatePreviousPage?.(page => ({
             ...page,
             content: createElement(TaskForm, {
                 ...props,
+                assignedPerson: person,
                 task: pickedTask
             })
         }));
@@ -69,6 +77,39 @@ const TaskForm = props => {
         }));
         centerPanel?.goBack();
     };
+    useEffect(() => {
+        const assignedTo = task.assignedTo;
+
+        if (!assignedTo || !props.authToken) {
+            setAssignedPerson(null);
+            return undefined;
+        }
+
+        if (String(assignedPerson?.id || "") === String(assignedTo)) {
+            return undefined;
+        }
+
+        let cancelled = false;
+
+        findPersonById(assignedTo, props.authToken)
+            .then(person => {
+                if (!cancelled) {
+                    setAssignedPerson(person || null);
+                }
+            })
+            .catch(error => {
+                if (!cancelled) {
+                    setAssignedPerson(null);
+                    showAppError(error?.message
+                        ? `Unable to load assigned person: ${error.message}`
+                        : "Unable to load assigned person.");
+                }
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [task.assignedTo, props.authToken]);
     const openPersonPicker = async () => {
         if (props.readOnly) {
             return;
@@ -202,8 +243,30 @@ const TaskForm = props => {
                     readOnly: true
                 })
             ],
+            aside: Photo({
+                hideButtons: true,
+                label: "Assigned Person",
+                person: assignedPerson,
+                personName: assignedPerson
+                    ? assignedPerson.name
+                    : task.assignedTo
+                        ? `Person ${task.assignedTo}`
+                        : ""
+            }),
             actions,
-            onDataChange: setTask,
+            onDataChange(updater) {
+                setTask(currentTask => {
+                    const nextTask = typeof updater === "function"
+                        ? updater(currentTask)
+                        : updater;
+
+                    if (String(nextTask.assignedTo || "") !== String(currentTask.assignedTo || "")) {
+                        setAssignedPerson(null);
+                    }
+
+                    return nextTask;
+                });
+            },
             onSubmit(event) {
                 event.preventDefault();
                 props.onSubmit?.({ ...task });

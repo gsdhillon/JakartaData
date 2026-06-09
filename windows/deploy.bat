@@ -11,43 +11,54 @@ set "APP_URL=http://localhost:8080/%CONTEXT_ROOT%/"
 where asadmin >nul 2>nul
 if errorlevel 1 (
     echo asadmin was not found on PATH.
+    echo Add the Payara bin directory to PATH, then run this script again.
+    exit /b 1
+)
+
+where mvn >nul 2>nul
+if errorlevel 1 (
+    echo mvn was not found on PATH.
+    echo Install Maven or add it to PATH, then run this script again.
     exit /b 1
 )
 
 call asadmin list-applications >nul 2>nul
 if errorlevel 1 (
     echo Payara is not running or the admin endpoint is not available.
-    echo Start Payara first by running: payara
+    echo Start Payara first by running: %~dp0payara.bat
     exit /b 1
 )
 
-call asadmin list-jdbc-resources | findstr /I /X "%JDBC_RESOURCE%" >nul 2>nul
+call asadmin list-jdbc-resources | findstr /I /X /C:"%JDBC_RESOURCE%" >nul
 if errorlevel 1 (
     echo JDBC resource %JDBC_RESOURCE% was not found.
-    echo Run jdbc first to install the MySQL driver and create the datasource.
+    echo Run %~dp0jdbc.bat first to install the MySQL driver and create the datasource.
     exit /b 1
 )
 
-call asadmin list-applications | findstr /I "%APP_NAME%" >nul 2>nul
+call asadmin list-applications | findstr /I /B /C:"%APP_NAME% " >nul
 if not errorlevel 1 (
     echo Undeploying %APP_NAME% so Maven clean can remove locked files...
     call asadmin undeploy "%APP_NAME%"
-    if errorlevel 1 exit /b %ERRORLEVEL%
+    if errorlevel 1 exit /b 1
 )
 
 echo Building exploded app directory...
-call mvn -f "%ROOT_DIR%\pom.xml" clean package
-if errorlevel 1 exit /b %ERRORLEVEL%
+pushd "%ROOT_DIR%"
+call mvn clean package
+set "BUILD_EXIT=%ERRORLEVEL%"
+popd
+if not "%BUILD_EXIT%"=="0" exit /b %BUILD_EXIT%
 
-if not exist "%APP_DIR%" (
+if not exist "%APP_DIR%\" (
     echo Exploded app directory not found: %APP_DIR%
     exit /b 1
 )
 
 echo Deploying exploded directory %APP_DIR%...
-call asadmin deploy --force=true --name "%APP_NAME%" --contextroot "%CONTEXT_ROOT%" "%APP_DIR%"
-if errorlevel 1 exit /b %ERRORLEVEL%
+call asadmin deploy --force=true --type war --name "%APP_NAME%" --contextroot "%CONTEXT_ROOT%" "%APP_DIR%"
+if errorlevel 1 exit /b 1
 
-echo Opening %APP_URL%
+echo Application URL: %APP_URL%
 start "" "%APP_URL%"
 exit /b 0

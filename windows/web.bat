@@ -18,6 +18,6 @@ echo Syncing frontend files...
 robocopy "%SOURCE_DIR%" "%TARGET_DIR%" /E
 if %ERRORLEVEL% GEQ 8 exit /b %ERRORLEVEL%
 
-echo Frontend synced to exploded target deployment. Hard refresh browser:
+echo Frontend synced to exploded target deployment. Hard refresh browser [CTRL Fn F5]:
 echo %APP_URL%
 exit /b 0

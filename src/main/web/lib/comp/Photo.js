@@ -38,9 +38,12 @@ const PhotoPicker = (props = {}) => {
     } = props;
     const inputId = photoProps.id || photoProps.name || defaultPhotoInputId;
     const valueInputId = `${inputId}-value`;
-    const placeholder = label || photoProps.placeholder || "Photo";
-    const hasPhoto = Boolean(photoProps.value);
-    const sizeText = photoSizeKb(photoProps.value);
+    const personName = photoProps.personName || photoProps.person?.name || "";
+    const photoValue = photoProps.value ?? photoProps.person?.photo ?? "";
+    const placeholder = personName || label || photoProps.placeholder || "Photo";
+    const hasPhoto = Boolean(photoValue);
+    const sizeText = photoSizeKb(photoValue);
+    const hideButtons = photoProps.hideButtons === true || photoProps.hideActions === true;
     const commitPhotoValue = value => {
         const valueInput = document.getElementById(valueInputId);
 
@@ -57,13 +60,13 @@ const PhotoPicker = (props = {}) => {
         photoProps.onChange?.(value);
     };
     const downloadPhoto = () => {
-        if (!photoProps.value) {
+        if (!photoValue) {
             return;
         }
 
         const link = document.createElement("a");
 
-        link.href = photoProps.value;
+        link.href = photoValue;
         link.download = photoProps.downloadName || `${photoProps.name || "photo"}.png`;
         link.click();
     };
@@ -72,12 +75,12 @@ const PhotoPicker = (props = {}) => {
         { className: photoProps.className || "grove-photo-picker" },
         Div(
             { className: "grove-photo-preview" },
-            photoProps.value
+            photoValue
                 ? createElement(
                     "img",
                     {
                         alt: placeholder,
-                        src: photoProps.value
+                        src: photoValue
                     }
                 )
                 : placeholder
@@ -109,36 +112,47 @@ const PhotoPicker = (props = {}) => {
             name: photoProps.name,
             style: "display: none",
             type: "hidden",
-            value: photoProps.value || ""
+            value: photoValue || ""
         }),
         Div(
             { className: "grove-photo-actions" },
-            Button({
-                className: photoProps.buttonClassName,
-                icon: "folder2-open",
-                label: null,
-                look: "ut",
-                title: photoProps.buttonText || "Browse photo",
-                type: "button",
-                onClick() {
-                    document.getElementById(inputId)?.click();
-                }
-            }),
-            Button({
-                className: photoProps.buttonClassName,
-                disabled: !hasPhoto,
-                icon: "download",
-                label: null,
-                look: "sc",
-                title: photoProps.downloadButtonText || "Download photo",
-                type: "button",
-                onClick: downloadPhoto
-            }),
-            sizeText
+            hideButtons
+                ? null
+                : Button({
+                    className: photoProps.buttonClassName,
+                    icon: "folder2-open",
+                    label: null,
+                    look: "ut",
+                    title: photoProps.buttonText || "Browse photo",
+                    type: "button",
+                    onClick() {
+                        document.getElementById(inputId)?.click();
+                    }
+                }),
+            hideButtons
+                ? null
+                : Button({
+                    className: photoProps.buttonClassName,
+                    disabled: !hasPhoto,
+                    icon: "download",
+                    label: null,
+                    look: "sc",
+                    title: photoProps.downloadButtonText || "Download photo",
+                    type: "button",
+                    onClick: downloadPhoto
+                }),
+            !hideButtons && sizeText
                 ? Text({
                     className: "grove-photo-size",
                     look: "caption",
                     value: sizeText
+                })
+                : null,
+            hideButtons && personName
+                ? Text({
+                    className: "grove-photo-person-name",
+                    look: "caption",
+                    value: personName
                 })
                 : null
         )
@@ -151,6 +165,8 @@ const PhotoPicker = (props = {}) => {
  * @param {string} [props.id] - Hidden file input id.
  * @param {string} [props.name] - Field name used by Form data binding.
  * @param {string} [props.label] - Placeholder text when no photo is selected.
+ * @param {boolean} [props.hideButtons] - Hide browse/download controls.
+ * @param {Object} [props.person] - Person whose photo and name should be displayed.
  * @returns {Object} A Grove virtual node.
  */
 export const Photo = (props = {}) =>
