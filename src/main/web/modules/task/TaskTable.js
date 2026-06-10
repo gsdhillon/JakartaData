@@ -2,7 +2,7 @@ import {
     Button,
     formatInstantLocal,
     Table
-} from "../../lib/Grove.js";
+} from "../../grove_lib/Grove.js";
 
 const formatDate = value => {
     if (!value) {

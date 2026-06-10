@@ -1,7 +1,7 @@
 import {
     Button,
     Table
-} from "../../lib/Grove.js";
+} from "../../grove_lib/Grove.js";
 
 const columns = [
     { key: "id", label: "Id" },

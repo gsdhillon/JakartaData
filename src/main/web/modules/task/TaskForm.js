@@ -13,7 +13,7 @@ import {
     useEffect,
     useMemo,
     useState
-} from "../../lib/Grove.js";
+} from "../../grove_lib/Grove.js";
 import PersonTable from "../person/PersonTable.js";
 import {
     findAllPersons,

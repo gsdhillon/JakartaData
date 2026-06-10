@@ -1,14 +1,13 @@
 package com.gurmeet.modules.person;
 
-import com.gurmeet.application.EditableFields;
-import com.gurmeet.application.security.PasswordService;
-import com.gurmeet.application.security.UserAccessPolicy;
+import com.gurmeet.grove_app.EditableFields;
+import com.gurmeet.grove_app.security.PasswordService;
+import com.gurmeet.grove_app.security.UserAccessPolicy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.json.JsonObject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.PersistenceException;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import jakarta.ws.rs.BadRequestException;
@@ -59,15 +58,11 @@ public class PersonService {
     }
 
     public boolean hasPersons() {
-        try {
-            Number count = (Number) entityManager
-                    .createNativeQuery("SELECT COUNT(*) FROM Person")
-                    .getSingleResult();
+        Long count = entityManager
+                .createQuery("select count(person) from Person person", Long.class)
+                .getSingleResult();
 
-            return count.longValue() > 0;
-        } catch (PersistenceException exception) {
-            return false;
-        }
+        return count > 0;
     }
 
     public Person createBootstrapUser(Person person) {

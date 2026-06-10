@@ -127,7 +127,7 @@ Bootstrap creates only `SUPER-ADMIN`. It is allowed only when no users exist.
 If your application uses another table, create your own implementation of:
 
 ```text
-com.gurmeet.application.security.AuthUserStore
+com.gurmeet.grove_app.security.AuthUserStore
 ```
 
 Example names:
@@ -162,17 +162,18 @@ BOILERPLATE-REPLACE-PERSON
 Reusable frontend pieces are split like this:
 
 ```text
-src/main/web/lib                  reusable Grove UI/runtime components
-src/main/web/application/security reusable login/logout/change-password API and pages
-src/main/web/application/AppContext.js reusable session/auth context
-src/main/web/application/App.js   application composition root
-src/main/web/modules              custom application modules
+src/main/web/grove_lib             reusable Grove UI/runtime components
+src/main/web/grove_app/security    reusable login/logout/change-password API and pages
+src/main/web/grove_app/user_logs   reusable user login/error log pages
+src/main/web/grove_app/AppContext.js reusable session/auth context
+src/main/web/App.js                application composition root
+src/main/web/modules               custom application modules
 ```
 
 Application programmers normally edit only:
 
 ```text
-src/main/web/application/App.js
+src/main/web/App.js
 src/main/web/modules/*
 ```
 
@@ -185,7 +186,7 @@ BOILERPLATE-FRONTEND-PAGES
 Custom modules should read auth state through `useAuth()`:
 
 ```js
-import { useAuth } from "../../application/AppContext.js";
+import { useAuth } from "../../grove_app/AppContext.js";
 
 const MyPage = () => {
     const { authToken, loggedInUser, hasAnyRole, isSelf } = useAuth();

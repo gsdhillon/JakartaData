@@ -6,7 +6,7 @@ This document records selected user requests and the core implementation guidanc
 
 ### Conversation Summary
 
-**User request:** Make the frontend responsive for both mobile and desktop using media queries instead of Bootstrap responsive utility classes. Manage the responsive behavior as much as possible at the framework level inside `src/main/web/lib`, especially in reusable components such as `Form`, `Table`, and `CenterPanel`. First make a plan and suggest the simplest, cleanest strategy before implementing anything.
+**User request:** Make the frontend responsive for both mobile and desktop using media queries instead of Bootstrap responsive utility classes. Manage the responsive behavior as much as possible at the framework level inside `src/main/web/grove_lib`, especially in reusable components such as `Form`, `Table`, and `CenterPanel`. First make a plan and suggest the simplest, cleanest strategy before implementing anything.
 
 **Codex response:** Use framework-level responsive contracts instead of page-specific CSS. Feature modules should continue using generic components such as `Page`, `Form`, `Table`, and `CenterPanel`, while shared CSS and component markup inside `lib` should decide how those components adapt on mobile. The simplest approach is CSS-first: define Grove classes and media queries in `lib/styles.css`, then add component metadata only where CSS alone is insufficient.
 

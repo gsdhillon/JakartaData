@@ -1,8 +1,8 @@
 package com.gurmeet.modules.person;
 
-import com.gurmeet.application.security.AuthUser;
-import com.gurmeet.application.security.SecurityService;
-import com.gurmeet.application.security.UserAccessPolicy;
+import com.gurmeet.grove_app.security.AuthUser;
+import com.gurmeet.grove_app.security.SecurityService;
+import com.gurmeet.grove_app.security.UserAccessPolicy;
 import jakarta.inject.Inject;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;

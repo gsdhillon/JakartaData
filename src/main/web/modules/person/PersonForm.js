@@ -10,8 +10,8 @@ import {
     showAppError,
     useMemo,
     useState
-} from "../../lib/Grove.js";
-import { OptBoolean } from "../../lib/comp/OptBoolean.js";
+} from "../../grove_lib/Grove.js";
+import { OptBoolean } from "../../grove_lib/comp/OptBoolean.js";
 import { normalizePerson } from "./PersonService.js";
 
 const PersonForm = props => {

@@ -1,4 +1,4 @@
-import { requestJson } from "../../lib/Grove.js";
+import { requestJson } from "../../grove_lib/Grove.js";
 
 const personsApiUrl = "./api/persons";
 

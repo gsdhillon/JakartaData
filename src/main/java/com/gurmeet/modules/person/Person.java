@@ -3,9 +3,9 @@ package com.gurmeet.modules.person;
 import java.time.Instant;
 import java.time.LocalDate;
 
-import com.gurmeet.application.EditableField;
-import com.gurmeet.application.ValidationRules;
-import com.gurmeet.application.security.UserAccessPolicy;
+import com.gurmeet.grove_app.EditableField;
+import com.gurmeet.grove_app.ValidationRules;
+import com.gurmeet.grove_app.security.UserAccessPolicy;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

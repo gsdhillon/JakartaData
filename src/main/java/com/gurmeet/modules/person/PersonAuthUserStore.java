@@ -1,9 +1,9 @@
 package com.gurmeet.modules.person;
 
-import com.gurmeet.application.security.AuthUser;
-import com.gurmeet.application.security.AuthUserStore;
-import com.gurmeet.application.security.UserAccessPolicy;
-import com.gurmeet.application.security.bootstrap.BootstrapAdminRequest;
+import com.gurmeet.grove_app.security.AuthUser;
+import com.gurmeet.grove_app.security.AuthUserStore;
+import com.gurmeet.grove_app.security.UserAccessPolicy;
+import com.gurmeet.grove_app.security.bootstrap.BootstrapAdminRequest;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 

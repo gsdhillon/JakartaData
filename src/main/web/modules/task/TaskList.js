@@ -7,8 +7,8 @@ import {
     useEffect,
     useMemo,
     useState
-} from "../../lib/Grove.js";
-import { useAuth } from "../../application/AppContext.js";
+} from "../../grove_lib/Grove.js";
+import { useAuth } from "../../grove_app/AppContext.js";
 import TaskForm from "./TaskForm.js";
 import {
     completeTaskById,
