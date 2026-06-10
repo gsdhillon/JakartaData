@@ -35,7 +35,7 @@ const jwtExpiryOf = token => {
 };
 
 const loginInfoOf = session => {
-    const userInfo = session.userInfo || session.user || session.person || null;
+    const userInfo = session.userInfo || session.user || null;
 
     return {
         avatarThumbnail:
@@ -64,7 +64,7 @@ const loginInfoOf = session => {
 const Login = props => {
     const { loginSession } = useAppContext();
     const [credentials, setCredentials] = useState({
-        userId: "",
+        loginId: "",
         password: ""
     });
     const [isBusy, setIsBusy] = useState(false);
@@ -95,9 +95,9 @@ const Login = props => {
                 title: "Login"
             }),
                 Input({
-                    label: "User Id:",
-                    name: "userId",
-                    type: "number"
+                    label: "Login ID:",
+                    name: "loginId",
+                    type: "text"
                 }),
                 Input({
                     label: "Password:",

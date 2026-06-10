@@ -210,7 +210,7 @@ const TaskForm = props => {
                     type: "number"
                 }),
                 Div(
-                    { className: "task-person-picker" },
+                    { className: "task-assignee-picker" },
                     Input({
                         label: "Assigned To:",
                         name: "assignedTo",

@@ -37,16 +37,20 @@ public class SecurityService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        if (request.getUserId() == null) {
-            throw new BadRequestException("User id is required.");
+        String loginId = clean(request.getLoginId());
+
+        if (loginId == null) {
+            throw new BadRequestException("Login ID is required.");
         }
 
-        AuthUser user = authUserStore.findById(request.getUserId())
+        AuthUser user = authUserStore.findByLoginId(loginId)
                 .orElseThrow(() -> new NotAuthorizedException("Invalid login."));
 
         if (!passwordService.verifyPassword(request.getPassword(), user.getPassword())) {
             throw new NotAuthorizedException("Invalid login.");
         }
+
+        user.setLoginId(loginId);
 
         if (passwordService.needsPasswordUpgrade(user.getPassword())) {
             authUserStore.changePassword(user.getId(), passwordService.hashPassword(request.getPassword()));
@@ -57,7 +61,7 @@ public class SecurityService {
     }
 
     public void changePassword(String authorizationHeader, ChangePasswordRequest request) {
-        Long userId = requireUserId(authorizationHeader);
+        String userId = requireUserId(authorizationHeader);
         AuthUser user = authUserStore.findById(userId)
                 .orElseThrow(() -> new NotAuthorizedException("Invalid token."));
 
@@ -68,7 +72,7 @@ public class SecurityService {
         authUserStore.changePassword(userId, passwordService.hashPassword(request.getNewPassword()));
     }
 
-    public Long requireUserId(String authorizationHeader) {
+    public String requireUserId(String authorizationHeader) {
         String token = bearerToken(authorizationHeader);
 
         if (token == null || token.isBlank()) {
@@ -82,11 +86,11 @@ public class SecurityService {
             throw new NotAuthorizedException("Token expired.");
         }
 
-        return payload.getJsonNumber("sub").longValue();
+        return payload.getString("sub");
     }
 
     public AuthUser requireUser(String authorizationHeader) {
-        Long userId = requireUserId(authorizationHeader);
+        String userId = requireUserId(authorizationHeader);
 
         return authUserStore.findById(userId)
                 .orElseThrow(() -> new NotAuthorizedException("Invalid token."));
@@ -95,7 +99,15 @@ public class SecurityService {
     private String createToken(AuthUser user) {
         long expiresAt = Instant.now().getEpochSecond() + TOKEN_TTL_SECONDS;
         String header = "{\"alg\":\"HS256\",\"typ\":\"JWT\"}";
-        String payload = "{\"sub\":" + user.getId() + ",\"name\":\"" + escapeJson(user.getName()) + "\",\"role\":\"" + escapeJson(user.getRole()) + "\",\"exp\":" + expiresAt + "}";
+        String payload = "{"
+                + "\"sub\":\"" + escapeJson(user.getId()) + "\","
+                + "\"loginId\":\"" + escapeJson(user.getLoginId()) + "\","
+                + "\"name\":\"" + escapeJson(user.getName()) + "\","
+                + "\"role\":\"" + escapeJson(user.getRole()) + "\","
+                + "\"email\":\"" + escapeJson(user.getEmail()) + "\","
+                + "\"mobileNo\":\"" + escapeJson(user.getMobileNo()) + "\","
+                + "\"exp\":" + expiresAt
+                + "}";
         String unsignedToken = base64Url(header.getBytes(StandardCharsets.UTF_8)) + "." + base64Url(payload.getBytes(StandardCharsets.UTF_8));
 
         return unsignedToken + "." + sign(unsignedToken);
@@ -144,5 +156,11 @@ public class SecurityService {
 
     private String escapeJson(String value) {
         return String.valueOf(value == null ? "" : value).replace("\\", "\\\\").replace("\"", "\\\"");
+    }
+
+    private String clean(String value) {
+        return value == null || value.isBlank()
+                ? null
+                : value.trim();
     }
 }

@@ -80,6 +80,22 @@ public class PersonService {
         return personRepository.findById(id);
     }
 
+    public Optional<Person> findByEmail(String email) {
+        String normalizedEmail = normalizeEmail(email);
+
+        return normalizedEmail == null
+                ? Optional.empty()
+                : personRepository.findByEmail(normalizedEmail);
+    }
+
+    public Optional<Person> findByMobileNo(String mobileNo) {
+        String normalizedMobileNo = blankToNull(mobileNo);
+
+        return normalizedMobileNo == null
+                ? Optional.empty()
+                : personRepository.findByMobileNo(normalizedMobileNo);
+    }
+
     public Person update(Long id, Person updatedPerson) {
         // Shorter version:
         // Person person = personRepository.findById(id)
@@ -159,4 +175,17 @@ public class PersonService {
         }
     }
 
+    private String normalizeEmail(String value) {
+        String normalizedValue = blankToNull(value);
+
+        return normalizedValue == null
+                ? null
+                : normalizedValue.toLowerCase();
+    }
+
+    private String blankToNull(String value) {
+        return value == null || value.isBlank()
+                ? null
+                : value.trim();
+    }
 }

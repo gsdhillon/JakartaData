@@ -6,7 +6,7 @@ import {
     useState
 } from "../lib/Grove.js";
 
-const sessionStorageKey = "jakartaDataPerson.session";
+const sessionStorageKey = "jakartaData.session";
 
 const readSavedSession = () => {
     if (typeof localStorage === "undefined") {
@@ -73,7 +73,7 @@ export const AppProvider = props => {
             sessionVersion,
             setLoginInfo,
             loginSession(session, nextLoginInfo) {
-                const nextUser = session.user || session.person || null;
+                const nextUser = session.userInfo || session.user || null;
                 const nextToken = session.token;
                 const nextInfo = nextLoginInfo || null;
 

@@ -107,12 +107,12 @@ const AppLayout = () => {
                 avatarTitle: loggedInUser?.name || "",
                 avatarSubTitle: loggedInUser?.role || "",
                 loginInfo,
-                title: "Jakarta Data Person",
-                subTitle: "Person and task management"
+                title: "Jakarta Data",
+                subTitle: "User and task management"
             }
         ),
         footerProps: {
-            brand: "Jakarta Data Person"
+            brand: "Jakarta Data"
         }
     });
 };

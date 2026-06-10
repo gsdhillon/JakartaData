@@ -4,9 +4,15 @@ import jakarta.json.bind.annotation.JsonbTransient;
 
 public class AuthUser {
 
-    private Long id;
+    // Canonical application identity. This is used for JWT subject, authorization, and future lookups.
+    private String id;
+
+    // Login identifier used for the current login. It may be id, email, mobile number, roll number, etc.
+    private String loginId;
     private String name;
     private String role;
+    private String email;
+    private String mobileNo;
     private String avatar;
     private boolean passwordChangeRequired;
 
@@ -16,21 +22,36 @@ public class AuthUser {
     public AuthUser() {
     }
 
-    public AuthUser(Long id, String name, String role, String password, String avatar, boolean passwordChangeRequired) {
+    public AuthUser(String id, String loginId, String name, String role, String email, String mobileNo, String password, String avatar, boolean passwordChangeRequired) {
         this.id = id;
+        setLoginId(loginId);
         this.name = name;
         this.role = UserAccessPolicy.normalizeRole(role);
+        this.email = email;
+        this.mobileNo = mobileNo;
         this.password = password;
         this.avatar = avatar;
         this.passwordChangeRequired = passwordChangeRequired;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
+    }
+
+    public String getLoginId() {
+        return loginId;
+    }
+
+    public void setLoginId(String loginId) {
+        if (loginId == null || loginId.isBlank()) {
+            throw new IllegalArgumentException("Auth user loginId is required.");
+        }
+
+        this.loginId = loginId.trim();
     }
 
     public String getName() {
@@ -47,6 +68,22 @@ public class AuthUser {
 
     public void setRole(String role) {
         this.role = UserAccessPolicy.normalizeRole(role);
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getMobileNo() {
+        return mobileNo;
+    }
+
+    public void setMobileNo(String mobileNo) {
+        this.mobileNo = mobileNo;
     }
 
     public String getAvatar() {

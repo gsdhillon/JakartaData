@@ -16,6 +16,7 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Transient;
 import jakarta.json.bind.annotation.JsonbTransient;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
@@ -51,6 +52,8 @@ public class Person {
     private Instant updatedAt;
 
     @EditableField
+    @Email(message = "Email must be valid.")
+    @Column(unique = true)
     private String email;
 
     @EditableField
@@ -60,6 +63,7 @@ public class Person {
     private String role = UserAccessPolicy.USER;
 
     @EditableField
+    @Column(unique = true)
     private String mobileNo;
 
     @EditableField
@@ -90,6 +94,7 @@ public class Person {
     @PrePersist
     @PreUpdate
     private void touchUpdatedAt() {
+        normalizeLoginIdentifiers();
         updatedAt = Instant.now();
     }
 
@@ -138,7 +143,7 @@ public class Person {
     }
 
     public void setEmail(String email) {
-        this.email = email;
+        this.email = normalizeEmail(email);
     }
 
     public String getGender() {
@@ -162,7 +167,7 @@ public class Person {
     }
 
     public void setMobileNo(String mobileNo) {
-        this.mobileNo = mobileNo;
+        this.mobileNo = blankToNull(mobileNo);
     }
 
     public String getPhoto() {
@@ -195,5 +200,24 @@ public class Person {
 
     public void setPasswordChangeRequired(boolean passwordChangeRequired) {
         this.passwordChangeRequired = passwordChangeRequired;
+    }
+
+    private void normalizeLoginIdentifiers() {
+        email = normalizeEmail(email);
+        mobileNo = blankToNull(mobileNo);
+    }
+
+    private String normalizeEmail(String value) {
+        String normalizedValue = blankToNull(value);
+
+        return normalizedValue == null
+                ? null
+                : normalizedValue.toLowerCase();
+    }
+
+    private String blankToNull(String value) {
+        return value == null || value.isBlank()
+                ? null
+                : value.trim();
     }
 }

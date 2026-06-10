@@ -2,23 +2,15 @@ package com.gurmeet.application.security.login;
 
 public class LoginRequest {
 
-    private Long userId;
+    private String loginId;
     private String password;
 
-    public Long getUserId() {
-        return userId;
+    public String getLoginId() {
+        return loginId;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
-    public Long getPersonId() {
-        return userId;
-    }
-
-    public void setPersonId(Long personId) {
-        this.userId = personId;
+    public void setLoginId(String loginId) {
+        this.loginId = loginId;
     }
 
     public String getPassword() {

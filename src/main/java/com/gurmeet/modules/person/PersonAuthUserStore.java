@@ -23,8 +23,23 @@ public class PersonAuthUserStore implements AuthUserStore {
     }
 
     @Override
-    public Optional<AuthUser> findById(Long id) {
-        return personService.findById(id).map(this::toAuthUser);
+    public Optional<AuthUser> findById(String id) {
+        return parseLong(id)
+                .flatMap(personService::findById)
+                .map(this::toAuthUser);
+    }
+
+    @Override
+    public Optional<AuthUser> findByLoginId(String loginId) {
+        String normalizedLoginId = clean(loginId);
+
+        if (normalizedLoginId == null) {
+            return Optional.empty();
+        }
+
+        return findById(normalizedLoginId)
+                .or(() -> personService.findByEmail(normalizedLoginId).map(this::toAuthUser))
+                .or(() -> personService.findByMobileNo(normalizedLoginId).map(this::toAuthUser));
     }
 
     @Override
@@ -51,19 +66,41 @@ public class PersonAuthUserStore implements AuthUserStore {
     }
 
     @Override
-    public AuthUser changePassword(Long id, String passwordHash) {
-        return toAuthUser(personService.changePassword(id, passwordHash));
+    public AuthUser changePassword(String id, String passwordHash) {
+        Long personId = parseLong(id)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid user id: " + id));
+
+        return toAuthUser(personService.changePassword(personId, passwordHash));
     }
 
     // BOILERPLATE-REPLACE-PERSON: copy this mapping pattern when Employee/Customer replaces Person as the auth table.
     private AuthUser toAuthUser(Person person) {
         return new AuthUser(
-                person.getId(),
+                String.valueOf(person.getId()),
+                String.valueOf(person.getId()),
                 person.getName(),
                 person.getRole(),
+                person.getEmail(),
+                person.getMobileNo(),
                 person.getPassword(),
                 person.getPhoto(),
                 person.isPasswordChangeRequired()
         );
+    }
+
+    private Optional<Long> parseLong(String value) {
+        try {
+            return clean(value) == null
+                    ? Optional.empty()
+                    : Optional.of(Long.valueOf(value.trim()));
+        } catch (NumberFormatException exception) {
+            return Optional.empty();
+        }
+    }
+
+    private String clean(String value) {
+        return value == null || value.isBlank()
+                ? null
+                : value.trim();
     }
 }

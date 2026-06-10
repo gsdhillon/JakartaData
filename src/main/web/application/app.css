@@ -19,7 +19,7 @@ body {
     white-space: pre-line;
 }
 
-.task-person-picker {
+.task-assignee-picker {
     align-items: end;
     display: grid;
     gap: 0.75rem;
@@ -27,7 +27,7 @@ body {
 }
 
 @media (max-width: 640px) {
-    .task-person-picker {
+    .task-assignee-picker {
         grid-template-columns: 1fr;
     }
 }

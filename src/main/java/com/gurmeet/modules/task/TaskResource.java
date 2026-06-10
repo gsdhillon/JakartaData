@@ -94,7 +94,7 @@ public class TaskResource {
 
     private Long requireUserId(String authorizationHeader, Long loggedInUserId) {
         if (authorizationHeader != null && !authorizationHeader.isBlank()) {
-            return securityService.requireUserId(authorizationHeader);
+            return parseLong(securityService.requireUserId(authorizationHeader));
         }
 
         if (loggedInUserId == null) {
@@ -102,5 +102,13 @@ public class TaskResource {
         }
 
         return loggedInUserId;
+    }
+
+    private Long parseLong(String value) {
+        try {
+            return Long.valueOf(value);
+        } catch (NumberFormatException exception) {
+            throw new BadRequestException("Current task module requires a numeric user id.");
+        }
     }
 }

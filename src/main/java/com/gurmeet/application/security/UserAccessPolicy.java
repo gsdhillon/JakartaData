@@ -48,7 +48,7 @@ public final class UserAccessPolicy {
         String normalizedRequestedRole = requestedRole == null || requestedRole.isBlank()
                 ? normalizedExistingRole
                 : normalizeRole(requestedRole);
-        boolean selfUpdate = actor != null && actor.getId() != null && actor.getId().equals(existingUserId);
+        boolean selfUpdate = actor != null && actor.getId() != null && actor.getId().equals(String.valueOf(existingUserId));
 
         if (SUPER_ADMIN.equals(actorRole) && selfUpdate && SUPER_ADMIN.equals(normalizedExistingRole) && SUPER_ADMIN.equals(normalizedRequestedRole)) {
             return;

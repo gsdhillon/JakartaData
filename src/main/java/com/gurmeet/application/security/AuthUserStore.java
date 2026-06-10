@@ -6,12 +6,14 @@ import java.util.Optional;
 
 public interface AuthUserStore {
 
-    Optional<AuthUser> findById(Long id);
+    Optional<AuthUser> findById(String id);
+
+    Optional<AuthUser> findByLoginId(String loginId);
 
     boolean hasUsers();
 
-    // BOILERPLATE-AUTH-STORE: implement this in your user module when replacing the included Person module.
+    // BOILERPLATE-AUTH-STORE: implement this in the domain module that owns application users.
     AuthUser createBootstrapAdmin(BootstrapAdminRequest request, String passwordHash);
 
-    AuthUser changePassword(Long id, String passwordHash);
+    AuthUser changePassword(String id, String passwordHash);
 }
