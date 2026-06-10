@@ -105,10 +105,20 @@ export const AppErrorToasts = () => {
         return null;
     }
 
-    const titleOf = toast =>
-        toast.status !== undefined
-            ? `HTTP ${toast.status} ${toast.statusText || ""} Content-Type: ${toast.contentType || "unknown"}`.trim()
-            : toast.statusText || "Message";
+    const titleOf = toast => {
+        if (toast.status === undefined) {
+            return toast.statusText || "Message";
+        }
+
+        const statusText = toast.statusText
+            ? ` - ${toast.statusText}`
+            : "";
+        const contentType = toast.contentType
+            ? ` [${toast.contentType}]`
+            : "";
+
+        return `${toast.status}${statusText}${contentType}`;
+    };
 
     return createElement(
         "div",

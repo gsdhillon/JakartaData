@@ -38,6 +38,7 @@ const bootstrapAdminSampleBody = JSON.stringify(
 );
 const listeners = new Set();
 const state = {
+    attention: "none",
     consoleEntries: [],
     enabled: false,
     entries: [],
@@ -54,25 +55,17 @@ const now = () =>
 
 const notify = () => {
     if (typeof document !== "undefined") {
-        const hasConsoleWarning =
-            state.consoleEntries.some(entry => entry.level === "warn");
-        const hasConsoleError =
-            state.consoleEntries.some(entry => entry.level === "error") ||
-            state.errorEntries.length > 0;
-
         document.documentElement.classList.toggle(
             "grove-rest-tap-has-entries",
-            state.entries.length > 0 ||
-                state.consoleEntries.length > 0 ||
-                state.errorEntries.length > 0
+            state.attention === "activity"
         );
         document.documentElement.classList.toggle(
             "grove-rest-tap-has-console-warn",
-            hasConsoleWarning
+            state.attention === "warn"
         );
         document.documentElement.classList.toggle(
             "grove-rest-tap-has-console-error",
-            hasConsoleError
+            state.attention === "error"
         );
         document.documentElement.classList.toggle(
             "grove-rest-tap-waiting",
@@ -95,6 +88,7 @@ const toggleRestTap = () => {
 };
 
 const clearRestEntries = () => {
+    state.attention = "none";
     state.consoleEntries = [];
     state.entries = [];
     state.errorEntries = [];
@@ -304,10 +298,29 @@ export const requestJson = async (url, options = {}) => {
         : response.json();
 };
 
+const maskHeaderValue = (key, value) => {
+    const text = String(value ?? "");
+
+    if (
+        key.toLowerCase() === "authorization" &&
+        text.toLowerCase().startsWith("bearer ")
+    ) {
+        const token = text.slice(7).trim();
+
+        if (token.length <= 14) {
+            return `Bearer ${token}[${token.length}]`;
+        }
+
+        return `Bearer ${token.slice(0, 4)}...${token.slice(-6)}[${token.length}]`;
+    }
+
+    return text;
+};
+
 const formatHeaders = headers =>
     Object
         .entries(headers || {})
-        .map(([key, value]) => `${key}: ${value}`)
+        .map(([key, value]) => `${key}: ${maskHeaderValue(key, value)}`)
         .join("\n");
 
 const shortenSampleString = value =>
@@ -405,7 +418,7 @@ const formatConsoleEntries = entries =>
         ? entries
             .map(entry => `[${entry.time}] ${entry.level.toUpperCase()}\n${entry.message}`)
             .join("\n\n")
-        : "No console logs captured yet.\n\nDouble click to generate dummy logs";
+        : "No console logs captured yet. Double click to generate dummy logs.";
 
 const consoleLevelMeta = {
     debug: {
@@ -525,26 +538,106 @@ const renderConsoleEntries = entries =>
         })
         : createElement(
             "pre",
-            { className: "grove-rest-console-empty" },
+            { className: "grove-rest-console-empty grove-rest-empty-state" },
             formatConsoleEntries(entries)
         );
 
-const formatErrorEntries = entries =>
+const errorTitleOf = entry => {
+    const status = entry.status ?? "ERR";
+    const statusText = entry.statusText
+        ? ` - ${entry.statusText}`
+        : "";
+    const contentType = entry.contentType
+        ? ` [${entry.contentType}]`
+        : "";
+
+    return `${status}${statusText}${contentType}`;
+};
+
+const requestLineOf = entry =>
+    entry.request
+        ? `${entry.request.method} ${entry.request.url}`
+        : entry.url || "";
+
+const apiEntryStatusOf = entry => {
+    if (!entry.response) {
+        return "error";
+    }
+
+    if (entry.response.status >= 500) {
+        return "error";
+    }
+
+    if (entry.response.status >= 400) {
+        return "warn";
+    }
+
+    if (entry.response.status >= 300) {
+        return "redirect";
+    }
+
+    return "ok";
+};
+
+const compactApiUrl = url =>
+    String(url || "")
+        .replace(/^\.?\/?api\/?/i, "")
+        .replace(/^\/+/, "") || "/";
+
+const renderErrorEntries = entries =>
     entries.length
-        ? entries
-            .map(entry => [
-                `[${entry.time}] HTTP ${entry.status} ${entry.statusText || ""}`.trim(),
-                entry.request
-                    ? `${entry.request.method} ${entry.request.url}`
-                    : entry.url || "",
-                `Content-Type: ${entry.contentType || "unknown"}`,
-                "",
-                entry.errors && entry.errors.length
-                    ? entry.errors.join("\n")
-                    : "No response error body."
-            ].filter(line => line !== "").join("\n"))
-            .join("\n\n")
-        : "No REST errors captured yet.";
+        ? entries.map(entry =>
+            Div(
+                {
+                    className: "grove-rest-error-entry",
+                    key: entry.id
+                },
+                createElement("i", {
+                    "aria-hidden": "true",
+                    className: "bi bi-exclamation-triangle-fill grove-rest-error-entry-icon"
+                }),
+                Div(
+                    { className: "grove-rest-error-entry-body" },
+                    Div(
+                        { className: "grove-rest-error-entry-meta" },
+                        createElement(
+                            "span",
+                            { className: "grove-rest-error-entry-status" },
+                            errorTitleOf(entry)
+                        ),
+                        createElement(
+                            "span",
+                            { className: "grove-rest-error-entry-time" },
+                            entry.time
+                        )
+                    ),
+                    requestLineOf(entry)
+                        ? Div(
+                            { className: "grove-rest-error-entry-request" },
+                            requestLineOf(entry)
+                        )
+                        : null,
+                    createElement(
+                        "ul",
+                        { className: "grove-rest-error-entry-list" },
+                        (entry.errors && entry.errors.length
+                            ? entry.errors
+                            : ["No response error body."]
+                        ).map((message, index) =>
+                            createElement(
+                                "li",
+                                { key: `${entry.id}-${index}` },
+                                message
+                            )
+                        )
+                    )
+                )
+            )
+        )
+        : Div(
+            { className: "grove-rest-empty-state" },
+            "No REST errors captured yet."
+        );
 
 const parseHeaderText = headerText => {
     const headers = {};
@@ -578,6 +671,17 @@ const addEntry = entry => {
         entry,
         ...state.entries
     ].slice(0, maxEntries);
+
+    if (entry.response?.ok) {
+        state.attention = "none";
+    } else if (entry.response && !entry.response.ok) {
+        state.attention = "error";
+    } else if (entry.error) {
+        state.attention = "error";
+    } else {
+        state.attention = "activity";
+    }
+
     notify();
 };
 
@@ -586,6 +690,15 @@ const addConsoleEntry = entry => {
         entry,
         ...state.consoleEntries
     ].slice(0, maxConsoleEntries);
+
+    if (entry.level === "error") {
+        state.attention = "error";
+    } else if (entry.level === "warn" && state.attention !== "error") {
+        state.attention = "warn";
+    } else if (state.attention === "none") {
+        state.attention = "activity";
+    }
+
     notify();
 };
 
@@ -628,6 +741,7 @@ const installBrowserErrorCapture = () => {
 };
 
 const addErrorEntry = entry => {
+    state.attention = "error";
     state.errorEntries = [
         {
             id: `${Date.now()}-${Math.random()}`,
@@ -1039,6 +1153,7 @@ export const RestTap = () => {
                                 {
                                     className: [
                                         "grove-rest-entry",
+                                        `grove-rest-entry-${apiEntryStatusOf(entry)}`,
                                         "list-group-item",
                                         "list-group-item-action",
                                         entry.id === selectedEntry?.id
@@ -1053,17 +1168,40 @@ export const RestTap = () => {
                                     }
                                 },
                                 Div(
-                                    { className: "grove-rest-entry-main" },
-                                    `${entry.request.method} ${entry.response?.status ?? "ERR"}`
+                                    { className: "grove-rest-entry-line" },
+                                    createElement(
+                                        "span",
+                                        { className: "grove-rest-entry-method" },
+                                        entry.request.method
+                                    ),
+                                    createElement(
+                                        "span",
+                                        { className: "grove-rest-entry-url" },
+                                        compactApiUrl(entry.request.url)
+                                    ),
+                                    createElement(
+                                        "span",
+                                        { className: "grove-rest-entry-status" },
+                                        entry.response?.status ?? "ERR"
+                                    )
                                 ),
                                 Div(
                                     { className: "grove-rest-entry-sub" },
-                                    `${entry.time} | ${entry.durationMs}ms`
+                                    createElement(
+                                        "span",
+                                        null,
+                                        entry.time
+                                    ),
+                                    createElement(
+                                        "span",
+                                        null,
+                                        `${entry.durationMs}ms`
+                                    )
                                 )
                             )
                         )
                         : Div(
-                            { className: "grove-rest-empty" },
+                            { className: "grove-rest-empty grove-rest-empty-state" },
                             "No API calls captured yet."
                         )
                 ),
@@ -1252,31 +1390,52 @@ export const RestTap = () => {
                         )
                     : tab === "errors"
                         ? createElement(
-                            "pre",
-                            { className: "grove-rest-payload grove-rest-console-payload" },
-                            formatErrorEntries(errorEntries)
+                            "div",
+                            { className: "grove-rest-payload grove-rest-console-payload grove-rest-error-payload" },
+                            renderErrorEntries(errorEntries)
                         )
                     : selectedEntry
                         ? Div(
                             { className: "grove-rest-combined-payload" },
                             Div(
-                                { className: "grove-rest-payload-title" },
-                                "Request"
-                            ),
-                            createElement(
-                                "pre",
-                                { className: "grove-rest-payload" },
-                                formatRequest(selectedEntry)
+                                { className: "grove-rest-detail-card grove-rest-detail-card-request" },
+                                Div(
+                                    { className: "grove-rest-detail-card-title" },
+                                    createElement("i", {
+                                        "aria-hidden": "true",
+                                        className: "bi bi-arrow-up-right-circle"
+                                    }),
+                                    "Req"
+                                ),
+                                createElement(
+                                    "pre",
+                                    { className: "grove-rest-payload grove-rest-detail-card-payload" },
+                                    formatRequest(selectedEntry)
+                                )
                             ),
                             Div({ className: "grove-rest-payload-separator" }),
                             Div(
-                                { className: "grove-rest-payload-title" },
-                                "Response"
-                            ),
-                            createElement(
-                                "pre",
-                                { className: "grove-rest-payload" },
-                                formatResponse(selectedEntry)
+                                {
+                                    className: [
+                                        "grove-rest-detail-card",
+                                        selectedEntry.response?.ok
+                                            ? "grove-rest-detail-card-response-ok"
+                                            : "grove-rest-detail-card-response-error"
+                                    ].join(" ")
+                                },
+                                Div(
+                                    { className: "grove-rest-detail-card-title" },
+                                    createElement("i", {
+                                        "aria-hidden": "true",
+                                        className: "bi bi-arrow-down-left-circle"
+                                    }),
+                                    "Resp"
+                                ),
+                                createElement(
+                                    "pre",
+                                    { className: "grove-rest-payload grove-rest-detail-card-payload" },
+                                    formatResponse(selectedEntry)
+                                )
                             )
                         )
                         : Div(

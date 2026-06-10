@@ -107,7 +107,7 @@ const activeFilters = columnFilters =>
         .filter(value => String(value || "").trim())
         .length;
 
-const filteredRows = (rows, columns, query, columnFilters) => {
+const filteredRows = (rows, columns, query, columnFilters, filterModes) => {
     const normalizedQuery = query.trim().toLowerCase();
     const filters = Object
         .entries(columnFilters)
@@ -125,10 +125,24 @@ const filteredRows = (rows, columns, query, columnFilters) => {
 
         return filters.every(([key, value]) => {
             const column = columns.find(candidate => columnKey(candidate) === key);
+            const columnValue = column
+                ? normalizeValue(valueForColumn(row, column)).toLowerCase()
+                : "";
 
-            return column
-                ? normalizeValue(valueForColumn(row, column)).toLowerCase().includes(value)
-                : true;
+            if (!column) {
+                return true;
+            }
+
+            switch (filterModes[key]) {
+                case "startsWith":
+                    return columnValue.startsWith(value);
+                case "endsWith":
+                    return columnValue.endsWith(value);
+                case "exact":
+                    return columnValue === value;
+                default:
+                    return columnValue.includes(value);
+            }
         });
     });
 };
@@ -164,6 +178,44 @@ const sortIcon = (sort, column) => {
     return sort.direction === "asc"
         ? "sort-up"
         : "sort-down";
+};
+
+const nextFilterMode = mode => {
+    switch (mode) {
+        case "contains":
+            return "startsWith";
+        case "startsWith":
+            return "endsWith";
+        case "endsWith":
+            return "exact";
+        default:
+            return "contains";
+    }
+};
+
+const filterModeMeta = mode => {
+    switch (mode) {
+        case "startsWith":
+            return {
+                icon: "filter-left",
+                label: "Starts with"
+            };
+        case "endsWith":
+            return {
+                icon: "filter-right",
+                label: "Ends with"
+            };
+        case "exact":
+            return {
+                icon: "check2-square",
+                label: "Exact match"
+            };
+        default:
+            return {
+                icon: "search",
+                label: "Contains"
+            };
+    }
 };
 
 const icon = name =>
@@ -346,6 +398,7 @@ const renderToolbar = options => {
     return Div(
         { className: "grove-table-toolbar" },
         Button({
+            className: activeFilterCount ? "grove-table-clear-filters-active" : "",
             disabled: !canClear,
             icon: "eraser",
             label: null,
@@ -356,6 +409,7 @@ const renderToolbar = options => {
         }),
         showExport
             ? Button({
+                className: "grove-table-export-button grove-table-export-csv",
                 icon: "filetype-csv",
                 label: null,
                 look: "sc",
@@ -368,6 +422,7 @@ const renderToolbar = options => {
             : null,
         showExport
             ? Button({
+                className: "grove-table-export-button grove-table-export-excel",
                 icon: "filetype-xls",
                 label: null,
                 look: "sc",
@@ -380,6 +435,7 @@ const renderToolbar = options => {
             : null,
         showExport
             ? Button({
+                className: "grove-table-export-button grove-table-export-pdf",
                 icon: "filetype-pdf",
                 label: null,
                 look: "sc",
@@ -398,15 +454,19 @@ const renderColumnFilter = options => {
         activeColumnFilter,
         column,
         columnFilters,
+        filterModes,
         filterMetrics,
         setActiveColumnFilter,
         setColumnFilters,
+        setFilterModes,
         setFilterMetrics
     } = options;
     const key = columnKey(column);
     const value = columnFilters[key] || "";
+    const filterMode = filterModes[key] || "contains";
     const isOpen = activeColumnFilter === key;
     const isActive = Boolean(String(value).trim());
+    const modeMeta = filterModeMeta(filterMode);
 
     return Div(
         { className: "grove-table-column-filter" },
@@ -431,8 +491,8 @@ const renderColumnFilter = options => {
                         setFilterMetrics(current => ({
                             ...current,
                             [key]: {
-                                height: `${Math.round(rect.height)}px`,
-                                width: `${Math.round(rect.width + 60)}px`
+                                height: `${Math.max(28, Math.round(rect.height - 4))}px`,
+                                width: `${Math.round(rect.width + 110)}px`
                             }
                         }));
                     }
@@ -460,9 +520,9 @@ const renderColumnFilter = options => {
                 },
                 Div(
                     { className: "grove-table-column-filter-input" },
-                    icon("search"),
                     Input({
                         "aria-label": `Filter ${column.label}`,
+                        autoFocus: true,
                         name: `${key}Filter`,
                         placeholder: `Filter ${column.label}`,
                         type: "text",
@@ -484,6 +544,30 @@ const renderColumnFilter = options => {
                             }
                         }
                     }),
+                    createElement(
+                        "button",
+                        {
+                            "aria-label": `Switch ${column.label} filter mode. Current: ${modeMeta.label}`,
+                            className: [
+                                "grove-table-column-filter-mode",
+                                filterMode !== "contains" ? "grove-table-column-filter-mode-active" : ""
+                            ].filter(Boolean).join(" "),
+                            title: modeMeta.label,
+                            type: "button",
+                            onClick() {
+                                setFilterModes(current => ({
+                                    ...current,
+                                    [key]: nextFilterMode(filterMode)
+                                }));
+                                setFilterMetrics(current => ({
+                                    ...current,
+                                    __focusReason: "mode"
+                                }));
+                                setActiveColumnFilter(key);
+                            }
+                        },
+                        icon(modeMeta.icon)
+                    ),
                     value
                         ? createElement(
                             "button",
@@ -496,6 +580,11 @@ const renderColumnFilter = options => {
                                         ...current,
                                         [key]: ""
                                     }));
+                                    setFilterModes(current => ({
+                                        ...current,
+                                        [key]: "contains"
+                                    }));
+                                    setActiveColumnFilter(null);
                                 }
                             },
                             icon("x-lg")
@@ -588,6 +677,7 @@ const Table = (props = {}) => {
     const centerPanel = useCenterPanel();
     const query = "";
     const [columnFilters, setColumnFilters] = useState({});
+    const [filterModes, setFilterModes] = useState({});
     const [activeColumnFilter, setActiveColumnFilter] = useState(null);
     const [filterMetrics, setFilterMetrics] = useState({});
     const [sort, setSort] = useState({
@@ -608,10 +698,39 @@ const Table = (props = {}) => {
         document.addEventListener("click", closeFloatingControls);
         return () => document.removeEventListener("click", closeFloatingControls);
     }, [activeColumnFilter, activeActionRow]);
+    useEffect(() => {
+        if (!activeColumnFilter) {
+            return undefined;
+        }
+
+        const focusTimer = setTimeout(() => {
+            const input = document.getElementById(`${activeColumnFilter}Filter`);
+
+            if (!input) {
+                return;
+            }
+
+            input.focus();
+
+            if (filterMetrics.__focusReason === "mode" && typeof input.setSelectionRange === "function") {
+                const end = String(input.value || "").length;
+
+                input.setSelectionRange(end, end);
+                setFilterMetrics(current => ({
+                    ...current,
+                    __focusReason: null
+                }));
+            } else if (typeof input.select === "function") {
+                input.select();
+            }
+        }, 0);
+
+        return () => clearTimeout(focusTimer);
+    }, [activeColumnFilter, filterModes[activeColumnFilter]]);
     const visibleRows =
         useMemo(
             () => sortedRows(
-                filteredRows(rows, columns, query, columnFilters),
+                filteredRows(rows, columns, query, columnFilters, filterModes),
                 columns,
                 sort
             ),
@@ -620,6 +739,7 @@ const Table = (props = {}) => {
                 columns,
                 query,
                 columnFilters,
+                filterModes,
                 sort
             ]
         );
@@ -636,6 +756,7 @@ const Table = (props = {}) => {
     const canClear = activeFilterCount > 0 || Boolean(sort.key);
     const clearAll = () => {
         setColumnFilters({});
+        setFilterModes({});
         setActiveColumnFilter(null);
         setSort({ key: null, direction: null });
     };
@@ -726,9 +847,11 @@ const Table = (props = {}) => {
                                         activeColumnFilter,
                                         column,
                                         columnFilters,
+                                        filterModes,
                                         filterMetrics,
                                         setActiveColumnFilter,
                                         setColumnFilters,
+                                        setFilterModes,
                                         setFilterMetrics
                                     })
                             )
