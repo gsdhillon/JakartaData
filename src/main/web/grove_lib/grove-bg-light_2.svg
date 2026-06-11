@@ -41,9 +41,10 @@
             <path d="M-30 30 C18 8 58 8 106 30 C132 42 158 42 210 28" fill="none" stroke="#fb7185" stroke-width="1.2" opacity="0.22"/>
         </pattern>
         <pattern id="groveTiles" width="190" height="90" patternUnits="userSpaceOnUse">
-            <path d="M0 0 L95 34 L0 90 Z" fill="#ffffff" opacity="0.18"/>
-            <path d="M95 34 L190 0 L190 90 Z" fill="#fdba74" opacity="0.14"/>
-            <path d="M0 0 L95 34 L190 0" fill="none" stroke="#fb7185" stroke-width="1.1" opacity="0.13"/>
+            <path d="M20 70 C54 38 92 32 128 54 C146 65 162 68 184 58" fill="none" stroke="#ffffff" stroke-width="1.1" opacity="0.16"/>
+            <path d="M18 24 C48 10 80 12 108 30 C130 44 154 44 184 28" fill="none" stroke="#fdba74" stroke-width="1" opacity="0.12"/>
+            <circle cx="72" cy="50" r="3.5" fill="#fb7185" opacity="0.08"/>
+            <circle cx="152" cy="22" r="2.8" fill="#ffffff" opacity="0.14"/>
         </pattern>
         <pattern id="petalGrid" width="138" height="92" patternUnits="userSpaceOnUse">
             <path d="M18 56 C36 24 66 24 84 56 C66 48 36 48 18 56 Z" fill="#ffffff" opacity="0.2"/>

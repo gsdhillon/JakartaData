@@ -35,6 +35,8 @@
     --grove-content-surface: color-mix(in srgb, #f8fbff 88%, #0b69e3);
     --grove-content-surface-soft: color-mix(in srgb, #f8fbff 94%, #1fc08e);
     --grove-content-border: color-mix(in srgb, #0b69e3 22%, transparent);
+    --grove-control-bg: color-mix(in srgb, #ffffff 88%, #d0e0ff);
+    --grove-control-focus-bg: color-mix(in srgb, #ffffff 94%, #d0e0ff);
     --grove-photo-bg: color-mix(in srgb, var(--bs-light, #f8f9fa) 78%, transparent);
     --grove-photo-border: color-mix(in srgb, var(--bs-secondary-color, #6c757d) 24%, transparent);
     --grove-photo-highlight: rgba(255, 255, 255, 0.64);
@@ -55,6 +57,10 @@
     --bs-table-hover-bg: color-mix(in srgb, #e2f0ff 86%, #0b69e3);
 }
 
+.grove-theme-light_1 .grove-table th {
+    background: color-mix(in srgb, #dbeafe 88%, #0b69e3);
+}
+
 /* Ishjyot added new themes 11/06/2026 */
 .grove-theme-light_2 {
     --bs-primary: #ea580c;
@@ -68,6 +74,8 @@
     --grove-content-surface: color-mix(in srgb, #fff7ed 88%, #fb7185);
     --grove-content-surface-soft: color-mix(in srgb, #fff7ed 94%, #fdba74);
     --grove-content-border: color-mix(in srgb, #fb7185 26%, transparent);
+    --grove-control-bg: color-mix(in srgb, #fff7ed 90%, #fdba74);
+    --grove-control-focus-bg: color-mix(in srgb, #ffffff 88%, #fed7aa);
     --grove-photo-bg: color-mix(in srgb, #fff7ed 82%, transparent);
     --grove-photo-border: color-mix(in srgb, #fb7185 28%, transparent);
     --grove-photo-highlight: rgba(255, 255, 255, 0.7);
@@ -134,6 +142,8 @@
     --grove-content-surface: color-mix(in srgb, #102733 88%, #38bdf8);
     --grove-content-surface-soft: color-mix(in srgb, #102733 94%, #2dd4bf);
     --grove-content-border: color-mix(in srgb, #d7e9ef 18%, transparent);
+    --grove-control-bg: color-mix(in srgb, #102733 86%, #d7e9ef);
+    --grove-control-focus-bg: color-mix(in srgb, #102733 78%, #38bdf8);
     --grove-photo-bg: color-mix(in srgb, #102733 82%, transparent);
     --grove-photo-border: color-mix(in srgb, #d7e9ef 22%, transparent);
     --grove-photo-highlight: rgba(255, 255, 255, 0.08);
@@ -168,6 +178,8 @@
     --grove-content-surface: color-mix(in srgb, #1f2937 86%, #f97316);
     --grove-content-surface-soft: color-mix(in srgb, #1f2937 94%, #b45309);
     --grove-content-border: color-mix(in srgb, #fed7aa 18%, transparent);
+    --grove-control-bg: color-mix(in srgb, #1f2937 86%, #fed7aa);
+    --grove-control-focus-bg: color-mix(in srgb, #1f2937 78%, #f97316);
     --grove-photo-bg: color-mix(in srgb, #1f2937 84%, transparent);
     --grove-photo-border: color-mix(in srgb, #fed7aa 24%, transparent);
     --grove-photo-highlight: rgba(255, 255, 255, 0.1);
@@ -1174,6 +1186,18 @@
     gap: 0.4rem;
     margin: 0;
     font-weight: 500;
+}
+
+.grove-control.form-control,
+.grove-control.form-select {
+    background-color: var(--grove-control-bg, var(--bs-body-bg));
+    border-color: var(--grove-content-border, var(--bs-border-color));
+}
+
+.grove-control.form-control:focus,
+.grove-control.form-select:focus {
+    background-color: var(--grove-control-focus-bg, var(--grove-control-bg, var(--bs-body-bg)));
+    border-color: color-mix(in srgb, var(--bs-primary) 58%, var(--grove-content-border, var(--bs-border-color)));
 }
 
 .grove-clearable-control {

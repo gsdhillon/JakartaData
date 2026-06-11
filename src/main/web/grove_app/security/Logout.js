@@ -42,6 +42,14 @@ const Logout = () => {
                         look: "caption",
                         value: "Thanks"
                     })
+                ),
+                createElement(
+                    "a",
+                    {
+                        className: "btn btn-link fw-bold",
+                        href: "#login"
+                    },
+                    "Sign in again"
                 )
             ]
         })
