@@ -1,9 +1,10 @@
 @echo off
-setlocal
+setlocal EnableDelayedExpansion
 
 set "APP_NAME=jakarta-data-person"
 set "CONTEXT_ROOT=jakarta-data-person"
 set "JDBC_RESOURCE=jdbc/personDS"
+set "DOMAIN_NAME=domain1"
 set "ROOT_DIR=%~dp0.."
 set "APP_DIR=%ROOT_DIR%\target\%APP_NAME%"
 set "APP_URL=http://localhost:8080/%CONTEXT_ROOT%/"
@@ -43,12 +44,22 @@ if not errorlevel 1 (
     if errorlevel 1 exit /b 1
 )
 
-echo Building exploded app directory...
-pushd "%ROOT_DIR%"
-call mvn clean package
+call :build_app
 set "BUILD_EXIT=%ERRORLEVEL%"
-popd
-if not "%BUILD_EXIT%"=="0" exit /b %BUILD_EXIT%
+if not "%BUILD_EXIT%"=="0" (
+    echo Maven build failed. Retrying once after restarting Payara to release locked target files...
+    call asadmin stop-domain "%DOMAIN_NAME%"
+    if errorlevel 1 exit /b %BUILD_EXIT%
+
+    call :build_app
+    set "BUILD_EXIT=%ERRORLEVEL%"
+
+    echo Starting Payara...
+    call asadmin start-domain "%DOMAIN_NAME%"
+    if errorlevel 1 exit /b 1
+
+    if not "!BUILD_EXIT!"=="0" exit /b !BUILD_EXIT!
+)
 
 if not exist "%APP_DIR%\" (
     echo Exploded app directory not found: %APP_DIR%
@@ -62,3 +73,11 @@ if errorlevel 1 exit /b 1
 echo Application URL: %APP_URL%
 start "" "%APP_URL%"
 exit /b 0
+
+:build_app
+echo Building exploded app directory...
+pushd "%ROOT_DIR%"
+call mvn clean package
+set "BUILD_EXIT=%ERRORLEVEL%"
+popd
+exit /b %BUILD_EXIT%

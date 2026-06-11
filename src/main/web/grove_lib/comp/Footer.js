@@ -29,9 +29,7 @@ export const Footer = (props = {}) => {
         logo = groveLogoUrl,
         onLogoClick = openRestDialog,
         onThemeSelect,
-        onThemeToggle,
         themeId = "",
-        themeMode = "light",
         themeOptions = [],
         ...footerProps
     } = props;
@@ -42,10 +40,6 @@ export const Footer = (props = {}) => {
     ]
         .filter(Boolean)
         .join(" ");
-    const normalizedTheme = themeMode === "dark"
-        ? "dark"
-        : "light";
-
     useEffect(() => {
         if (typeof document === "undefined") {
             return undefined;
@@ -80,31 +74,9 @@ export const Footer = (props = {}) => {
             "div",
             { className: "grove-footer-left" },
             createElement(
-                "button",
-                {
-                    "aria-label": `Switch to ${normalizedTheme === "dark" ? "light" : "dark"} theme`,
-                    className: [
-                        "grove-theme-toggle",
-                        `grove-theme-toggle-${normalizedTheme}`
-                    ].join(" "),
-                    type: "button",
-                    onClick: onThemeToggle
-                },
-                createElement(
-                    "span",
-                    { className: "grove-theme-toggle-track" },
-                    createElement("span", { className: "grove-theme-toggle-knob" })
-                ),
-                createElement(
-                    "span",
-                    { className: "grove-theme-toggle-text" },
-                    normalizedTheme === "dark" ? "Dark" : "Light"
-                )
-            ),
-            createElement(
                 "span",
                 {
-                    "aria-label": `${normalizedTheme} theme choices`,
+                    "aria-label": "Theme choices",
                     className: "grove-theme-choice-list",
                     role: "group"
                 },
@@ -130,7 +102,11 @@ export const Footer = (props = {}) => {
                                     onThemeSelect(theme.id);
                                 }
                             }
-                        }
+                        },
+                        createElement("i", {
+                            "aria-hidden": "true",
+                            className: `bi bi-${theme.icon || "palette-fill"} grove-theme-choice-icon`
+                        })
                     )
                 )
             )

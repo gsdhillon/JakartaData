@@ -1,42 +1,94 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="3200" height="1600" viewBox="0 0 3200 1600" preserveAspectRatio="none">
     <defs>
         <linearGradient id="base" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#ccfbf1"/>
-            <stop offset="0.44" stop-color="#d9f99d"/>
-            <stop offset="1" stop-color="#5eead4"/>
+            <stop offset="0" stop-color="#fff1f2"/>
+            <stop offset="0.42" stop-color="#fed7aa"/>
+            <stop offset="1" stop-color="#fbcfe8"/>
         </linearGradient>
-        <radialGradient id="morningGlow" cx="0.18" cy="0.08" r="0.5">
-            <stop offset="0" stop-color="#ffffff" stop-opacity="0.42"/>
-            <stop offset="0.42" stop-color="#bef264" stop-opacity="0.2"/>
+        <radialGradient id="sunriseGlow" cx="0.18" cy="0.08" r="0.5">
+            <stop offset="0" stop-color="#ffffff" stop-opacity="0.68"/>
+            <stop offset="0.34" stop-color="#fdba74" stop-opacity="0.34"/>
+            <stop offset="0.72" stop-color="#fb7185" stop-opacity="0.13"/>
             <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
         </radialGradient>
-        <radialGradient id="tealGlow" cx="0.84" cy="0.2" r="0.48">
-            <stop offset="0" stop-color="#14b8a6" stop-opacity="0.26"/>
+        <radialGradient id="roseGlow" cx="0.84" cy="0.2" r="0.48">
+            <stop offset="0" stop-color="#fb7185" stop-opacity="0.28"/>
+            <stop offset="0.52" stop-color="#f97316" stop-opacity="0.11"/>
             <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
         </radialGradient>
-        <pattern id="leafGrid" width="120" height="80" patternUnits="userSpaceOnUse">
-            <path d="M20 50 C36 22 62 22 78 50 C62 44 36 44 20 50 Z" fill="#ffffff" opacity="0.12"/>
-            <path d="M78 50 C94 22 120 22 136 50 C120 44 94 44 78 50 Z" fill="#0f766e" opacity="0.055"/>
-            <path d="M0 80 L120 0" stroke="#ffffff" stroke-width="1" opacity="0.1"/>
-        </pattern>
+        <radialGradient id="titleGlow" cx="0.28" cy="0.08" r="0.46">
+            <stop offset="0" stop-color="#ffffff" stop-opacity="0.54"/>
+            <stop offset="0.36" stop-color="#fbbf24" stop-opacity="0.24"/>
+            <stop offset="0.74" stop-color="#fb7185" stop-opacity="0.14"/>
+            <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="headerWash" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#f97316" stop-opacity="0.16"/>
+            <stop offset="0.38" stop-color="#ffffff" stop-opacity="0.16"/>
+            <stop offset="1" stop-color="#fb7185" stop-opacity="0"/>
+        </linearGradient>
         <linearGradient id="headerMist" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stop-color="#ffffff" stop-opacity="0.12"/>
-            <stop offset="0.52" stop-color="#bef264" stop-opacity="0.12"/>
-            <stop offset="1" stop-color="#14b8a6" stop-opacity="0.12"/>
+            <stop offset="0" stop-color="#ffffff" stop-opacity="0.38"/>
+            <stop offset="0.5" stop-color="#fdba74" stop-opacity="0.22"/>
+            <stop offset="1" stop-color="#fb7185" stop-opacity="0.18"/>
         </linearGradient>
+        <linearGradient id="skylineFill" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#be123c" stop-opacity="0.13"/>
+            <stop offset="0.52" stop-color="#ea580c" stop-opacity="0.16"/>
+            <stop offset="1" stop-color="#9f1239" stop-opacity="0.1"/>
+        </linearGradient>
+        <pattern id="softWaves" width="180" height="48" patternUnits="userSpaceOnUse">
+            <path d="M-30 30 C18 8 58 8 106 30 C132 42 158 42 210 28" fill="none" stroke="#fb7185" stroke-width="1.2" opacity="0.22"/>
+        </pattern>
+        <pattern id="groveTiles" width="190" height="90" patternUnits="userSpaceOnUse">
+            <path d="M0 0 L95 34 L0 90 Z" fill="#ffffff" opacity="0.18"/>
+            <path d="M95 34 L190 0 L190 90 Z" fill="#fdba74" opacity="0.14"/>
+            <path d="M0 0 L95 34 L190 0" fill="none" stroke="#fb7185" stroke-width="1.1" opacity="0.13"/>
+        </pattern>
+        <pattern id="petalGrid" width="138" height="92" patternUnits="userSpaceOnUse">
+            <path d="M18 56 C36 24 66 24 84 56 C66 48 36 48 18 56 Z" fill="#ffffff" opacity="0.2"/>
+            <path d="M78 26 C104 18 124 34 120 62 C108 44 96 34 78 26 Z" fill="#fb7185" opacity="0.08"/>
+            <path d="M0 92 L138 0" stroke="#ffffff" stroke-width="1" opacity="0.16"/>
+        </pattern>
     </defs>
+
     <rect width="3200" height="1600" fill="url(#base)"/>
-    <rect width="3200" height="1600" fill="url(#leafGrid)" opacity="0.78"/>
-    <ellipse cx="560" cy="120" rx="700" ry="270" fill="url(#morningGlow)"/>
-    <ellipse cx="2760" cy="260" rx="740" ry="430" fill="url(#tealGlow)"/>
+    <rect width="3200" height="1600" fill="url(#petalGrid)" opacity="0.78"/>
+    <rect width="3200" height="1600" fill="url(#groveTiles)" opacity="0.72"/>
+    <rect width="3200" height="1600" fill="url(#softWaves)" opacity="0.52"/>
+
+    <ellipse cx="560" cy="120" rx="760" ry="290" fill="url(#sunriseGlow)"/>
+    <ellipse cx="2760" cy="260" rx="780" ry="430" fill="url(#roseGlow)"/>
+    <rect x="0" y="0" width="2100" height="230" fill="url(#headerWash)"/>
+    <ellipse cx="820" cy="72" rx="880" ry="230" fill="url(#titleGlow)"/>
     <path d="M0 218 C420 96 760 118 1130 210 C1518 306 1900 300 2290 184 C2670 72 2960 82 3200 142 V0 H0 Z" fill="url(#headerMist)"/>
-    <path d="M0 1328 C390 1248 710 1290 1058 1374 C1410 1460 1740 1470 2090 1382 C2470 1284 2820 1268 3200 1350 V1600 H0 Z" fill="#0f766e" opacity="0.16"/>
-    <path d="M980 1505 C1280 1418 1540 1428 1830 1490 C2150 1558 2460 1528 2820 1428 C2970 1386 3090 1368 3200 1364 V1600 H980 Z" fill="#65a30d" opacity="0.12"/>
-    <g opacity="0.24" fill="none" stroke="#ffffff" stroke-linecap="round">
+
+    <g opacity="0.9">
+        <path d="M0 114 C340 64 666 62 990 108 C1308 154 1648 154 1988 96 C2360 34 2780 40 3200 94" fill="none" stroke="#fb7185" stroke-linecap="round" stroke-width="5" opacity="0.2"/>
+        <path d="M1840 145 H2988 V164 H1840 Z" fill="url(#skylineFill)"/>
+        <path d="M1910 145 V98 H1978 V145 Z" fill="url(#skylineFill)"/>
+        <path d="M1996 145 V84 H2070 V145 Z" fill="url(#skylineFill)"/>
+        <path d="M2098 145 V64 C2130 44 2174 44 2206 64 V145 Z" fill="url(#skylineFill)"/>
+        <path d="M2240 145 V74 H2308 V145 Z" fill="url(#skylineFill)"/>
+        <path d="M2348 145 V92 H2410 V145 Z" fill="url(#skylineFill)"/>
+        <path d="M2470 145 V76 C2470 38 2502 16 2538 16 C2574 16 2606 38 2606 76 V145 Z" fill="url(#skylineFill)"/>
+        <path d="M2448 145 H2628 V158 H2448 Z" fill="url(#skylineFill)"/>
+        <path d="M2460 76 C2478 28 2510 6 2538 0 C2566 6 2598 28 2616 76" fill="none" stroke="#ea580c" stroke-width="3" stroke-linecap="round" opacity="0.24"/>
+        <path d="M2668 145 V78 L2718 34 L2768 78 V145 Z" fill="url(#skylineFill)"/>
+        <path d="M2706 34 L2718 8 L2730 34" fill="none" stroke="#ea580c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.24"/>
+        <path d="M2804 145 V106 H2872 V145 Z" fill="url(#skylineFill)"/>
+        <path d="M2888 145 V90 H2952 V145 Z" fill="url(#skylineFill)"/>
+        <circle cx="2538" cy="80" r="12" fill="#fff7ed" opacity="0.18"/>
+        <path d="M1908 124 H2962" fill="none" stroke="#fff7ed" stroke-width="2" stroke-linecap="round" opacity="0.18"/>
+    </g>
+
+    <path d="M0 1328 C390 1248 710 1290 1058 1374 C1410 1460 1740 1470 2090 1382 C2470 1284 2820 1268 3200 1350 V1600 H0 Z" fill="#fb7185" opacity="0.14"/>
+    <path d="M980 1505 C1280 1418 1540 1428 1830 1490 C2150 1558 2460 1528 2820 1428 C2970 1386 3090 1368 3200 1364 V1600 H980 Z" fill="#f97316" opacity="0.13"/>
+    <g opacity="0.28" fill="none" stroke="#ffffff" stroke-linecap="round">
         <path d="M220 396 C520 316 790 318 1090 400" stroke-width="6"/>
         <path d="M1840 326 C2110 248 2420 250 2710 334" stroke-width="5"/>
         <path d="M1480 1252 C1760 1190 2050 1196 2320 1264" stroke-width="6"/>
     </g>
-    <circle cx="2920" cy="120" r="170" fill="#ffffff" opacity="0.16"/>
-    <circle cx="160" cy="1490" r="210" fill="#ffffff" opacity="0.13"/>
+    <circle cx="2920" cy="120" r="170" fill="#ffffff" opacity="0.2"/>
+    <circle cx="160" cy="1490" r="210" fill="#ffffff" opacity="0.14"/>
 </svg>

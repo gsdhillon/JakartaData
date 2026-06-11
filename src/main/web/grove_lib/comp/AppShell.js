@@ -22,20 +22,23 @@ const appThemes = [
         id: "light_1",
         label: "Blue Grove",
         mode: "light",
+        icon: "sun-fill",
         swatch: "#0b69e3",
         bg: new URL("../grove-bg-light_1.svg", import.meta.url).href
     },
     {
         id: "light_2",
-        label: "Mint Field",
+        label: "Rose Grove",
         mode: "light",
-        swatch: "#65a30d",
+        icon: "flower1",
+        swatch: "#fb7185",
         bg: new URL("../grove-bg-light_2.svg", import.meta.url).href
     },
     {
         id: "dark_1",
         label: "Deep Grove",
         mode: "dark",
+        icon: "moon-stars-fill",
         swatch: "#115e59",
         bg: new URL("../grove-bg-dark_1.svg", import.meta.url).href
     },
@@ -43,6 +46,7 @@ const appThemes = [
         id: "dark_2",
         label: "Ember Night",
         mode: "dark",
+        icon: "fire",
         swatch: "#b45309",
         bg: new URL("../grove-bg-dark_2.svg", import.meta.url).href
     }
@@ -222,7 +226,6 @@ export const AppShell = (props = {}) => {
         shellPages.find(page => pageKeyOf(page) === activePageKey) || firstPage;
     const activeTheme = themeById[normalizeThemeId(activeThemeId, themeMode)];
     const normalizedTheme = activeTheme.mode;
-    const modeThemes = themesByMode[normalizedTheme] || [];
     const shellClassName = [
         "grove-app-shell",
         `grove-theme-${normalizedTheme}`,
@@ -379,26 +382,9 @@ export const AppShell = (props = {}) => {
         FooterComponent,
         {
             ...footerProps,
-            onThemeToggle: footerProps.onThemeToggle !== undefined ? footerProps.onThemeToggle : (() => {
-                setActiveThemeId(current => {
-                    const currentTheme = themeById[normalizeThemeId(current, themeMode)];
-                    const nextThemeMode = currentTheme.mode === "dark" ? "light" : "dark";
-                    const currentIndex = (themesByMode[currentTheme.mode] || []).findIndex(theme => theme.id === currentTheme.id);
-                    const nextModeThemes = themesByMode[nextThemeMode] || [];
-                    const nextTheme = nextModeThemes[Math.max(0, currentIndex)] || nextModeThemes[0];
-
-                    saveThemeId(nextTheme.id);
-                    return nextTheme.id;
-                });
-            }),
             onThemeSelect: footerProps.onThemeSelect !== undefined ? footerProps.onThemeSelect : (themeId => {
-                setActiveThemeId(current => {
-                    const currentTheme = themeById[normalizeThemeId(current, themeMode)];
-                    const nextTheme = themeById[normalizeThemeId(themeId, currentTheme.mode)];
-
-                    if (nextTheme.mode !== currentTheme.mode) {
-                        return currentTheme.id;
-                    }
+                setActiveThemeId(() => {
+                    const nextTheme = themeById[normalizeThemeId(themeId, themeMode)];
 
                     saveThemeId(nextTheme.id);
                     return nextTheme.id;
@@ -406,7 +392,7 @@ export const AppShell = (props = {}) => {
             }),
             themeId: footerProps.themeId !== undefined ? footerProps.themeId : activeTheme.id,
             themeMode: footerProps.themeMode !== undefined ? footerProps.themeMode : normalizedTheme,
-            themeOptions: footerProps.themeOptions !== undefined ? footerProps.themeOptions : modeThemes
+            themeOptions: footerProps.themeOptions !== undefined ? footerProps.themeOptions : appThemes
         }
     );
 

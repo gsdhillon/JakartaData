@@ -2,6 +2,22 @@
  * @file REST.js
  * @author Gurmeet Singh
  * @email gsdhillon@gmail.com
+ *
+ * Developer REST tap and API test console.
+ *
+ * This module adds a lightweight in-app REST inspector for Grove applications.
+ * It wraps browser fetch calls, records request/response pairs, captures console
+ * warnings/errors, and exposes a footer tap plus dialog where an application
+ * programmer can inspect API traffic without opening browser DevTools.
+ *
+ * How it helps while building an app:
+ * - Turn the footer REST tap on, use the app normally, then open the logo tap to
+ *   inspect recent API requests, response status, headers, and sampled bodies.
+ * - Use the Compose tab to manually test application endpoints under ./api/*.
+ * - Failed HTTP/network calls are collected in Server Errors and highlighted in
+ *   the footer so problems are visible during normal UI testing.
+ * - A later successful 2xx response clears the footer error highlight, making it
+ *   clear when the API has recovered.
  */
 
 import {
@@ -27,6 +43,8 @@ const maxErrorEntries = 100;
 const maxCapturedBodyBytes = 100000;
 const defaultComposerHeaders = "Content-Type: application/json\nAccept: application/json";
 const dummyConsoleContext = createContext(null);
+// Sample body used by the Compose tab's bootstrap shortcut. Applications can
+// adapt this payload and endpoint for their own first-admin/setup workflow.
 const bootstrapAdminSampleBody = JSON.stringify(
     {
         name: "Ishjyot Kaur",
@@ -92,6 +110,16 @@ const clearRestEntries = () => {
     state.consoleEntries = [];
     state.entries = [];
     state.errorEntries = [];
+    clearAppErrors();
+    notify();
+};
+
+const clearRestAttention = () => {
+    if (state.attention === "none") {
+        return;
+    }
+
+    state.attention = "none";
     clearAppErrors();
     notify();
 };
@@ -673,7 +701,7 @@ const addEntry = entry => {
     ].slice(0, maxEntries);
 
     if (entry.response?.ok) {
-        state.attention = "none";
+        clearRestAttention();
     } else if (entry.response && !entry.response.ok) {
         state.attention = "error";
     } else if (entry.error) {
@@ -781,6 +809,15 @@ const sendRestApiRequest = async ({
     headerText,
     method
 }) => {
+    /*
+     * Sends a request from the in-app Compose tab.
+     *
+     * The user types only the endpoint portion, for example "persons/4"; this
+     * function normalizes that to "./api/persons/4", applies editable headers
+     * and body, then records the request/response exactly like normal app API
+     * traffic. This gives application programmers a quick way to test REST
+     * endpoints from inside the running app and with the same browser/session.
+     */
     const normalizedEndpoint = normalizeApiEndpoint(endpoint);
 
     if (!normalizedEndpoint) {
@@ -824,6 +861,8 @@ const sendRestApiRequest = async ({
 
         if (!response.ok) {
             await notifyHttpError(response, request);
+        } else {
+            clearRestAttention();
         }
 
         return entry;
@@ -855,6 +894,14 @@ const sendRestApiRequest = async ({
 };
 
 export const installRestTap = () => {
+    /*
+     * Installs the global capture hooks once.
+     *
+     * The fetch wrapper is intentionally small: it lets the real request run
+     * first, then records metadata for display in the REST dialog. Console
+     * wrapping captures logs/warnings/errors so API failures and frontend errors
+     * can be reviewed together while testing a workflow.
+     */
     installBrowserErrorCapture();
 
     if (
@@ -895,6 +942,10 @@ export const installRestTap = () => {
 
         try {
             const response = await state.originalFetch(input, init);
+
+            if (response.ok) {
+                clearRestAttention();
+            }
 
             if (state.enabled) {
                 const responseData = await responseMeta(response);
@@ -949,6 +1000,9 @@ export const openRestDialog = () => {
 };
 
 export const RestTapToggle = () => {
+    // Footer switch that enables/disables request logging without removing the
+    // global error handling. When enabled, successful and failed API calls are
+    // visible in the REST dialog.
     const [tapState, setTapState] = useState({
         consoleEntries: [...state.consoleEntries],
         enabled: state.enabled,
@@ -1030,6 +1084,15 @@ export const useRestTapState = () => {
 };
 
 export const RestTap = () => {
+    /*
+     * Main REST dialog.
+     *
+     * Tabs:
+     * - Console: captured console messages and uncaught browser errors.
+     * - Server Errors: failed HTTP/network calls with parsed JSON error bodies.
+     * - Compose: a small REST client for testing ./api endpoints.
+     * - Details: request and response text for the selected captured API call.
+     */
     const [consoleEntries, setConsoleEntries] = useState([...state.consoleEntries]);
     const [entries, setEntries] = useState([...state.entries]);
     const [errorEntries, setErrorEntries] = useState([...state.errorEntries]);
@@ -1115,6 +1178,9 @@ export const RestTap = () => {
         }
     };
     const composeBootstrapAdmin = () => {
+        // Preloads a POST request for the bootstrap-admin API. This is useful
+        // when setting up a fresh development database or verifying that the
+        // application's initial admin creation endpoint is working.
         setComposerMethod("POST");
         setComposerEndpoint("security/bootstrap-admin");
         setComposerHeaders(defaultComposerHeaders);
