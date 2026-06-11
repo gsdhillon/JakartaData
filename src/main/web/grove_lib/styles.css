@@ -49,6 +49,12 @@
     --grove-theme-choice-ring: #0b69e3;
 }
 
+.grove-theme-light_1 .grove-table {
+    --bs-table-bg: color-mix(in srgb, #f8fbff 94%, #0b69e3);
+    --bs-table-striped-bg: color-mix(in srgb, #edf6ff 90%, #0b69e3);
+    --bs-table-hover-bg: color-mix(in srgb, #e2f0ff 86%, #0b69e3);
+}
+
 /* Ishjyot added new themes 11/06/2026 */
 .grove-theme-light_2 {
     --bs-primary: #ea580c;
@@ -382,6 +388,7 @@
     align-items: center;
     padding: 3px 22px 7px;
     background: transparent !important;
+    position: relative;
 }
 
 .grove-header-logo,
@@ -427,6 +434,143 @@
     justify-content: center;
     padding: 0;
     width: 38px;
+}
+
+.grove-header-notification-slot {
+    left: 50%;
+    position: absolute;
+    top: 20px;
+    transform: translateX(-50%);
+    z-index: 1040;
+}
+
+.grove-notifications {
+    position: relative;
+}
+
+.grove-notification-bell {
+    align-items: center;
+    background: color-mix(in srgb, var(--grove-title-color) 16%, transparent);
+    border: 1px solid color-mix(in srgb, var(--grove-title-accent) 38%, transparent);
+    border-radius: 999px;
+    color: var(--grove-title-color);
+    cursor: pointer;
+    display: inline-grid;
+    height: 34px;
+    justify-content: center;
+    padding: 0;
+    position: relative;
+    width: 34px;
+}
+
+.grove-notification-bell:hover,
+.grove-notification-bell-active {
+    background: color-mix(in srgb, var(--grove-title-accent) 22%, transparent);
+}
+
+.grove-notification-count {
+    align-items: center;
+    background: #b65f64;
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    border-radius: 999px;
+    color: #ffffff;
+    display: inline-grid;
+    font-size: 10px;
+    font-weight: 900;
+    height: 17px;
+    justify-content: center;
+    line-height: 1;
+    min-width: 17px;
+    padding: 0 4px;
+    position: absolute;
+    right: -7px;
+    top: -6px;
+}
+
+.grove-notification-dialog {
+    background: color-mix(in srgb, var(--bs-body-bg) 94%, var(--grove-app-surface, transparent));
+    border: 1px solid var(--grove-content-border, var(--bs-border-color));
+    border-radius: 8px;
+    color: var(--bs-body-color);
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    max-height: min(420px, calc(100vh - 110px));
+    overflow: hidden;
+    position: absolute;
+    right: 50%;
+    top: calc(100% + 10px);
+    transform: translateX(50%);
+    width: min(432px, calc(100vw - 24px));
+}
+
+.grove-notification-dialog-header {
+    align-items: center;
+    border-bottom: 1px solid var(--bs-border-color);
+    display: flex;
+    font-size: 13px;
+    font-weight: 900;
+    justify-content: space-between;
+    padding: 9px 10px;
+}
+
+.grove-notification-clear-all,
+.grove-notification-delete {
+    background: transparent;
+    border: 0;
+    border-radius: 6px;
+    color: var(--grove-title-accent);
+    font-size: 12px;
+    font-weight: 800;
+    padding: 4px 6px;
+}
+
+.grove-notification-clear-all:hover,
+.grove-notification-delete:hover {
+    background: color-mix(in srgb, var(--grove-title-accent) 12%, transparent);
+}
+
+.grove-notification-clear-all:disabled,
+.grove-notification-delete:disabled {
+    opacity: 0.46;
+}
+
+.grove-notification-list {
+    overflow: auto;
+}
+
+.grove-notification-item {
+    align-items: start;
+    border-bottom: 1px solid color-mix(in srgb, var(--bs-border-color) 72%, transparent);
+    display: grid;
+    gap: 8px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 10px;
+}
+
+.grove-notification-item-title {
+    color: var(--grove-text-title-fg);
+    font-size: 13px;
+    font-weight: 900;
+    line-height: 1.2;
+}
+
+.grove-notification-item-message {
+    color: var(--bs-body-color);
+    font-size: 12px;
+    line-height: 1.35;
+    margin-top: 3px;
+}
+
+.grove-notification-item-time,
+.grove-notification-empty {
+    color: var(--bs-secondary-color);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.grove-notification-empty {
+    padding: 16px 12px;
+    text-align: center;
 }
 
 .grove-header-avatar-menu {

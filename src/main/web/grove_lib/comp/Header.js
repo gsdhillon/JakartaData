@@ -135,6 +135,7 @@ export const Header = (props = {}) => {
         className = "",
         height = "85px",
         logo = defaultLogo,
+        notification,
         subTitle,
         title,
         ...headerProps
@@ -222,6 +223,12 @@ export const Header = (props = {}) => {
                 })
                 : null
         ),
+        notification
+            ? Div(
+                { className: "grove-header-notification-slot" },
+                notification
+            )
+            : null,
         Div(
             {
                 className: "grove-header-avatar",

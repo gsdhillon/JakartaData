@@ -1,5 +1,8 @@
 package com.gurmeet.modules.task;
 
+import com.gurmeet.grove_app.notifications.NotificationService;
+import com.gurmeet.modules.person.Person;
+import com.gurmeet.modules.person.PersonRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
@@ -13,13 +16,21 @@ import java.util.List;
 public class TaskService {
 
     private TaskRepository taskRepository;
+    private PersonRepository personRepository;
+    private NotificationService notificationService;
 
     public TaskService() {
     }
 
     @Inject
-    public TaskService(TaskRepository taskRepository) {
+    public TaskService(
+            TaskRepository taskRepository,
+            PersonRepository personRepository,
+            NotificationService notificationService
+    ) {
         this.taskRepository = taskRepository;
+        this.personRepository = personRepository;
+        this.notificationService = notificationService;
     }
 
     public TaskResponseDto create(TaskRequestDto request, Long loggedInUserId) {
@@ -27,8 +38,11 @@ public class TaskService {
 
         task.setAddBy(loggedInUserId);
         copyEditableFields(request, task);
+        Task savedTask = taskRepository.save(task);
 
-        return toResponse(taskRepository.save(task));
+        notifyAssignedUser(savedTask, "Task assigned");
+
+        return toResponse(savedTask);
     }
 
     public List<TaskResponseDto> findAll() {
@@ -52,8 +66,11 @@ public class TaskService {
         }
 
         copyEditableFields(request, task);
+        Task savedTask = taskRepository.save(task);
 
-        return toResponse(taskRepository.save(task));
+        notifyAssignedUser(savedTask, "Task updated");
+
+        return toResponse(savedTask);
     }
 
     public TaskResponseDto markCompleted(Long id, Long loggedInUserId) {
@@ -69,8 +86,10 @@ public class TaskService {
         }
 
         task.setCompletedOn(Instant.now());
+        Task savedTask = taskRepository.save(task);
+        notifyCreatorTaskCompleted(savedTask, loggedInUserId);
 
-        return toResponse(taskRepository.save(task));
+        return toResponse(savedTask);
     }
 
     public void delete(Long id, Long loggedInUserId) {
@@ -89,6 +108,36 @@ public class TaskService {
         task.setTaskDesc(request.getTaskDesc());
         task.setAssignedTo(request.getAssignedTo());
         task.setDeadLine(request.getDeadLine());
+    }
+
+    private void notifyAssignedUser(Task task, String title) {
+        String assignedUserId = String.valueOf(task.getAssignedTo());
+        String addedByName = personName(task.getAddBy());
+
+        notificationService.notifyUser(
+                assignedUserId,
+                title,
+                task.getTaskName() + " added by " + addedByName,
+                "task"
+        );
+    }
+
+    private void notifyCreatorTaskCompleted(Task task, Long completedByUserId) {
+        String completedByName = personName(completedByUserId);
+
+        notificationService.notifyUser(
+                String.valueOf(task.getAddBy()),
+                "Task done",
+                task.getTaskName() + " marked done by " + completedByName,
+                "task"
+        );
+    }
+
+    private String personName(Long personId) {
+        return personRepository.findById(personId)
+                .map(Person::getName)
+                .filter(name -> !name.isBlank())
+                .orElse("User " + personId);
     }
 
     private static TaskResponseDto toResponse(Task task) {

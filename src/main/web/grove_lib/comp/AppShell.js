@@ -20,7 +20,7 @@ import { RestTap } from "./REST.js";
 const appThemes = [
     {
         id: "light_1",
-        label: "Blue Grove",
+        label: "Blue Light",
         mode: "light",
         icon: "sun-fill",
         swatch: "#0b69e3",
@@ -28,7 +28,7 @@ const appThemes = [
     },
     {
         id: "light_2",
-        label: "Rose Grove",
+        label: "Rose Light",
         mode: "light",
         icon: "flower1",
         swatch: "#fb7185",
@@ -36,7 +36,7 @@ const appThemes = [
     },
     {
         id: "dark_1",
-        label: "Deep Grove",
+        label: "Deep Dark",
         mode: "dark",
         icon: "moon-stars-fill",
         swatch: "#115e59",
@@ -44,7 +44,7 @@ const appThemes = [
     },
     {
         id: "dark_2",
-        label: "Ember Night",
+        label: "Ember Dark",
         mode: "dark",
         icon: "fire",
         swatch: "#b45309",

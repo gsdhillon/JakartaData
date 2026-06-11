@@ -1,5 +1,6 @@
 package com.gurmeet.grove_app.security;
 
+import com.gurmeet.grove_app.notifications.NotificationService;
 import com.gurmeet.grove_app.security.login.ChangePasswordRequest;
 import com.gurmeet.grove_app.security.login.LoginRequest;
 import com.gurmeet.grove_app.user_logs.UserLogService;
@@ -15,6 +16,9 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Optional;
@@ -27,6 +31,7 @@ public class SecurityService {
     private static final String JWT_SECRET = "JakartaDataPersonChangeThisSecret";
 
     private AuthUserStore authUserStore;
+    private NotificationService notificationService;
     private PasswordService passwordService;
     private UserLogService userLogService;
 
@@ -34,8 +39,14 @@ public class SecurityService {
     }
 
     @Inject
-    public SecurityService(AuthUserStore authUserStore, PasswordService passwordService, UserLogService userLogService) {
+    public SecurityService(
+            AuthUserStore authUserStore,
+            NotificationService notificationService,
+            PasswordService passwordService,
+            UserLogService userLogService
+    ) {
         this.authUserStore = authUserStore;
+        this.notificationService = notificationService;
         this.passwordService = passwordService;
         this.userLogService = userLogService;
     }
@@ -80,6 +91,12 @@ public class SecurityService {
         }
 
         authUserStore.changePassword(userId, passwordService.hashPassword(request.getNewPassword()));
+        notificationService.notifyUser(
+                userId,
+                "Password changed",
+                "Your password has been changed at " + currentDateTime(),
+                "security"
+        );
     }
 
     public String requireUserId(String authorizationHeader) {
@@ -191,5 +208,10 @@ public class SecurityService {
         return value == null || value.isBlank()
                 ? null
                 : value.trim();
+    }
+
+    private String currentDateTime() {
+        return ZonedDateTime.now(ZoneId.systemDefault())
+                .format(DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm:ss z"));
     }
 }

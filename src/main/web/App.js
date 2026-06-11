@@ -20,6 +20,7 @@ import {
 import ChangePass from "./grove_app/security/ChangePass.js";
 import Login from "./grove_app/security/Login.js";
 import Logout from "./grove_app/security/Logout.js";
+import NotificationBell from "./grove_app/notifications/NotificationBell.js";
 import TaskList from "./modules/task/TaskList.js";
 import UserLoginList from "./grove_app/user_logs/UserLoginList.js";
 
@@ -168,6 +169,14 @@ const AppLayout = () => {
                 avatarTitle: loggedInUser?.name || "",
                 avatarSubTitle: loggedInUser?.role || "",
                 loginInfo,
+                notification: createElement(
+                    NotificationBell,
+                    {
+                        authToken,
+                        loggedIn,
+                        userId: loggedInUser?.id || ""
+                    }
+                ),
                 title: "Grove SupportDesk",
                 subTitle: "A framework showcase for service operations"
             }

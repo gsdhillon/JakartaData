@@ -4,6 +4,7 @@ import com.gurmeet.grove_app.mappers.PersistenceExceptionMapper;
 import com.gurmeet.grove_app.mappers.UnhandledExceptionMapper;
 import com.gurmeet.grove_app.mappers.ValidationErrorsMapper;
 import com.gurmeet.grove_app.mappers.WebApplicationExceptionMapper;
+import com.gurmeet.grove_app.notifications.NotificationResource;
 import com.gurmeet.grove_app.user_logs.RestRequestContextFilter;
 import com.gurmeet.grove_app.user_logs.UserLogResource;
 import com.gurmeet.modules.person.PersonResource;
@@ -22,6 +23,7 @@ public class RestApplication extends Application {
     public Set<Class<?>> getClasses() {
         return Set.of(
                 PersonResource.class,
+                NotificationResource.class,
                 SecurityResource.class,
                 TaskResource.class,
                 UserLogResource.class,
