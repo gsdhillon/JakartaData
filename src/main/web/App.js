@@ -23,7 +23,7 @@ import Logout from "./grove_app/security/Logout.js";
 import TaskList from "./modules/task/TaskList.js";
 import UserLoginList from "./grove_app/user_logs/UserLoginList.js";
 
-const appLogo = new URL("./grove_app/logo.png", import.meta.url).href;
+const appLogo = new URL("./grove_app/logo.svg", import.meta.url).href;
 
 const avatarPages = [
     {
@@ -168,12 +168,12 @@ const AppLayout = () => {
                 avatarTitle: loggedInUser?.name || "",
                 avatarSubTitle: loggedInUser?.role || "",
                 loginInfo,
-                title: "Jakarta Data",
-                subTitle: "User and task management"
+                title: "Grove SupportDesk",
+                subTitle: "A framework showcase for service operations"
             }
         ),
         footerProps: {
-            brand: "Jakarta Data"
+            brand: "Grove Framework"
         }
     });
 };

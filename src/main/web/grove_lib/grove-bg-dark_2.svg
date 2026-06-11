@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3200" height="1600" viewBox="0 0 3200 1600" preserveAspectRatio="none">
+    <defs>
+        <linearGradient id="base" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#111827"/>
+            <stop offset="0.5" stop-color="#3b1d32"/>
+            <stop offset="1" stop-color="#78350f"/>
+        </linearGradient>
+        <radialGradient id="ember" cx="0.22" cy="0.08" r="0.48">
+            <stop offset="0" stop-color="#f97316" stop-opacity="0.42"/>
+            <stop offset="0.45" stop-color="#f59e0b" stop-opacity="0.18"/>
+            <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="blue" cx="0.82" cy="0.16" r="0.5">
+            <stop offset="0" stop-color="#38bdf8" stop-opacity="0.18"/>
+            <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+        </radialGradient>
+        <pattern id="constellation" width="160" height="160" patternUnits="userSpaceOnUse">
+            <circle cx="28" cy="36" r="2" fill="#fed7aa" opacity="0.38"/>
+            <circle cx="124" cy="48" r="1.7" fill="#bae6fd" opacity="0.36"/>
+            <circle cx="80" cy="116" r="1.4" fill="#ffffff" opacity="0.28"/>
+            <path d="M28 36 L80 116 L124 48" fill="none" stroke="#fed7aa" stroke-width="1" opacity="0.08"/>
+        </pattern>
+        <linearGradient id="copper" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#f97316" stop-opacity="0.18"/>
+            <stop offset="0.58" stop-color="#ffffff" stop-opacity="0.05"/>
+            <stop offset="1" stop-color="#38bdf8" stop-opacity="0.14"/>
+        </linearGradient>
+    </defs>
+    <rect width="3200" height="1600" fill="url(#base)"/>
+    <rect width="3200" height="1600" fill="url(#constellation)" opacity="0.82"/>
+    <ellipse cx="700" cy="120" rx="850" ry="350" fill="url(#ember)"/>
+    <ellipse cx="2700" cy="240" rx="760" ry="440" fill="url(#blue)"/>
+    <path d="M0 250 C430 114 820 140 1180 248 C1530 352 1900 344 2280 220 C2640 102 2940 112 3200 172 V0 H0 Z" fill="url(#copper)"/>
+    <path d="M0 1370 C380 1278 740 1312 1080 1410 C1430 1510 1770 1508 2130 1392 C2520 1268 2860 1278 3200 1384 V1600 H0 Z" fill="#020617" opacity="0.36"/>
+    <path d="M980 1510 C1280 1396 1600 1386 1910 1480 C2240 1578 2550 1542 2920 1418 C3030 1382 3120 1364 3200 1358 V1600 H980 Z" fill="#7c2d12" opacity="0.34"/>
+    <g opacity="0.16" fill="none" stroke="#fed7aa" stroke-linecap="round">
+        <path d="M240 420 C560 316 860 328 1160 424" stroke-width="5"/>
+        <path d="M1800 356 C2110 258 2440 274 2760 376" stroke-width="5"/>
+        <path d="M1440 1268 C1740 1180 2070 1190 2370 1280" stroke-width="6"/>
+    </g>
+    <circle cx="2960" cy="136" r="170" fill="#38bdf8" opacity="0.06"/>
+    <circle cx="160" cy="1480" r="230" fill="#f97316" opacity="0.08"/>
+</svg>

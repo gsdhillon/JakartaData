@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3200" height="1600" viewBox="0 0 3200 1600" preserveAspectRatio="none">
+    <defs>
+        <linearGradient id="base" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#ccfbf1"/>
+            <stop offset="0.44" stop-color="#d9f99d"/>
+            <stop offset="1" stop-color="#5eead4"/>
+        </linearGradient>
+        <radialGradient id="morningGlow" cx="0.18" cy="0.08" r="0.5">
+            <stop offset="0" stop-color="#ffffff" stop-opacity="0.42"/>
+            <stop offset="0.42" stop-color="#bef264" stop-opacity="0.2"/>
+            <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="tealGlow" cx="0.84" cy="0.2" r="0.48">
+            <stop offset="0" stop-color="#14b8a6" stop-opacity="0.26"/>
+            <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+        </radialGradient>
+        <pattern id="leafGrid" width="120" height="80" patternUnits="userSpaceOnUse">
+            <path d="M20 50 C36 22 62 22 78 50 C62 44 36 44 20 50 Z" fill="#ffffff" opacity="0.12"/>
+            <path d="M78 50 C94 22 120 22 136 50 C120 44 94 44 78 50 Z" fill="#0f766e" opacity="0.055"/>
+            <path d="M0 80 L120 0" stroke="#ffffff" stroke-width="1" opacity="0.1"/>
+        </pattern>
+        <linearGradient id="headerMist" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#ffffff" stop-opacity="0.12"/>
+            <stop offset="0.52" stop-color="#bef264" stop-opacity="0.12"/>
+            <stop offset="1" stop-color="#14b8a6" stop-opacity="0.12"/>
+        </linearGradient>
+    </defs>
+    <rect width="3200" height="1600" fill="url(#base)"/>
+    <rect width="3200" height="1600" fill="url(#leafGrid)" opacity="0.78"/>
+    <ellipse cx="560" cy="120" rx="700" ry="270" fill="url(#morningGlow)"/>
+    <ellipse cx="2760" cy="260" rx="740" ry="430" fill="url(#tealGlow)"/>
+    <path d="M0 218 C420 96 760 118 1130 210 C1518 306 1900 300 2290 184 C2670 72 2960 82 3200 142 V0 H0 Z" fill="url(#headerMist)"/>
+    <path d="M0 1328 C390 1248 710 1290 1058 1374 C1410 1460 1740 1470 2090 1382 C2470 1284 2820 1268 3200 1350 V1600 H0 Z" fill="#0f766e" opacity="0.16"/>
+    <path d="M980 1505 C1280 1418 1540 1428 1830 1490 C2150 1558 2460 1528 2820 1428 C2970 1386 3090 1368 3200 1364 V1600 H980 Z" fill="#65a30d" opacity="0.12"/>
+    <g opacity="0.24" fill="none" stroke="#ffffff" stroke-linecap="round">
+        <path d="M220 396 C520 316 790 318 1090 400" stroke-width="6"/>
+        <path d="M1840 326 C2110 248 2420 250 2710 334" stroke-width="5"/>
+        <path d="M1480 1252 C1760 1190 2050 1196 2320 1264" stroke-width="6"/>
+    </g>
+    <circle cx="2920" cy="120" r="170" fill="#ffffff" opacity="0.16"/>
+    <circle cx="160" cy="1490" r="210" fill="#ffffff" opacity="0.13"/>
+</svg>

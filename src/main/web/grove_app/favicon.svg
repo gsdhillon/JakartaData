@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+    <title id="title">ControlDesk favicon</title>
+    <desc id="desc">Compact command desk mark with support pulse and task tile.</desc>
+    <defs>
+        <linearGradient id="base" x1="8" y1="6" x2="56" y2="60" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#0f766e"/>
+            <stop offset="0.54" stop-color="#0b5f88"/>
+            <stop offset="1" stop-color="#172554"/>
+        </linearGradient>
+        <linearGradient id="screen" x1="18" y1="14" x2="48" y2="38" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#ecfeff"/>
+            <stop offset="1" stop-color="#bef264"/>
+        </linearGradient>
+    </defs>
+    <rect width="64" height="64" rx="14" fill="#e0f2fe"/>
+    <path d="M32 5 L54 13 V31 C54 45 45 57 32 61 C19 57 10 45 10 31 V13 Z" fill="url(#base)"/>
+    <rect x="17" y="15" width="30" height="21" rx="5" fill="#082f49" stroke="#a7f3d0" stroke-width="2"/>
+    <rect x="21" y="19" width="22" height="12" rx="3" fill="url(#screen)"/>
+    <path d="M23 28 H28 L31 22 L35 30 L38 26 H42" fill="none" stroke="#134e4a" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.8"/>
+    <rect x="17" y="40" width="12" height="12" rx="3" fill="#ecfeff"/>
+    <path d="M20 46 L23 49 L27 43" fill="none" stroke="#15803d" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.8"/>
+    <rect x="35" y="40" width="12" height="12" rx="3" fill="#ecfeff"/>
+    <path d="M39 45 H44 M39 49 H43" fill="none" stroke="#0b5f88" stroke-linecap="round" stroke-width="2.5"/>
+</svg>

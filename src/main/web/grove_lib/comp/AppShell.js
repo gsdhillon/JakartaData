@@ -17,30 +17,83 @@ import { Footer as FooterComponent } from "./Footer.js";
 import { Menu as MenuComponent } from "./Menu.js";
 import { RestTap } from "./REST.js";
 
-const bgByTheme = {
-    dark: new URL("../grove-bg-dark.svg", import.meta.url).href,
-    light: new URL("../grove-bg-light.svg", import.meta.url).href
-};
+const appThemes = [
+    {
+        id: "light_1",
+        label: "Blue Grove",
+        mode: "light",
+        swatch: "#0b69e3",
+        bg: new URL("../grove-bg-light_1.svg", import.meta.url).href
+    },
+    {
+        id: "light_2",
+        label: "Mint Field",
+        mode: "light",
+        swatch: "#65a30d",
+        bg: new URL("../grove-bg-light_2.svg", import.meta.url).href
+    },
+    {
+        id: "dark_1",
+        label: "Deep Grove",
+        mode: "dark",
+        swatch: "#115e59",
+        bg: new URL("../grove-bg-dark_1.svg", import.meta.url).href
+    },
+    {
+        id: "dark_2",
+        label: "Ember Night",
+        mode: "dark",
+        swatch: "#b45309",
+        bg: new URL("../grove-bg-dark_2.svg", import.meta.url).href
+    }
+];
+const themeById = appThemes.reduce((result, theme) => ({
+    ...result,
+    [theme.id]: theme
+}), {});
+const themesByMode = appThemes.reduce((result, theme) => ({
+    ...result,
+    [theme.mode]: [
+        ...(result[theme.mode] || []),
+        theme
+    ]
+}), {});
 const emptyPages = [];
 const openPageEventName = "grove-app-open-page";
+const themeIdStorageKey = "grove.theme";
 const themeStorageKey = "grove.themeMode";
 
 const normalizeThemeMode = value =>
     value === "dark" ? "dark" : "light";
+
+const defaultThemeForMode = mode =>
+    (themesByMode[normalizeThemeMode(mode)] || themesByMode.light)[0];
+
+const normalizeThemeId = (value, fallbackMode = "light") =>
+    themeById[value] ? value : defaultThemeForMode(fallbackMode).id;
 
 const savedThemeMode = () => {
     if (typeof localStorage === "undefined") {
         return null;
     }
 
+    const themeId = localStorage.getItem(themeIdStorageKey);
+
+    if (themeById[themeId]) {
+        return themeId;
+    }
+
     const value = localStorage.getItem(themeStorageKey);
 
-    return value === null ? null : normalizeThemeMode(value);
+    return value === null ? null : defaultThemeForMode(value).id;
 };
 
-const saveThemeMode = value => {
+const saveThemeId = value => {
     if (typeof localStorage !== "undefined") {
-        localStorage.setItem(themeStorageKey, normalizeThemeMode(value));
+        const theme = themeById[normalizeThemeId(value)];
+
+        localStorage.setItem(themeIdStorageKey, theme.id);
+        localStorage.setItem(themeStorageKey, theme.mode);
     }
 };
 
@@ -162,17 +215,18 @@ export const AppShell = (props = {}) => {
     const [activePageKey, setActivePageKey] = useState(
         initialPageKey
     );
-    const [activeThemeMode, setActiveThemeMode] = useState(
-        savedThemeMode() || normalizeThemeMode(themeMode)
+    const [activeThemeId, setActiveThemeId] = useState(
+        savedThemeMode() || normalizeThemeId(null, themeMode)
     );
     const activePage =
         shellPages.find(page => pageKeyOf(page) === activePageKey) || firstPage;
-    const normalizedTheme = activeThemeMode === "dark"
-        ? "dark"
-        : "light";
+    const activeTheme = themeById[normalizeThemeId(activeThemeId, themeMode)];
+    const normalizedTheme = activeTheme.mode;
+    const modeThemes = themesByMode[normalizedTheme] || [];
     const shellClassName = [
         "grove-app-shell",
         `grove-theme-${normalizedTheme}`,
+        `grove-theme-${activeTheme.id}`,
         className
     ]
         .filter(Boolean)
@@ -243,7 +297,7 @@ export const AppShell = (props = {}) => {
 
     useEffect(() => {
         if (savedThemeMode() === null) {
-            setActiveThemeMode(normalizeThemeMode(themeMode));
+            setActiveThemeId(normalizeThemeId(null, themeMode));
         }
     }, [themeMode]);
 
@@ -326,14 +380,33 @@ export const AppShell = (props = {}) => {
         {
             ...footerProps,
             onThemeToggle: footerProps.onThemeToggle !== undefined ? footerProps.onThemeToggle : (() => {
-                setActiveThemeMode(current => {
-                    const nextThemeMode = current === "dark" ? "light" : "dark";
+                setActiveThemeId(current => {
+                    const currentTheme = themeById[normalizeThemeId(current, themeMode)];
+                    const nextThemeMode = currentTheme.mode === "dark" ? "light" : "dark";
+                    const currentIndex = (themesByMode[currentTheme.mode] || []).findIndex(theme => theme.id === currentTheme.id);
+                    const nextModeThemes = themesByMode[nextThemeMode] || [];
+                    const nextTheme = nextModeThemes[Math.max(0, currentIndex)] || nextModeThemes[0];
 
-                    saveThemeMode(nextThemeMode);
-                    return nextThemeMode;
+                    saveThemeId(nextTheme.id);
+                    return nextTheme.id;
                 });
             }),
-            themeMode: footerProps.themeMode !== undefined ? footerProps.themeMode : normalizedTheme
+            onThemeSelect: footerProps.onThemeSelect !== undefined ? footerProps.onThemeSelect : (themeId => {
+                setActiveThemeId(current => {
+                    const currentTheme = themeById[normalizeThemeId(current, themeMode)];
+                    const nextTheme = themeById[normalizeThemeId(themeId, currentTheme.mode)];
+
+                    if (nextTheme.mode !== currentTheme.mode) {
+                        return currentTheme.id;
+                    }
+
+                    saveThemeId(nextTheme.id);
+                    return nextTheme.id;
+                });
+            }),
+            themeId: footerProps.themeId !== undefined ? footerProps.themeId : activeTheme.id,
+            themeMode: footerProps.themeMode !== undefined ? footerProps.themeMode : normalizedTheme,
+            themeOptions: footerProps.themeOptions !== undefined ? footerProps.themeOptions : modeThemes
         }
     );
 
@@ -344,7 +417,7 @@ export const AppShell = (props = {}) => {
             "data-bs-theme": normalizedTheme,
             style: {
                 ...(shellProps.style || {}),
-                backgroundImage: `url("${bgByTheme[normalizedTheme]}")`
+                backgroundImage: `url("${activeTheme.bg}")`
             }
         },
         resolvedHeader !== undefined ? resolvedHeader : header,

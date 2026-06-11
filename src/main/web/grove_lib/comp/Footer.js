@@ -28,8 +28,11 @@ export const Footer = (props = {}) => {
         height = "30px",
         logo = groveLogoUrl,
         onLogoClick = openRestDialog,
+        onThemeSelect,
         onThemeToggle,
+        themeId = "",
         themeMode = "light",
+        themeOptions = [],
         ...footerProps
     } = props;
     const footerClassName = [
@@ -96,6 +99,39 @@ export const Footer = (props = {}) => {
                     "span",
                     { className: "grove-theme-toggle-text" },
                     normalizedTheme === "dark" ? "Dark" : "Light"
+                )
+            ),
+            createElement(
+                "span",
+                {
+                    "aria-label": `${normalizedTheme} theme choices`,
+                    className: "grove-theme-choice-list",
+                    role: "group"
+                },
+                ...themeOptions.map(theme =>
+                    createElement(
+                        "button",
+                        {
+                            "aria-label": `Use ${theme.label || theme.id} theme`,
+                            "aria-pressed": theme.id === themeId ? "true" : "false",
+                            className: [
+                                "grove-theme-choice",
+                                theme.id === themeId ? "grove-theme-choice-active" : ""
+                            ]
+                                .filter(Boolean)
+                                .join(" "),
+                            style: {
+                                "--grove-theme-choice-color": theme.swatch || "var(--grove-title-accent)"
+                            },
+                            title: theme.label || theme.id,
+                            type: "button",
+                            onClick: () => {
+                                if (onThemeSelect) {
+                                    onThemeSelect(theme.id);
+                                }
+                            }
+                        }
+                    )
                 )
             )
         ),

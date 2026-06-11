@@ -26,6 +26,9 @@
 .grove-theme-light {
     --grove-app-surface: #D0E0FF;
     --grove-app-surface-panel-opacity: 40%;
+    --grove-content-surface: color-mix(in srgb, #f8fbff 88%, #0b69e3);
+    --grove-content-surface-soft: color-mix(in srgb, #f8fbff 94%, #1fc08e);
+    --grove-content-border: color-mix(in srgb, #0b69e3 22%, transparent);
     --grove-photo-bg: color-mix(in srgb, var(--bs-light, #f8f9fa) 78%, transparent);
     --grove-photo-border: color-mix(in srgb, var(--bs-secondary-color, #6c757d) 24%, transparent);
     --grove-photo-highlight: rgba(255, 255, 255, 0.64);
@@ -36,9 +39,49 @@
     --grove-path-color: #365566;
 }
 
+.grove-theme-light_1 {
+    --grove-theme-choice-ring: #0b69e3;
+}
+
+/* Ishjyot added new themes 11/06/2026 */
+.grove-theme-light_2 {
+    --grove-app-surface: #D9F99D;
+    --grove-app-surface-panel-opacity: 44%;
+    --grove-content-surface: color-mix(in srgb, #f7fee7 88%, #14b8a6);
+    --grove-content-surface-soft: color-mix(in srgb, #f7fee7 94%, #65a30d);
+    --grove-content-border: color-mix(in srgb, #0f766e 22%, transparent);
+    --grove-photo-bg: color-mix(in srgb, #f7fee7 80%, transparent);
+    --grove-photo-border: color-mix(in srgb, #0f766e 26%, transparent);
+    --grove-photo-highlight: rgba(255, 255, 255, 0.7);
+    --grove-photo-preview-bg:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.74), rgba(217, 249, 157, 0.46)),
+        color-mix(in srgb, #f7fee7 82%, #5eead4);
+    --grove-text-title-fg: #164e43;
+    --grove-path-color: #246b5f;
+    --grove-title-color: #134e4a;
+    --grove-title-accent: #65a30d;
+    --grove-subtitle-color: rgba(19, 78, 74, 0.78);
+    --grove-theme-choice-ring: #65a30d;
+}
+
+.grove-theme-light_2 .grove-menu-link,
+.grove-theme-light_2 .grove-menu-link.btn-info {
+    color: rgba(19, 78, 74, 0.88);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.34);
+}
+
+.grove-theme-light_2 .grove-menu-link-active,
+.grove-theme-light_2 .grove-menu-link:hover {
+    background: rgba(20, 184, 166, 0.2) !important;
+    color: #0f3f3a !important;
+}
+
 .grove-theme-dark {
     --grove-app-surface: #204050;
     --grove-app-surface-panel-opacity: 30%;
+    --grove-content-surface: color-mix(in srgb, #102733 88%, #38bdf8);
+    --grove-content-surface-soft: color-mix(in srgb, #102733 94%, #2dd4bf);
+    --grove-content-border: color-mix(in srgb, #d7e9ef 18%, transparent);
     --grove-photo-bg: color-mix(in srgb, #102733 82%, transparent);
     --grove-photo-border: color-mix(in srgb, #d7e9ef 22%, transparent);
     --grove-photo-highlight: rgba(255, 255, 255, 0.08);
@@ -47,6 +90,31 @@
         color-mix(in srgb, #0f2632 86%, #d7e9ef);
     --grove-text-title-fg: #fff2c2;
     --grove-path-color: rgba(215, 233, 239, 0.82);
+}
+
+.grove-theme-dark_1 {
+    --grove-theme-choice-ring: #115e59;
+}
+
+/* Ishjyot added new themes 11/06/2026 */
+.grove-theme-dark_2 {
+    --grove-app-surface: #3F1F24;
+    --grove-app-surface-panel-opacity: 32%;
+    --grove-content-surface: color-mix(in srgb, #1f2937 86%, #f97316);
+    --grove-content-surface-soft: color-mix(in srgb, #1f2937 94%, #b45309);
+    --grove-content-border: color-mix(in srgb, #fed7aa 18%, transparent);
+    --grove-photo-bg: color-mix(in srgb, #1f2937 84%, transparent);
+    --grove-photo-border: color-mix(in srgb, #fed7aa 24%, transparent);
+    --grove-photo-highlight: rgba(255, 255, 255, 0.1);
+    --grove-photo-preview-bg:
+        linear-gradient(135deg, rgba(249, 115, 22, 0.14), rgba(15, 23, 42, 0.46)),
+        color-mix(in srgb, #111827 84%, #fed7aa);
+    --grove-text-title-fg: #ffedd5;
+    --grove-path-color: rgba(254, 215, 170, 0.86);
+    --grove-title-color: #ffedd5;
+    --grove-title-accent: #38bdf8;
+    --grove-subtitle-color: rgba(255, 237, 213, 0.76);
+    --grove-theme-choice-ring: #b45309;
 }
 
 .grove-app-shell-body {
@@ -471,6 +539,9 @@
 
 .grove-footer-left {
     left: 10px;
+    align-items: center;
+    display: inline-flex;
+    gap: 6px;
 }
 
 .grove-footer-right {
@@ -483,10 +554,10 @@
 .grove-theme-toggle,
 .grove-rest-toggle {
     align-items: center;
-    background: rgba(255, 255, 255, 0.14);
-    border: 1px solid var(--app-border-color, rgba(245, 158, 11, 0.42));
+    background: color-mix(in srgb, var(--grove-title-color) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--grove-title-accent) 42%, transparent);
     border-radius: 999px;
-    color: rgba(255, 255, 255, 0.88);
+    color: var(--grove-title-color);
     cursor: pointer;
     display: inline-flex;
     gap: 6px;
@@ -497,11 +568,11 @@
 
 .grove-theme-toggle:hover,
 .grove-rest-toggle:hover {
-    background: rgba(255, 255, 255, 0.24);
+    background: color-mix(in srgb, var(--grove-title-color) 24%, transparent);
 }
 
 .grove-theme-toggle-track {
-    background: rgba(255, 255, 255, 0.32);
+    background: color-mix(in srgb, var(--grove-title-accent) 32%, transparent);
     border-radius: 999px;
     display: inline-flex;
     height: 16px;
@@ -510,7 +581,7 @@
 }
 
 .grove-rest-toggle-track {
-    background: rgba(255, 255, 255, 0.32);
+    background: color-mix(in srgb, var(--grove-title-accent) 32%, transparent);
     border-radius: 999px;
     display: inline-flex;
     height: 16px;
@@ -541,6 +612,33 @@
     font-size: 11px;
     font-weight: 700;
     line-height: 1;
+}
+
+.grove-theme-choice-list {
+    align-items: center;
+    display: inline-flex;
+    gap: 4px;
+}
+
+.grove-theme-choice {
+    background: var(--grove-theme-choice-color);
+    border: 1px solid rgba(255, 255, 255, 0.68);
+    border-radius: 5px;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.34),
+        0 4px 10px rgba(15, 23, 42, 0.16);
+    cursor: pointer;
+    height: 18px;
+    padding: 0;
+    width: 18px;
+}
+
+.grove-theme-choice:hover,
+.grove-theme-choice-active {
+    border-color: #ffffff;
+    box-shadow:
+        0 0 0 2px color-mix(in srgb, var(--grove-theme-choice-ring, #f59e0b) 72%, transparent),
+        0 0 14px color-mix(in srgb, var(--grove-theme-choice-color) 62%, transparent);
 }
 
 .grove-rest-toggle {
@@ -671,8 +769,8 @@
 }
 
 .grove-form {
-    background: color-mix(in srgb, var(--bs-body-bg) 90%, transparent);
-    border: 1px solid color-mix(in srgb, var(--app-border, var(--bs-border-color)) 72%, transparent);
+    background: var(--grove-content-surface, color-mix(in srgb, var(--bs-body-bg) 90%, transparent));
+    border: 1px solid var(--grove-content-border, color-mix(in srgb, var(--app-border, var(--bs-border-color)) 72%, transparent));
     border-radius: 0;
     padding: 25px;
 }
@@ -692,7 +790,7 @@
     border: 1px solid color-mix(in srgb, var(--bs-primary) 34%, var(--bs-border-color));
     background:
         linear-gradient(145deg, rgba(var(--bs-primary-rgb), 0.10), transparent 42%),
-        color-mix(in srgb, var(--bs-body-bg) 90%, transparent);
+        var(--grove-content-surface, color-mix(in srgb, var(--bs-body-bg) 90%, transparent));
     border-radius: 0.75rem;
     box-shadow:
         0 1.35rem 3.25rem rgba(15, 23, 42, 0.24),
@@ -789,8 +887,8 @@
 }
 
 .grove-table-action-menu-popover {
-    background: var(--bs-body-bg);
-    border: 1px solid var(--bs-border-color);
+    background: var(--grove-content-surface-soft, var(--bs-body-bg));
+    border: 1px solid var(--grove-content-border, var(--bs-border-color));
     border-radius: 8px;
     box-shadow: 0 12px 32px rgba(15, 23, 42, 0.22);
     display: flex;
@@ -950,8 +1048,8 @@
 }
 
 .grove-table-wrap {
-    background: color-mix(in srgb, var(--bs-body-bg) 90%, transparent);
-    border: 1px solid color-mix(in srgb, var(--app-border, var(--bs-border-color)) 72%, transparent);
+    background: var(--grove-content-surface, color-mix(in srgb, var(--bs-body-bg) 90%, transparent));
+    border: 1px solid var(--grove-content-border, color-mix(in srgb, var(--app-border, var(--bs-border-color)) 72%, transparent));
     border-radius: 0;
     flex: 1 1 auto;
     margin-bottom: 0;
@@ -965,11 +1063,15 @@
 }
 
 .grove-table {
+    --bs-table-bg: var(--grove-content-surface-soft, transparent);
+    --bs-table-striped-bg: color-mix(in srgb, var(--grove-title-accent) 7%, var(--grove-content-surface-soft, var(--bs-body-bg)));
+    --bs-table-hover-bg: color-mix(in srgb, var(--grove-title-accent) 12%, var(--grove-content-surface-soft, var(--bs-body-bg)));
     margin-bottom: 0;
     width: 100%;
 }
 
 .grove-table th {
+    background: color-mix(in srgb, var(--grove-title-accent) 9%, var(--grove-content-surface-soft, var(--bs-body-bg)));
     position: relative;
 }
 
