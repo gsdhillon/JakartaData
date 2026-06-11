@@ -167,31 +167,43 @@
 
 /* Ishjyot added new themes 11/06/2026 */
 .grove-theme-dark_2 {
-    --bs-primary: #f97316;
-    --bs-primary-rgb: 249, 115, 22;
-    --grove-primary: #b45309;
-    --grove-primary-border: #f97316;
-    --grove-primary-hover: #92400e;
-    --grove-primary-hover-border: #ea580c;
-    --grove-primary-text: #ffedd5;
-    --grove-app-surface: #3F1F24;
-    --grove-content-surface: color-mix(in srgb, #1f2937 86%, #f97316);
-    --grove-content-surface-soft: color-mix(in srgb, #1f2937 94%, #b45309);
-    --grove-content-border: color-mix(in srgb, #fed7aa 18%, transparent);
-    --grove-control-bg: color-mix(in srgb, #1f2937 86%, #fed7aa);
-    --grove-control-focus-bg: color-mix(in srgb, #1f2937 78%, #f97316);
-    --grove-photo-bg: color-mix(in srgb, #1f2937 84%, transparent);
-    --grove-photo-border: color-mix(in srgb, #fed7aa 24%, transparent);
+    --bs-primary: #a94732;
+    --bs-primary-rgb: 169, 71, 50;
+    --grove-primary: #8f3527;
+    --grove-primary-border: #b85a3b;
+    --grove-primary-hover: #70251f;
+    --grove-primary-hover-border: #9f3f2c;
+    --grove-primary-text: #fff1f2;
+    --grove-app-surface: #2c111c;
+    --grove-content-surface: color-mix(in srgb, #21101a 84%, #9f3650);
+    --grove-content-surface-soft: color-mix(in srgb, #21101a 92%, #7f1d1d);
+    --grove-content-border: color-mix(in srgb, #fed7aa 15%, #fb7185 12%);
+    --grove-control-bg: color-mix(in srgb, #21101a 86%, #fed7aa);
+    --grove-control-focus-bg: color-mix(in srgb, #21101a 78%, #a94732);
+    --grove-photo-bg: color-mix(in srgb, #21101a 84%, transparent);
+    --grove-photo-border: color-mix(in srgb, #fed7aa 18%, #fb7185 10%);
     --grove-photo-highlight: rgba(255, 255, 255, 0.1);
     --grove-photo-preview-bg:
-        linear-gradient(135deg, rgba(249, 115, 22, 0.14), rgba(15, 23, 42, 0.46)),
-        color-mix(in srgb, #111827 84%, #fed7aa);
+        linear-gradient(135deg, rgba(190, 68, 95, 0.16), rgba(33, 16, 26, 0.46)),
+        color-mix(in srgb, #21101a 84%, #fed7aa);
     --grove-text-title-fg: #ffedd5;
     --grove-path-color: rgba(254, 215, 170, 0.86);
     --grove-title-color: #ffedd5;
-    --grove-title-accent: #38bdf8;
+    --grove-title-accent: #fb7185;
     --grove-subtitle-color: rgba(255, 237, 213, 0.76);
-    --grove-theme-choice-ring: #b45309;
+    --grove-theme-choice-ring: #a94732;
+}
+
+.grove-theme-dark_2 .grove-table {
+    --bs-table-bg: color-mix(in srgb, #21101a 91%, #6f1d1b);
+    --bs-table-striped-bg: color-mix(in srgb, #21101a 88%, #7f1d1d);
+    --bs-table-hover-bg: color-mix(in srgb, #21101a 82%, #a94732);
+}
+
+.grove-theme-dark_2 .grove-table th {
+    background: color-mix(in srgb, #21101a 82%, #a94732);
+    border-bottom-color: color-mix(in srgb, #fed7aa 24%, #7f1d1d);
+    color: #ffedd5;
 }
 
 .grove-app-shell-body {
