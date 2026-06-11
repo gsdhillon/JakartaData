@@ -32,7 +32,6 @@
     --grove-primary-hover-border: #084fa9;
     --grove-primary-text: #ffffff;
     --grove-app-surface: #D0E0FF;
-    --grove-app-surface-panel-opacity: 40%;
     --grove-content-surface: color-mix(in srgb, #f8fbff 88%, #0b69e3);
     --grove-content-surface-soft: color-mix(in srgb, #f8fbff 94%, #1fc08e);
     --grove-content-border: color-mix(in srgb, #0b69e3 22%, transparent);
@@ -60,7 +59,6 @@
     --grove-primary-hover-border: #9a3412;
     --grove-primary-text: #fff7ed;
     --grove-app-surface: #FFE4D6;
-    --grove-app-surface-panel-opacity: 46%;
     --grove-content-surface: color-mix(in srgb, #fff7ed 88%, #fb7185);
     --grove-content-surface-soft: color-mix(in srgb, #fff7ed 94%, #fdba74);
     --grove-content-border: color-mix(in srgb, #fb7185 26%, transparent);
@@ -127,7 +125,6 @@
     --grove-primary-hover-border: #0ea5e9;
     --grove-primary-text: #f8fafc;
     --grove-app-surface: #204050;
-    --grove-app-surface-panel-opacity: 30%;
     --grove-content-surface: color-mix(in srgb, #102733 88%, #38bdf8);
     --grove-content-surface-soft: color-mix(in srgb, #102733 94%, #2dd4bf);
     --grove-content-border: color-mix(in srgb, #d7e9ef 18%, transparent);
@@ -162,7 +159,6 @@
     --grove-primary-hover-border: #ea580c;
     --grove-primary-text: #ffedd5;
     --grove-app-surface: #3F1F24;
-    --grove-app-surface-panel-opacity: 32%;
     --grove-content-surface: color-mix(in srgb, #1f2937 86%, #f97316);
     --grove-content-surface-soft: color-mix(in srgb, #1f2937 94%, #b45309);
     --grove-content-border: color-mix(in srgb, #fed7aa 18%, transparent);
@@ -210,7 +206,7 @@
     --grove-form-label-width: 204px;
     --grove-panel-bg: color-mix(
         in srgb,
-        var(--grove-app-surface, var(--app-panel-bg, var(--bs-body-bg))) 75%,
+        var(--grove-app-surface, var(--app-panel-bg, var(--bs-body-bg))) 55%,
         transparent
     );
     background: var(--grove-panel-bg);
@@ -231,7 +227,7 @@
 .grove-center-panel:fullscreen {
     background: color-mix(
         in srgb,
-        var(--grove-app-surface, var(--app-panel-bg, var(--bs-body-bg))) 75%,
+        var(--grove-app-surface, var(--app-panel-bg, var(--bs-body-bg))) 55%,
         transparent
     );
     border-radius: 0;
@@ -857,8 +853,8 @@
 }
 
 .grove-form {
-    background: var(--grove-content-surface, color-mix(in srgb, var(--bs-body-bg) 90%, transparent));
-    border: 1px solid var(--grove-content-border, color-mix(in srgb, var(--app-border, var(--bs-border-color)) 72%, transparent));
+    background: transparent;
+    border: 0;
     border-radius: 0;
     padding: 25px;
 }
@@ -1152,8 +1148,8 @@
 }
 
 .grove-table-wrap {
-    background: var(--grove-content-surface, color-mix(in srgb, var(--bs-body-bg) 90%, transparent));
-    border: 1px solid var(--grove-content-border, color-mix(in srgb, var(--app-border, var(--bs-border-color)) 72%, transparent));
+    background: transparent;
+    border: 0;
     border-radius: 0;
     flex: 1 1 auto;
     margin-bottom: 0;
@@ -1172,6 +1168,13 @@
     --bs-table-hover-bg: color-mix(in srgb, var(--grove-title-accent) 12%, var(--grove-content-surface-soft, var(--bs-body-bg)));
     margin-bottom: 0;
     width: 100%;
+}
+
+.grove-table-empty {
+    background: transparent !important;
+    color: var(--bs-secondary-color);
+    font-weight: 700;
+    text-align: center;
 }
 
 .grove-table th {
