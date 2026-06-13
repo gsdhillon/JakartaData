@@ -3,8 +3,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.example</groupId>
-    <artifactId>jakarta-data-person</artifactId>
+    <groupId>com.grove</groupId>
+    <artifactId>grove</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>war</packaging>
 
@@ -12,7 +12,7 @@
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <failOnMissingWebXml>false</failOnMissingWebXml>
-        <app.contextRoot>jakarta-data-person</app.contextRoot>
+        <app.contextRoot>grove</app.contextRoot>
         <mysql.connector.version>9.7.0</mysql.connector.version>
         <hibernate.validator.version>9.0.1.Final</hibernate.validator.version>
         <junit.version>5.14.0</junit.version>

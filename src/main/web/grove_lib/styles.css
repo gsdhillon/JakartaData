@@ -1212,6 +1212,18 @@
     border-color: color-mix(in srgb, var(--bs-primary) 58%, var(--grove-content-border, var(--bs-border-color)));
 }
 
+.grove-control.form-control:-webkit-autofill,
+.grove-control.form-control:-webkit-autofill:hover,
+.grove-control.form-control:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px var(--grove-control-bg, var(--bs-body-bg)) inset;
+    -webkit-text-fill-color: var(--bs-body-color);
+    caret-color: var(--bs-body-color);
+}
+
+.grove-control.form-control:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px var(--grove-control-focus-bg, var(--grove-control-bg, var(--bs-body-bg))) inset;
+}
+
 .grove-clearable-control {
     position: relative;
     display: block;

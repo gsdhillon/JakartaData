@@ -5,10 +5,10 @@
              version="3.2">
     <persistence-unit name="personPU">
         <jta-data-source>jdbc/personDS</jta-data-source>
-        <class>com.gurmeet.modules.person.Person</class>
-        <class>com.gurmeet.modules.task.Task</class>
-        <class>com.gurmeet.grove_app.user_logs.UserLogin</class>
-        <class>com.gurmeet.grove_app.user_logs.UserError</class>
+        <class>com.grove.person.Person</class>
+        <class>com.grove.task.Task</class>
+        <class>com.grove.core.user_logs.UserLogin</class>
+        <class>com.grove.core.user_logs.UserError</class>
         <properties>
             <property 
             name="jakarta.persistence.schema-generation.database.action" 

@@ -7,7 +7,7 @@ Reusable Jakarta EE + Grove frontend starter with JWT login, first-admin bootstr
 The reusable backend security code lives in:
 
 ```text
-src/main/java/com/gurmeet/application/security
+src/main/java/com/grove/core/security
 ```
 
 Security does not depend on the `Person` entity. It depends on this small contract:
@@ -20,7 +20,7 @@ AuthUser      -> generic logged-in user shape: id, name, role, avatar, password,
 The included `Person` module wires the `Person` table to security through:
 
 ```text
-src/main/java/com/gurmeet/modules/person/PersonAuthUserStore.java
+src/main/java/com/grove/person/PersonAuthUserStore.java
 ```
 
 Look for these code comments when customizing:
@@ -127,7 +127,7 @@ Bootstrap creates only `SUPER-ADMIN`. It is allowed only when no users exist.
 If your application uses another table, create your own implementation of:
 
 ```text
-com.gurmeet.grove_app.security.AuthUserStore
+com.grove.core.security.AuthUserStore
 ```
 
 Example names:
@@ -162,19 +162,43 @@ BOILERPLATE-REPLACE-PERSON
 Reusable frontend pieces are split like this:
 
 ```text
-src/main/web/grove_lib             reusable Grove UI/runtime components
-src/main/web/grove_app/security    reusable login/logout/change-password API and pages
-src/main/web/grove_app/user_logs   reusable user login/error log pages
-src/main/web/grove_app/AppContext.js reusable session/auth context
-src/main/web/App.js                application composition root
-src/main/web/modules               custom application modules
+src/main/web/grove_lib              reusable Grove UI/runtime components
+src/main/web/grove/core/security    reusable login/logout/change-password API and pages
+src/main/web/grove/core/user_logs   reusable user login/error log pages
+src/main/web/grove/core/AppContext.js reusable session/auth context
+src/main/web/App.js                 application composition root
+src/main/web/grove/person           Person module
+src/main/web/grove/task             Task module
 ```
+
+## Module Registry
+
+`core` is always included. Backend feature resources are enabled in code before packaging:
+
+```text
+src/main/java/com/grove/core/ModuleRegistry.java backend module keys
+src/main/java/com/grove/core/RestApplication.java backend REST resources
+```
+
+Frontend pages are selected directly in:
+
+```text
+src/main/web/App.js
+```
+
+To build an app with backend APIs for `core + person`, remove `task` from:
+
+```text
+src/main/java/com/grove/core/ModuleRegistry.java
+```
+
+Then remove the Task page import and menu entry from `src/main/web/App.js` for a person-only frontend before running `mvn package`.
 
 Application programmers normally edit only:
 
 ```text
 src/main/web/App.js
-src/main/web/modules/*
+src/main/web/grove/*
 ```
 
 To add a page/menu item, import your page in `App.js` and add it to `menuPages`. Search for:
@@ -186,7 +210,7 @@ BOILERPLATE-FRONTEND-PAGES
 Custom modules should read auth state through `useAuth()`:
 
 ```js
-import { useAuth } from "../../grove_app/AppContext.js";
+import { useAuth } from "../core/AppContext.js";
 
 const MyPage = () => {
     const { authToken, loggedInUser, hasAnyRole, isSelf } = useAuth();
@@ -226,7 +250,7 @@ USER can update only their own allowed fields.
 Role checks live in:
 
 ```text
-src/main/java/com/gurmeet/application/security/UserAccessPolicy.java
+src/main/java/com/grove/core/security/UserAccessPolicy.java
 ```
 
 ## Development Commands

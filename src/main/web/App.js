@@ -10,21 +10,21 @@ import {
 import {
     AppProvider,
     useAppContext
-} from "./grove_app/AppContext.js";
-import PersonForm from "./modules/person/PersonForm.js";
-import PersonList from "./modules/person/PersonList.js?v=dev-20260607-01";
+} from "./grove/core/AppContext.js";
+import PersonForm from "./grove/person/PersonForm.js";
+import PersonList from "./grove/person/PersonList.js?v=dev-20260607-01";
 import {
     findPersonById,
     normalizePerson
-} from "./modules/person/PersonService.js";
-import ChangePass from "./grove_app/security/ChangePass.js";
-import Login from "./grove_app/security/Login.js";
-import Logout from "./grove_app/security/Logout.js";
-import NotificationBell from "./grove_app/notifications/NotificationBell.js";
-import TaskList from "./modules/task/TaskList.js";
-import UserLoginList from "./grove_app/user_logs/UserLoginList.js";
+} from "./grove/person/PersonService.js";
+import ChangePass from "./grove/core/security/ChangePass.js";
+import Login from "./grove/core/security/Login.js";
+import Logout from "./grove/core/security/Logout.js";
+import NotificationBell from "./grove/core/notifications/NotificationBell.js";
+import TaskList from "./grove/task/TaskList.js";
+import UserLoginList from "./grove/core/user_logs/UserLoginList.js";
 
-const appLogo = new URL("./grove_app/logo.svg", import.meta.url).href;
+const appLogo = new URL("./grove/core/logo.svg", import.meta.url).href;
 
 const avatarPages = [
     {
@@ -64,21 +64,22 @@ const avatarPages = [
 ];
 
 const menuPages = [
-    // BOILERPLATE-FRONTEND-PAGES: add custom application pages here.
+    // REGISTER FRONTEND MODULE PAGES HERE: add/remove module pages for this app.
     {
         component: PersonList,
         key: "persons",
         label: "Persons",
         requiresLogin: true,
         visibleWhen: "always"
-    },
-    {
-        component: TaskList,
-        key: "tasks",
-        label: "Tasks",
-        requiresLogin: true,
-        visibleWhen: "loggedIn"
     }
+    // comment to remove --- do at backend from AModuleRegistry.java
+    // ,{
+    //     component: TaskList,
+    //     key: "tasks",
+    //     label: "Tasks",
+    //     requiresLogin: true,
+    //     visibleWhen: "loggedIn"
+    // }
 ];
 
 const AppLayout = () => {
