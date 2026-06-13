@@ -93,7 +93,6 @@ Backend module registration:
 
 ```text
 src/main/java/com/grove/core/ModuleRegistry.java
-src/main/java/com/grove/core/RestApplication.java
 ```
 
 Frontend page registration:
