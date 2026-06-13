@@ -1,5 +1,162 @@
 # Notes
 
+## Design Strategy
+
+The reusable backend security code lives in:
+
+```text
+src/main/java/com/grove/core/security
+```
+
+Security does not depend on the `Person` entity. It depends on this small contract:
+
+```text
+AuthUserStore -> supplies users to login, bootstrap, password change, and JWT validation
+AuthUser      -> generic logged-in user shape: id, name, role, avatar, password, passwordChangeRequired
+```
+
+The included `Person` module wires the `Person` table to security through:
+
+```text
+src/main/java/com/grove/person/PersonAuthUserStore.java
+```
+
+Useful code comments when customizing:
+
+```text
+BOILERPLATE-AUTH-STORE       Backend interface to implement when replacing Person
+BOILERPLATE-REPLACE-PERSON   Default Person-to-AuthUser mapping example
+BOILERPLATE-FRONTEND-AUTH    Frontend hook for authToken/loggedInUser/role checks
+BOILERPLATE-FRONTEND-PAGES   Frontend place to register custom pages/menu items
+```
+
+## Replacing Person
+
+If the application uses another table for users, create an implementation of:
+
+```text
+com.grove.core.security.AuthUserStore
+```
+
+Example names:
+
+```text
+EmployeeAuthUserStore implements AuthUserStore
+CustomerAuthUserStore implements AuthUserStore
+AccountAuthUserStore implements AuthUserStore
+```
+
+The implementation must map the custom entity to `AuthUser`:
+
+```text
+id -> AuthUser.id
+name/displayName -> AuthUser.name
+role -> AuthUser.role
+passwordHash -> AuthUser.password
+avatar/photo -> AuthUser.avatar
+passwordChangeRequired -> AuthUser.passwordChangeRequired
+```
+
+Then remove or disable the included `PersonAuthUserStore` so CDI has only one `AuthUserStore` bean.
+
+Use `PersonAuthUserStore.java` as the reference implementation. Search for:
+
+```text
+BOILERPLATE-REPLACE-PERSON
+```
+
+## Module Strategy
+
+The app is organized as a modular monolith:
+
+```text
+src/main/java/com/grove/core      shared backend infrastructure
+src/main/java/com/grove/person    Person feature module
+src/main/java/com/grove/task      Task feature module
+src/main/web/grove/core           shared frontend application code
+src/main/web/grove/person         Person frontend module
+src/main/web/grove/task           Task frontend module
+src/main/web/grove_lib            reusable Grove UI/runtime components
+```
+
+`core` is always included. Backend REST resources are enabled in:
+
+```text
+src/main/java/com/grove/core/ModuleRegistry.java
+src/main/java/com/grove/core/RestApplication.java
+```
+
+Frontend pages are selected directly in:
+
+```text
+src/main/web/App.js
+```
+
+For `core + person`, remove `task` from `ModuleRegistry.java`, then remove the `TaskList` import and menu entry from `App.js` before packaging.
+
+Current limitation: this is runtime registration, not physical package exclusion. `persistence.xml` still controls JPA entity registration, and Task classes may still exist in the WAR until build-time module packaging is added.
+
+## Frontend Custom Modules
+
+Application programmers normally edit:
+
+```text
+src/main/web/App.js
+src/main/web/grove/*
+```
+
+To add a page/menu item, import the page in `App.js` and add it to `menuPages`. Search for:
+
+```text
+BOILERPLATE-FRONTEND-PAGES
+```
+
+Custom modules should read auth state through `useAuth()`:
+
+```js
+import { useAuth } from "../core/AppContext.js";
+
+const MyPage = () => {
+    const { authToken, loggedInUser, hasAnyRole, isSelf } = useAuth();
+
+    if (!hasAnyRole(["ADMIN", "SUPER-ADMIN"])) {
+        return "Not allowed";
+    }
+
+    return "Hello " + loggedInUser.name;
+};
+```
+
+Search for:
+
+```text
+BOILERPLATE-FRONTEND-AUTH
+```
+
+## Roles
+
+Built-in roles:
+
+```text
+SUPER-ADMIN
+ADMIN
+USER
+```
+
+Default rules:
+
+```text
+SUPER-ADMIN can create ADMIN and USER accounts.
+ADMIN can create USER accounts.
+USER can update only their own allowed fields.
+```
+
+Role checks live in:
+
+```text
+src/main/java/com/grove/core/security/UserAccessPolicy.java
+```
+
 ## Handling of Data Types
 
 ### Date Only
