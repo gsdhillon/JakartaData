@@ -8,6 +8,7 @@ import {
     Photo,
     Select,
     showAppError,
+    useEffect,
     useMemo,
     useState
 } from "../../grove_lib/Grove.js";
@@ -20,6 +21,10 @@ const PersonForm = props => {
     );
     const readOnly = props.readOnly === true;
     const isAdd = props.mode === "add";
+    const showPasswordFields = isAdd || (props.mode === "update" && props.canResetPassword);
+    useEffect(() => {
+        setPerson(normalizePerson(props.person));
+    }, [props.person, props.mode]);
     const actions = useMemo(
         () => [
             props.showSubmit === false
@@ -108,7 +113,7 @@ const PersonForm = props => {
                     readOnly,
                     type: "tel"
                 }),
-                isAdd
+                showPasswordFields
                     ? Input({
                         autoComplete: "off",
                         label: "Initial Password:",
@@ -117,7 +122,7 @@ const PersonForm = props => {
                         type: "setpass"
                     })
                     : null,
-                isAdd
+                showPasswordFields
                     ? Input({
                         autoComplete: "off",
                         label: "Confirm Password:",
@@ -126,7 +131,7 @@ const PersonForm = props => {
                         type: "setpass"
                     })
                     : null,
-                isAdd
+                showPasswordFields
                     ? OptBoolean({
                         disabled: readOnly || !props.canEditPasswordChangeRequired,
                         label: "Force Password Change:",
@@ -141,12 +146,12 @@ const PersonForm = props => {
                 readOnly
             }),
             actions,
-            autoComplete: isAdd ? "off" : undefined,
+            autoComplete: showPasswordFields ? "off" : undefined,
             onDataChange: setPerson,
             onSubmit(event) {
                 event.preventDefault();
 
-                if (isAdd && person.rawPassword !== person.confirmPassword) {
+                if (showPasswordFields && person.rawPassword !== person.confirmPassword) {
                     showAppError("Initial password and confirm password do not match.");
                     return;
                 }

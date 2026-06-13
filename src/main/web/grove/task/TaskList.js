@@ -11,7 +11,7 @@ import {
 import { useAuth } from "../core/AppContext.js";
 import TaskForm from "./TaskForm.js";
 import {
-    completeTaskById,
+    addTaskAction,
     createTask,
     deleteTaskById,
     findAllTasks,
@@ -21,6 +21,10 @@ import {
 import TaskTable from "./TaskTable.js";
 
 const sameUser = (left, right) => String(left || "") === String(right || "");
+
+const isTaskMember = (task, userId) =>
+    (task?.memberIds || [])
+        .some(personId => sameUser(personId, userId));
 
 const TaskList = () => {
     const centerPanel = useCenterPanel();
@@ -63,19 +67,21 @@ const TaskList = () => {
         }
     };
 
-    const markCompleted = async task => {
-        if (!task.id) {
-            showAppError("Unable to complete task without id.");
-            return;
+    const addAction = async (taskId, action) => {
+        if (!taskId) {
+            showAppError("Save the task before adding actions.");
+            return null;
         }
 
         setIsBusy(true);
 
         try {
-            await completeTaskById(task.id, loggedInUserId, authToken);
+            const savedTask = await addTaskAction(taskId, action, loggedInUserId, authToken);
+
             await loadTasks();
-            centerPanel?.goBack();
+            return normalizeTask(savedTask, loggedInUserId);
         } catch {
+            return null;
         } finally {
             setIsBusy(false);
         }
@@ -95,6 +101,15 @@ const TaskList = () => {
         const readOnly =
             isView ||
             (normalizedTask && !sameUser(normalizedTask.addBy, loggedInUserId));
+        const isCreator = sameUser(normalizedTask?.addBy, loggedInUserId);
+        const canAddActions = Boolean(
+            normalizedTask?.id &&
+            (
+                isCreator ||
+                isTaskMember(normalizedTask, loggedInUserId)
+            ) &&
+            (!normalizedTask.completedOn || isCreator)
+        );
 
         centerPanel?.pushPage({
             title: mode === "update"
@@ -108,6 +123,9 @@ const TaskList = () => {
                     isBusy,
                     authToken,
                     centerPanel,
+                    canAddActions,
+                    canReopenTask: isCreator,
+                    creatorPerson: normalizedTask?.creator || loggedInUser || null,
                     loggedInUserId,
                     mode,
                     readOnly,
@@ -118,6 +136,9 @@ const TaskList = () => {
                     },
                     onSubmit(formTask) {
                         return submitTask(formTask, mode, id);
+                    },
+                    onAddAction(action) {
+                        return addAction(id, action);
                     }
                 }
             )
@@ -176,7 +197,6 @@ const TaskList = () => {
             tasks,
             toolbarActions,
             onDelete: deleteTask,
-            onMarkCompleted: markCompleted,
             onUpdate: task => openTaskForm("update", task),
             onView: task => openTaskForm("view", task)
         })

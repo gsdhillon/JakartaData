@@ -1,5 +1,6 @@
 import {
     Button,
+    createElement,
     Table
 } from "../../grove_lib/Grove.js";
 
@@ -64,14 +65,52 @@ const renderActions = props => (person, index) => [
         : defaultActions(props)(person, index))
 ];
 
+const selectedPersonIds = props =>
+    new Set((props.selectedPersonIds || []).map(id => String(id)));
+
+const tableColumns = props => {
+    if (props.selectionMode !== "multiple" || props.showSelectionColumn === false) {
+        return columns;
+    }
+
+    const selectedIds = selectedPersonIds(props);
+
+    return [
+        {
+            exportable: false,
+            filterable: false,
+            key: "selected",
+            label: "",
+            render: person => createElement(
+                "input",
+                {
+                    "aria-label": `Select ${person.name || "person"}`,
+                    checked: selectedIds.has(String(person.id)),
+                    className: "form-check-input",
+                    disabled: props.isBusy,
+                    type: "checkbox",
+                    onChange() {
+                        props.onToggleSelected?.(person);
+                    }
+                }
+            ),
+            sortable: false
+        },
+        ...columns
+    ];
+};
+
 const PersonTable = (props = {}) =>
     Table({
-        columns,
+        columns: tableColumns(props),
+        centerActions: props.centerActions,
         emptyMessage: "No persons added",
         exportName: "persons",
         getRowKey: (person, index) => person.id ?? index,
         renderActions: renderActions(props),
         rows: props.persons || [],
+        showExport: props.showExport,
+        showToolbarUtilities: props.showToolbarUtilities,
         toolbarActions: props.toolbarActions,
         title: props.title || "Persons"
     });

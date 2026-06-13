@@ -19,6 +19,6 @@ public class PersistenceExceptionMapper implements ExceptionMapper<PersistenceEx
     public Response toResponse(PersistenceException exception) {
         int status = Response.Status.INTERNAL_SERVER_ERROR.getStatusCode();
 
-        return rest.error(status, List.of("Database operation failed. Check server logs for details."));
+        return rest.error(status, List.of("Database operation failed. Please try again or contact support."));
     }
 }

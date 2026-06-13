@@ -664,12 +664,14 @@ const Table = (props = {}) => {
         actionsLabel = "Actions",
         className,
         columns = [],
+        centerActions = true,
         emptyMessage = "No records found",
         exportName,
         getRowKey,
         renderActions,
         rows = [],
         showExport = true,
+        showToolbarUtilities = true,
         toolbarActions,
         title = exportName || "Table",
         wrapperClassName
@@ -763,16 +765,18 @@ const Table = (props = {}) => {
     const toolbar = useMemo(
         () => Div(
             { className: "grove-table-toolbar" },
-            renderToolbar({
-                activeFilterCount,
-                canClear,
-                exportName,
-                exportableColumns,
-                onClear: clearAll,
-                rows: visibleRows,
-                showExport,
-                title
-            }),
+            showToolbarUtilities
+                ? renderToolbar({
+                    activeFilterCount,
+                    canClear,
+                    exportName,
+                    exportableColumns,
+                    onClear: clearAll,
+                    rows: visibleRows,
+                    showExport,
+                    title
+                })
+                : null,
             ...(Array.isArray(toolbarActions)
                 ? toolbarActions
                 : toolbarActions
@@ -786,18 +790,22 @@ const Table = (props = {}) => {
             exportableColumns,
             visibleRows,
             showExport,
+            showToolbarUtilities,
             title,
             toolbarActions
         ]
     );
-    useCenterPanelActions(centerPanel ? toolbar : null);
+    // Picker pages can re-render on every row selection. Publishing table toolbar
+    // VNodes to CenterPanel from those renders can create a parent/child update
+    // loop because every render may produce new action object identities.
+    useCenterPanelActions(centerPanel && centerActions ? toolbar : null);
 
     return Div(
         appendClassName(
             { className: wrapperClassName },
             "table-responsive grove-table-wrap"
         ),
-        centerPanel ? null : toolbar,
+        centerPanel && centerActions ? null : toolbar,
         createElement(
             "table",
             appendClassName(

@@ -84,6 +84,25 @@ public final class UserAccessPolicy {
         throw new ForbiddenException("You are not allowed to delete this user.");
     }
 
+    public static void requireCanResetPassword(AuthUser actor, String targetRole, boolean passwordChangeRequired) {
+        String actorRole = role(actor);
+        String normalizedTargetRole = normalizeRole(targetRole);
+
+        if (!SUPER_ADMIN.equals(actorRole) && !passwordChangeRequired) {
+            throw new ForbiddenException("Only SUPER-ADMIN can skip forced password change.");
+        }
+
+        if (SUPER_ADMIN.equals(actorRole) && (ADMIN.equals(normalizedTargetRole) || USER.equals(normalizedTargetRole))) {
+            return;
+        }
+
+        if (ADMIN.equals(actorRole) && USER.equals(normalizedTargetRole)) {
+            return;
+        }
+
+        throw new ForbiddenException("You are not allowed to reset this user's password.");
+    }
+
     private static String role(AuthUser user) {
         return normalizeRole(user == null ? null : user.getRole());
     }

@@ -81,6 +81,17 @@ public class TaskResource {
         return taskService.markCompleted(id, requireUserId(authorizationHeader, loggedInUserId));
     }
 
+    @POST
+    @Path("/{id}/actions")
+    public TaskResponseDto addAction(
+            @PathParam("id") Long id,
+            @Valid TaskActionRequestDto request,
+            @HeaderParam("Authorization") String authorizationHeader,
+            @HeaderParam("X-User-Id") Long loggedInUserId
+    ) {
+        return taskService.addAction(id, request, requireUserId(authorizationHeader, loggedInUserId));
+    }
+
     @DELETE
     @Path("/{id}")
     public Response delete(

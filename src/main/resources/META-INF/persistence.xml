@@ -7,6 +7,8 @@
         <jta-data-source>jdbc/personDS</jta-data-source>
         <class>com.grove.person.Person</class>
         <class>com.grove.task.Task</class>
+        <class>com.grove.task.TaskMember</class>
+        <class>com.grove.task.TaskAction</class>
         <class>com.grove.core.user_logs.UserLogin</class>
         <class>com.grove.core.user_logs.UserError</class>
         <properties>

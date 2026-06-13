@@ -1,10 +1,11 @@
 package com.grove.task;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TaskRequestDto {
 
@@ -16,8 +17,7 @@ public class TaskRequestDto {
     @Size(min = 5, max = 500, message = "Task description must be between 5 and 500 characters!")
     private String taskDesc;
 
-    @NotNull(message = "Assigned To is required!")
-    private Long assignedTo;
+    private List<Long> memberIds = new ArrayList<>();
 
     private LocalDateTime deadLine;
 
@@ -37,12 +37,12 @@ public class TaskRequestDto {
         this.taskDesc = taskDesc;
     }
 
-    public Long getAssignedTo() {
-        return assignedTo;
+    public List<Long> getMemberIds() {
+        return memberIds;
     }
 
-    public void setAssignedTo(Long assignedTo) {
-        this.assignedTo = assignedTo;
+    public void setMemberIds(List<Long> memberIds) {
+        this.memberIds = memberIds;
     }
 
     public LocalDateTime getDeadLine() {

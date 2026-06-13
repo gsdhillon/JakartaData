@@ -105,6 +105,13 @@ public class PersonService {
         Person person = optionalPerson.get();
         EditableFields.copyEditableFields(updatedPerson, person);
         person.setRole(UserAccessPolicy.normalizeRole(person.getRole()));
+
+        if (updatedPerson.getRawPassword() != null && !updatedPerson.getRawPassword().isBlank()) {
+            person.setPassword(passwordService.hashPassword(updatedPerson.getRawPassword()));
+            person.setPasswordChangeRequired(updatedPerson.isPasswordChangeRequired());
+        }
+
+        person.setRawPassword(null);
         return personRepository.save(person);
     }
 

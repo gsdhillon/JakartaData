@@ -76,6 +76,11 @@ public class PersonResource {
         Person existingPerson = personService.findRequiredById(id);
 
         UserAccessPolicy.requireCanUpdate(actor, existingPerson.getId(), existingPerson.getRole(), person.getRole());
+
+        if (person.getRawPassword() != null && !person.getRawPassword().isBlank()) {
+            UserAccessPolicy.requireCanResetPassword(actor, existingPerson.getRole(), person.isPasswordChangeRequired());
+        }
+
         return personService.update(id, person);
     }
 

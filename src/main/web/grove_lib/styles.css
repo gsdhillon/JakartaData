@@ -1020,6 +1020,10 @@
     align-items: start;
 }
 
+.grove-form-main-no-aside {
+    grid-template-columns: minmax(0, 1fr);
+}
+
 .grove-form {
     background: transparent;
     border: 0;

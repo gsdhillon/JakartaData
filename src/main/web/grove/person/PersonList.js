@@ -70,6 +70,21 @@ const canDeletePerson = (actor, person) => {
     return false;
 };
 
+const canResetPassword = (actor, person) => {
+    const actorRole = roleOf(actor);
+    const targetRole = roleOf(person);
+
+    if (actorRole === SUPER_ADMIN) {
+        return targetRole === ADMIN || targetRole === USER;
+    }
+
+    if (actorRole === ADMIN) {
+        return targetRole === USER;
+    }
+
+    return false;
+};
+
 const PersonList = () => {
     const centerPanel = useCenterPanel();
     const { authToken, loggedInUser } = useAuth();
@@ -126,6 +141,14 @@ const PersonList = () => {
         const canUpdate = mode === "add"
             ? canCreateRoles.length > 0
             : canUpdatePerson(loggedInUser, normalizedPerson);
+        const canResetTargetPassword = mode === "update" && canResetPassword(loggedInUser, normalizedPerson);
+        const formPerson =
+            canResetTargetPassword && roleOf(loggedInUser) !== SUPER_ADMIN
+                ? {
+                    ...normalizedPerson,
+                    passwordChangeRequired: true
+                }
+                : normalizedPerson;
         const roleOptions = mode === "add"
             ? canCreateRoles
             : roleOf(loggedInUser) === SUPER_ADMIN && !samePerson(loggedInUser?.id, normalizedPerson?.id)
@@ -142,9 +165,12 @@ const PersonList = () => {
                 PersonForm,
                 {
                     isBusy,
-                    canEditPasswordChangeRequired: roleOf(loggedInUser) === SUPER_ADMIN,
+                    canEditPasswordChangeRequired: mode === "add"
+                        ? roleOf(loggedInUser) === SUPER_ADMIN
+                        : roleOf(loggedInUser) === SUPER_ADMIN && canResetTargetPassword,
+                    canResetPassword: canResetTargetPassword,
                     mode,
-                    person: normalizedPerson,
+                    person: formPerson,
                     readOnly: isView || !canUpdate,
                     roleOptions: roleOptions.map(role => ({ label: role, value: role })),
                     roleReadOnly: roleOptions.length <= 1,

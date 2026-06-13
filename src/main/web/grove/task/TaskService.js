@@ -7,24 +7,65 @@ export const createEmptyTask = loggedInUserId => ({
     taskName: "",
     taskDesc: "",
     addBy: loggedInUserId,
-    assignedTo: "",
+    memberIds: [],
+    members: [],
+    memberSummary: "",
+    creator: null,
+    creatorName: "",
+    actions: [],
     deadLine: null,
     createdOn: null,
     completedOn: null
 });
+
+const normalizeMemberIds = task => {
+    const ids = Array.isArray(task?.memberIds)
+        ? task.memberIds
+        : [];
+
+    return [...new Set(ids
+        .filter(id => id !== null && id !== undefined && id !== "")
+        .map(id => Number(id))
+        .filter(id => !Number.isNaN(id)))];
+};
+
+const memberSummary = task => {
+    const names = (task?.members || [])
+        .map(person => person?.name || (person?.id ? `Person ${person.id}` : ""))
+        .filter(Boolean);
+
+    if (names.length) {
+        return names.join(", ");
+    }
+
+    return normalizeMemberIds(task)
+        .map(id => `Person ${id}`)
+        .join(", ");
+};
+
+const creatorName = task =>
+    task?.creator?.name ||
+    (task?.addBy ? `Person ${task.addBy}` : "");
 
 export const normalizeTask = (task, loggedInUserId) => ({
     ...createEmptyTask(loggedInUserId),
     ...(task || {}),
     id: task?.id ?? "",
     addBy: task?.addBy ?? loggedInUserId,
-    assignedTo: task?.assignedTo ?? ""
+    memberIds: normalizeMemberIds(task),
+    memberSummary: memberSummary(task),
+    creatorName: creatorName({
+        ...task,
+        addBy: task?.addBy ?? loggedInUserId
+    })
 });
 
 const taskPayload = task => ({
     taskName: task.taskName,
     taskDesc: task.taskDesc,
-    assignedTo: task.assignedTo === "" ? null : Number(task.assignedTo),
+    memberIds: (task.memberIds || [])
+        .filter(id => id !== null && id !== undefined && id !== "")
+        .map(Number),
     deadLine: task.deadLine || null
 });
 
@@ -65,11 +106,15 @@ export const deleteTaskById = (id, loggedInUserId, authToken) =>
         }
     );
 
-export const completeTaskById = (id, loggedInUserId, authToken) =>
+export const addTaskAction = (id, action, loggedInUserId, authToken) =>
     requestJson(
-        `${tasksApiUrl}/${id}/complete`,
+        `${tasksApiUrl}/${id}/actions`,
         {
-            method: "PATCH",
+            method: "POST",
+            body: JSON.stringify({
+                status: action.status || "pending",
+                desc: action.desc || ""
+            }),
             authToken,
             userId: loggedInUserId
         }

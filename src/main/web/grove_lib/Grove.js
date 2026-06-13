@@ -425,7 +425,10 @@ const global = typeof window === "undefined"
 
         // Initialize hook state if it doesn't exist for this index
         if (instance.hooks[index] === undefined) {
-            instance.hooks[index] = initialValue;
+            instance.hooks[index] =
+                typeof initialValue === "function"
+                    ? initialValue()
+                    : initialValue;
         }
 
         /**

@@ -73,13 +73,13 @@ const menuPages = [
         visibleWhen: "always"
     }
     // comment to remove --- do at backend from AModuleRegistry.java
-    // ,{
-    //     component: TaskList,
-    //     key: "tasks",
-    //     label: "Tasks",
-    //     requiresLogin: true,
-    //     visibleWhen: "loggedIn"
-    // }
+    ,{
+        component: TaskList,
+        key: "tasks",
+        label: "Tasks",
+        requiresLogin: true,
+        visibleWhen: "loggedIn"
+    }
 ];
 
 const AppLayout = () => {

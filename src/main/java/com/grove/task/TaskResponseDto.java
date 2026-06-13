@@ -2,6 +2,8 @@ package com.grove.task;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TaskResponseDto {
 
@@ -9,7 +11,10 @@ public class TaskResponseDto {
     private String taskName;
     private String taskDesc;
     private Long addBy;
-    private Long assignedTo;
+    private TaskPersonDto creator;
+    private List<Long> memberIds = new ArrayList<>();
+    private List<TaskPersonDto> members = new ArrayList<>();
+    private List<TaskActionResponseDto> actions = new ArrayList<>();
     private LocalDateTime deadLine;
     private Instant createdOn;
     private Instant completedOn;
@@ -46,12 +51,36 @@ public class TaskResponseDto {
         this.addBy = addBy;
     }
 
-    public Long getAssignedTo() {
-        return assignedTo;
+    public TaskPersonDto getCreator() {
+        return creator;
     }
 
-    public void setAssignedTo(Long assignedTo) {
-        this.assignedTo = assignedTo;
+    public void setCreator(TaskPersonDto creator) {
+        this.creator = creator;
+    }
+
+    public List<Long> getMemberIds() {
+        return memberIds;
+    }
+
+    public void setMemberIds(List<Long> memberIds) {
+        this.memberIds = memberIds;
+    }
+
+    public List<TaskPersonDto> getMembers() {
+        return members;
+    }
+
+    public void setMembers(List<TaskPersonDto> members) {
+        this.members = members;
+    }
+
+    public List<TaskActionResponseDto> getActions() {
+        return actions;
+    }
+
+    public void setActions(List<TaskActionResponseDto> actions) {
+        this.actions = actions;
     }
 
     public LocalDateTime getDeadLine() {

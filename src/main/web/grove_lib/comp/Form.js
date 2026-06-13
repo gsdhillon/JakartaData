@@ -184,7 +184,11 @@ const renderSlotLayout = slots => {
 
         layoutChildren.push(
             Div(
-                { className: "grove-form-main" },
+                {
+                    className: slots.aside === undefined
+                        ? "grove-form-main grove-form-main-no-aside"
+                        : "grove-form-main"
+                },
                 Div(
                     { className: "grove-form-fields" },
                     ...mainChildren

@@ -32,8 +32,24 @@ const formatDateTime = value => {
 const columns = [
     { key: "id", label: "Id" },
     { key: "taskName", label: "Task" },
-    { essential: false, key: "addBy", label: "Add By" },
-    { essential: false, key: "assignedTo", label: "Assigned To" },
+    {
+        essential: false,
+        key: "addBy",
+        label: "Created By",
+        render: task => task.creator?.name || (task.addBy ? `Person ${task.addBy}` : ""),
+        value: task => task.creator?.name || (task.addBy ? `Person ${task.addBy}` : "")
+    },
+    {
+        essential: false,
+        key: "members",
+        label: "Members",
+        render: task => (task.members || [])
+            .map(person => person.name || `Person ${person.id}`)
+            .join(", "),
+        value: task => (task.members || [])
+            .map(person => person.name || `Person ${person.id}`)
+            .join(", ")
+    },
     {
         essential: false,
         key: "deadLine",
@@ -54,9 +70,6 @@ const sameUser = (left, right) => String(left || "") === String(right || "");
 
 const renderActions = props => (task, index) => {
     const canUpdate = sameUser(task.addBy, props.loggedInUserId);
-    const canComplete =
-        sameUser(task.assignedTo, props.loggedInUserId) &&
-        !task.completedOn;
 
     return [
         Button({
@@ -79,27 +92,10 @@ const renderActions = props => (task, index) => {
             look: "pm",
             name: "updateTask",
             disabled: props.isBusy || !canUpdate,
-            title: canUpdate ? "Update task" : "Only Add By user can update",
+            title: canUpdate ? "Update task" : "Only Created By user can update",
             type: "button",
             onClick() {
                 props.onUpdate?.(task, index);
-            }
-        }),
-        Button({
-            id: `completeTask-${index}`,
-            icon: "check-circle",
-            label: null,
-            look: "ut",
-            name: "completeTask",
-            disabled: props.isBusy || !canComplete,
-            title: task.completedOn
-                ? "Task already completed"
-                : canComplete
-                    ? "Mark completed"
-                    : "Only Assigned To user can complete",
-            type: "button",
-            onClick() {
-                props.onMarkCompleted?.(task, index);
             }
         }),
         Button({

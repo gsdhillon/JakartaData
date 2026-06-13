@@ -18,6 +18,6 @@ public class UnhandledExceptionMapper implements ExceptionMapper<Throwable> {
     public Response toResponse(Throwable exception) {
         int status = Response.Status.INTERNAL_SERVER_ERROR.getStatusCode();
 
-        return rest.error(status, List.of("Internal server error. Check server logs for details."));
+        return rest.error(status, List.of("Internal server error. Please try again or contact support."));
     }
 }
