@@ -1,12 +1,14 @@
 import {
+    openAppPage,
+    toChildrenArray
+} from "../../grove_lib/GroveComponents.js";
+import {
     createContext,
     createElement,
-    openAppPage,
-    toChildrenArray,
     useContext,
     useMemo,
     useState
-} from "../../grove_lib/GroveComponents.js";
+} from "../../grove_lib/GroveAdapter.js";
 
 const sessionStorageKey = "jakartaData.session";
 

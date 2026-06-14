@@ -1,13 +1,15 @@
 import {
     Button,
-    createElement,
     Page,
     showAppError,
-    useCenterPanel,
+    useCenterPanel
+} from "../../grove_lib/GroveComponents.js";
+import {
+    createElement,
     useEffect,
     useMemo,
     useState
-} from "../../grove_lib/GroveComponents.js";
+} from "../../grove_lib/GroveAdapter.js";
 import { useAuth } from "../core/AppContext.js";
 import TaskForm from "./TaskForm.js";
 import {
@@ -189,9 +191,9 @@ const TaskList = () => {
         [isBusy, loggedInUserId, authToken]
     );
 
-    return Page(
-        { layout: "fill" },
-        TaskTable({
+    return Page({
+        layout: "fill",
+        content: TaskTable({
             isBusy,
             loggedInUserId,
             tasks,
@@ -200,7 +202,7 @@ const TaskList = () => {
             onUpdate: task => openTaskForm("update", task),
             onView: task => openTaskForm("view", task)
         })
-    );
+    });
 };
 
 export default TaskList;

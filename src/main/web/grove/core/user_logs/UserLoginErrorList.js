@@ -64,9 +64,9 @@ const UserLoginErrorList = props => {
         });
     };
 
-    return Page(
-        { layout: "fill" },
-        Table({
+    return Page({
+        layout: "fill",
+        content: Table({
             columns,
             emptyMessage: "No errors recorded for this login",
             exportName: `user-login-errors-${compactSessionId(props.sessionId)}`,
@@ -87,7 +87,7 @@ const UserLoginErrorList = props => {
             rows: props.errors || [],
             title: `Errors ${compactSessionId(props.sessionId)}`
         })
-    );
+    });
 };
 
 export default UserLoginErrorList;

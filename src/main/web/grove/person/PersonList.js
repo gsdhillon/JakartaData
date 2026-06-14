@@ -1,13 +1,15 @@
 import {
     Button,
-    createElement,
     Page,
     showAppError,
-    useCenterPanel,
+    useCenterPanel
+} from "../../grove_lib/GroveComponents.js";
+import {
+    createElement,
     useEffect,
     useMemo,
     useState
-} from "../../grove_lib/GroveComponents.js";
+} from "../../grove_lib/GroveAdapter.js";
 import { useAuth } from "../core/AppContext.js";
 import PersonForm from "./PersonForm.js?v=dev-20260607-01";
 import {
@@ -226,9 +228,9 @@ const PersonList = () => {
         [isBusy, authToken, loggedInUser]
     );
 
-    return Page(
-        { layout: "fill" },
-        PersonTable({
+    return Page({
+        layout: "fill",
+        content: PersonTable({
             persons,
             onDelete: deletePerson,
             onUpdate: person => openPersonForm("update", person),
@@ -238,7 +240,7 @@ const PersonList = () => {
             isBusy,
             toolbarActions
         })
-    );
+    });
 };
 
 export default PersonList;

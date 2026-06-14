@@ -38,10 +38,9 @@ const buttonLooks = {
 /**
  * Creates a button virtual node.
  * @param {Object} [props={}] - Button attributes and event handlers.
- * @param {...any} children - Button child nodes or text.
  * @returns {Object} A Grove virtual node.
  */
-export const Button = (props = {}, ...children) => {
+export const Button = (props = {}) => {
     const {
         icon,
         iconSuffix,
@@ -49,17 +48,15 @@ export const Button = (props = {}, ...children) => {
         look = "pm",
         ...buttonProps
     } = props;
-    const buttonChildren = children.length
-        ? children
-        : [
-            icon ? renderButtonIcon(icon) : null,
-            label,
-            iconSuffix ? renderButtonIcon(iconSuffix, true) : null
-        ].filter(child =>
-            child !== null &&
-            child !== undefined &&
-            child !== ""
-        );
+    const buttonChildren = [
+        icon ? renderButtonIcon(icon) : null,
+        label,
+        iconSuffix ? renderButtonIcon(iconSuffix, true) : null
+    ].filter(child =>
+        child !== null &&
+        child !== undefined &&
+        child !== ""
+    );
     const iconOnly =
         buttonChildren.length === 1 &&
         (icon || iconSuffix) &&
@@ -84,5 +81,5 @@ export const Button = (props = {}, ...children) => {
     );
 };
 
-export const ButtonIf = (condition, props = {}, ...children) =>
-    condition ? Button(props, ...children) : null;
+export const ButtonIf = (condition, props = {}) =>
+    condition ? Button(props) : null;

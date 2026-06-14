@@ -10,9 +10,10 @@ const layoutClass = layout =>
         ? `grove-page-${String(layout).toLowerCase()}`
         : "";
 
-export const Page = (props = {}, ...children) => {
+export const Page = (props = {}) => {
     const {
         className = "",
+        content,
         layout = "default",
         ...pageProps
     } = props;
@@ -29,9 +30,9 @@ export const Page = (props = {}, ...children) => {
             ...pageProps,
             className: pageClassName
         },
-        ...children
+        content
     );
 };
 
-export const PageIf = (condition, props = {}, ...children) =>
-    condition ? Page(props, ...children) : null;
+export const PageIf = (condition, props = {}) =>
+    condition ? Page(props) : null;

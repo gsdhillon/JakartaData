@@ -1,6 +1,5 @@
 import {
     Button,
-    createElement,
     Div,
     Form,
     Input,
@@ -10,12 +9,15 @@ import {
     Select,
     showAppError,
     TextArea,
+    useCenterPanelActions
+} from "../../grove_lib/GroveComponents.js";
+import {
+    createElement,
     useCallback,
-    useCenterPanelActions,
     useEffect,
     useMemo,
     useState
-} from "../../grove_lib/GroveComponents.js";
+} from "../../grove_lib/GroveAdapter.js";
 import PersonTable from "../person/PersonTable.js";
 import { findAllPersons } from "../person/PersonService.js";
 import { normalizeTask } from "./TaskService.js";
@@ -76,9 +78,9 @@ const selectedPersonsFrom = (persons, ids, existingPersons = []) =>
     );
 
 const MemberListPage = props =>
-    Page(
-        { layout: "fill" },
-        createElement(
+    Page({
+        layout: "fill",
+        content: createElement(
             PersonTable,
             {
                 // Keep PersonTable from publishing filter/export actions to the
@@ -92,7 +94,7 @@ const MemberListPage = props =>
                 title: "Members"
             }
         )
-    );
+    });
 
 const PickPersonPage = props => {
     const [selectedIds, setSelectedIds] = useState(props.initialSelectedIds || []);
@@ -126,9 +128,9 @@ const PickPersonPage = props => {
 
     useCenterPanelActions(toolbarActions);
 
-    return Page(
-        { layout: "fill" },
-        createElement(
+    return Page({
+        layout: "fill",
+        content: createElement(
             PersonTable,
             {
                 centerActions: false,
@@ -143,7 +145,7 @@ const PickPersonPage = props => {
                 onToggleSelected: togglePerson
             }
         )
-    );
+    });
 };
 
 const ActionPanel = props => {
@@ -400,9 +402,9 @@ const TaskForm = props => {
         return savedTask;
     };
 
-    return Page(
-        { layout: "fill" },
-        Form({
+    return Page({
+        layout: "fill",
+        content: Form({
             data: task,
             layout: "stack",
             main: [
@@ -516,7 +518,7 @@ const TaskForm = props => {
                 });
             }
         })
-    );
+    });
 };
 
 export default TaskForm;

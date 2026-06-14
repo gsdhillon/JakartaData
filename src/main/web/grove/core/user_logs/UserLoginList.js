@@ -1,15 +1,17 @@
 import {
     Button,
-    createElement,
     formatInstantLocal,
     Page,
     showAppError,
     Table,
-    useCenterPanel,
+    useCenterPanel
+} from "../../../grove_lib/GroveComponents.js";
+import {
+    createElement,
     useEffect,
     useMemo,
     useState
-} from "../../../grove_lib/GroveComponents.js";
+} from "../../../grove_lib/GroveAdapter.js";
 import { useAuth } from "../AppContext.js";
 import UserLoginErrorList from "./UserLoginErrorList.js";
 import {
@@ -135,9 +137,9 @@ const UserLoginList = props => {
         [isBusy, authToken]
     );
 
-    return Page(
-        { layout: "fill" },
-        Table({
+    return Page({
+        layout: "fill",
+        content: Table({
             columns,
             emptyMessage: "No user logins recorded",
             exportName: "user-logins",
@@ -176,7 +178,7 @@ const UserLoginList = props => {
             toolbarActions,
             title: "User Logs"
         })
-    );
+    });
 };
 
 export default UserLoginList;

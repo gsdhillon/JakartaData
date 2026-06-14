@@ -1,12 +1,14 @@
 import {
     AppShell,
+    Header,
+    showAppError
+} from "./grove_lib/GroveComponents.js";
+import {
     createElement,
     createRoot,
-    Header,
-    showAppError,
     useCallback,
     useMemo
-} from "./grove_lib/GroveComponents.js";
+} from "./grove_lib/GroveAdapter.js";
 import {
     AppProvider,
     useAppContext

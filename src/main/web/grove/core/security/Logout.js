@@ -1,12 +1,14 @@
 import {
-    createElement,
     Div,
     Form,
     FormHeader,
     Page,
-    Text,
-    useEffect
+    Text
 } from "../../../grove_lib/GroveComponents.js";
+import {
+    createElement,
+    useEffect
+} from "../../../grove_lib/GroveAdapter.js";
 import { useAppContext } from "../AppContext.js";
 import { logout } from "./SecurityService.js";
 
@@ -21,9 +23,9 @@ const Logout = () => {
         }
     }, [authToken, loggedIn, logoutSession]);
 
-    return Page(
-        { layout: "center" },
-        Form({
+    return Page({
+        layout: "center",
+        content: Form({
             centerActions: false,
             className: "grove-auth-form",
             layout: "center",
@@ -53,7 +55,7 @@ const Logout = () => {
                 )
             ]
         })
-    );
+    });
 };
 
 export default Logout;

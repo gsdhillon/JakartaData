@@ -4,10 +4,12 @@ import {
     FormHeader,
     Input,
     Page,
-    showAppError,
+    showAppError
+} from "../../../grove_lib/GroveComponents.js";
+import {
     useMemo,
     useState
-} from "../../../grove_lib/GroveComponents.js";
+} from "../../../grove_lib/GroveAdapter.js";
 import { changePassword } from "./SecurityService.js";
 
 const ChangePass = props => {
@@ -31,9 +33,9 @@ const ChangePass = props => {
         [isBusy, props.authToken]
     );
 
-    return Page(
-        { layout: "center" },
-        Form({
+    return Page({
+        layout: "center",
+        content: Form({
             centerActions: false,
             className: "grove-auth-form",
             data: passwords,
@@ -101,7 +103,7 @@ const ChangePass = props => {
                 }
             }
         })
-    );
+    });
 };
 
 export default ChangePass;

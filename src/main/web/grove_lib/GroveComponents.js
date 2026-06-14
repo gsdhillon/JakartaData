@@ -3,8 +3,6 @@
  * Public barrel for Grove framework components and adapter-selected DOM/hooks.
  */
 
-export * from "./GroveAdapter.js";
-
 export const appendClassName = (props = {}, className) => ({
     ...props,
     className: props.className
@@ -20,7 +18,7 @@ export const toChildrenArray = children =>
             : [children];
 
 export const vnodeChildren = vnode =>
-    toChildrenArray(vnode?.props?.children ?? vnode?.children);
+    toChildrenArray(vnode?.props?.children);
 
 export const withVNodeChildren = (vnode, props, children) => ({
     ...vnode,

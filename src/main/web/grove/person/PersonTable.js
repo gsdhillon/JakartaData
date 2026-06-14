@@ -1,8 +1,8 @@
 import {
     Button,
-    createElement,
     Table
 } from "../../grove_lib/GroveComponents.js";
+import { createElement } from "../../grove_lib/GroveAdapter.js";
 
 const columns = [
     { key: "id", label: "Id" },

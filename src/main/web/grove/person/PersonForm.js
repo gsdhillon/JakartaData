@@ -4,15 +4,17 @@ import {
     Input,
     Instant,
     LocalDate,
+    OptBoolean,
     Page,
     Photo,
     Select,
-    showAppError,
+    showAppError
+} from "../../grove_lib/GroveComponents.js";
+import {
     useEffect,
     useMemo,
     useState
-} from "../../grove_lib/GroveComponents.js";
-import { OptBoolean } from "../../grove_lib/comp/OptBoolean.js";
+} from "../../grove_lib/GroveAdapter.js";
 import { normalizePerson } from "./PersonService.js";
 
 const PersonForm = props => {
@@ -41,9 +43,9 @@ const PersonForm = props => {
         [props.mode, props.isBusy, props.showSubmit, readOnly]
     );
 
-    return Page(
-        { layout: "fill" },
-        Form({
+    return Page({
+        layout: "fill",
+        content: Form({
             data: person,
             editableFields: {
                 id: false,
@@ -159,7 +161,7 @@ const PersonForm = props => {
                 props.onSubmit?.({ ...person });
             }
         })
-    );
+    });
 };
 
 export default PersonForm;

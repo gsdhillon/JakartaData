@@ -261,10 +261,9 @@ const bindActionToForm = (vnode, formId) => {
 /**
  * Creates a form virtual node with optional data binding for named fields.
  * @param {Object} [props={}] - Form attributes and event handlers.
- * @param {...any} children - Form child nodes.
  * @returns {Object} A Grove virtual node.
  */
-export const Form = (props = {}, ...children) => {
+export const Form = (props = {}) => {
     const {
         data,
         editableFields,
@@ -302,7 +301,7 @@ export const Form = (props = {}, ...children) => {
             aside,
             actions: moveActionsToCenter ? undefined : actionSlot
         })
-        : children;
+        : [];
     const layoutClassName = layout
         ? `grove-form-${String(layout).toLowerCase()}`
         : "";
@@ -356,5 +355,5 @@ export const Form = (props = {}, ...children) => {
     );
 };
 
-export const FormIf = (condition, props = {}, ...children) =>
-    condition ? Form(props, ...children) : null;
+export const FormIf = (condition, props = {}) =>
+    condition ? Form(props) : null;

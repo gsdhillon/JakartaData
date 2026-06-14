@@ -3,10 +3,12 @@ import {
     Form,
     FormHeader,
     Input,
-    Page,
+    Page
+} from "../../../grove_lib/GroveComponents.js";
+import {
     useMemo,
     useState
-} from "../../../grove_lib/GroveComponents.js";
+} from "../../../grove_lib/GroveAdapter.js";
 import { useAppContext } from "../AppContext.js";
 import { login } from "./SecurityService.js";
 
@@ -82,9 +84,9 @@ const Login = props => {
         [isBusy]
     );
 
-    return Page(
-        { layout: "center" },
-        Form({
+    return Page({
+        layout: "center",
+        content: Form({
             centerActions: false,
             className: "grove-auth-form",
             data: credentials,
@@ -123,7 +125,7 @@ const Login = props => {
                 }
             }
         })
-    );
+    });
 };
 
 export default Login;
