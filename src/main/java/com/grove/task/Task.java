@@ -1,5 +1,6 @@
 package com.grove.task;
 
+import com.grove.core.ValidationRules;
 import jakarta.persistence.Column;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -33,7 +34,7 @@ public class Task {
     private String taskName;
 
     @NotBlank(message = "Task description can not be blank!")
-    @Size(min = 5, max = 500, message = "Task description must be between 5 and 500 characters!")
+    @Size(min = 5, max = ValidationRules.TASK_DESC_MAX_LENGTH, message = "Task description must be between 5 and 2000 characters!")
     @Lob
     @Column(columnDefinition = "TEXT")
     private String taskDesc;

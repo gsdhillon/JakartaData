@@ -4,7 +4,7 @@ import {
     useContext,
     useEffect,
     useState
-} from "../Grove.js";
+} from "../GroveAdapter.js";
 import { Div } from "./Div.js";
 
 const toastDurationMs = 6000;

@@ -4,7 +4,7 @@ import {
     Page,
     showAppError,
     Table
-} from "../../../grove_lib/Grove.js";
+} from "../../../grove_lib/GroveComponents.js";
 
 const compactSessionId = sessionId =>
     String(sessionId || "").slice(0, 8);

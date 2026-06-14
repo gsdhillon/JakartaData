@@ -4,7 +4,7 @@ import {
     useEffect,
     useLayoutEffect,
     useRef
-} from "../Grove.js";
+} from "../GroveAdapter.js";
 
 export const CenterPanelContext = createContext(null);
 

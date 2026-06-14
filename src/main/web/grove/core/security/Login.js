@@ -6,7 +6,7 @@ import {
     Page,
     useMemo,
     useState
-} from "../../../grove_lib/Grove.js";
+} from "../../../grove_lib/GroveComponents.js";
 import { useAppContext } from "../AppContext.js";
 import { login } from "./SecurityService.js";
 

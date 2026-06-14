@@ -6,7 +6,7 @@ import {
     showAppError,
     useCallback,
     useMemo
-} from "./grove_lib/Grove.js";
+} from "./grove_lib/GroveComponents.js";
 import {
     AppProvider,
     useAppContext

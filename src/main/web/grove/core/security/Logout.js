@@ -6,7 +6,7 @@ import {
     Page,
     Text,
     useEffect
-} from "../../../grove_lib/Grove.js";
+} from "../../../grove_lib/GroveComponents.js";
 import { useAppContext } from "../AppContext.js";
 import { logout } from "./SecurityService.js";
 

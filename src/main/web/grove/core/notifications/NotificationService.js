@@ -1,4 +1,4 @@
-import { requestJson } from "../../../grove_lib/Grove.js";
+import { requestJson } from "../../../grove_lib/GroveComponents.js";
 
 const notificationApiUrl = "./api/notifications";
 

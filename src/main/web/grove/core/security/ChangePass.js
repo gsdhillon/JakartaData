@@ -7,7 +7,7 @@ import {
     showAppError,
     useMemo,
     useState
-} from "../../../grove_lib/Grove.js";
+} from "../../../grove_lib/GroveComponents.js";
 import { changePassword } from "./SecurityService.js";
 
 const ChangePass = props => {

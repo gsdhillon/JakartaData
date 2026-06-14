@@ -35,14 +35,6 @@ body {
     min-height: 38px;
 }
 
-.task-picker-select-button {
-    --bs-btn-font-size: 0.78rem;
-    --bs-btn-line-height: 1.1;
-    --bs-btn-padding-x: 0.45rem;
-    --bs-btn-padding-y: 0.16rem;
-    min-height: 26px;
-}
-
 .task-form-actions-full {
     width: 100%;
 }

@@ -4,11 +4,12 @@
  * @email gsdhillon@gmail.com
  */
 
-import {
-    appendClassName,
-    createElement
-} from "../Grove.js";
+import { createElement } from "../GroveAdapter.js";
+import { appendClassName } from "../GroveComponents.js";
 import { Text } from "./Text.js";
+
+const textLength = value =>
+    String(value ?? "").length;
 
 /**
  * Creates a textarea virtual node.
@@ -37,10 +38,22 @@ export const TextArea = (props = {}, ...children) => {
         ? createElement(
             "label",
             { className: "grove-field-label" },
-            Text({
-                look: "label",
-                value: label
-            }),
+            createElement(
+                "span",
+                { className: "grove-textarea-label-meta" },
+                Text({
+                    look: "label",
+                    value: label
+                }),
+                createElement(
+                    "span",
+                    {
+                        className: "grove-textarea-length",
+                        "data-grove-textarea-length-for": textAreaProps.name || ""
+                    },
+                    `[len: ${textLength(textAreaProps.value ?? textAreaProps.defaultValue)}]`
+                )
+            ),
             control
         )
         : control;

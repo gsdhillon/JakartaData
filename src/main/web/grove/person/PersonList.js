@@ -7,7 +7,7 @@ import {
     useEffect,
     useMemo,
     useState
-} from "../../grove_lib/Grove.js";
+} from "../../grove_lib/GroveComponents.js";
 import { useAuth } from "../core/AppContext.js";
 import PersonForm from "./PersonForm.js?v=dev-20260607-01";
 import {

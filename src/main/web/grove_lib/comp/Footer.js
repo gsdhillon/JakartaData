@@ -7,7 +7,7 @@
 import {
     createElement,
     useEffect
-} from "../Grove.js";
+} from "../GroveAdapter.js";
 import {
     openRestDialog,
     RestTapToggle

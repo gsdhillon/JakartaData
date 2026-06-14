@@ -1,10 +1,12 @@
 import {
     createContext,
+    createElement,
     openAppPage,
+    toChildrenArray,
     useContext,
     useMemo,
     useState
-} from "../../grove_lib/Grove.js";
+} from "../../grove_lib/GroveComponents.js";
 
 const sessionStorageKey = "jakartaData.session";
 
@@ -112,10 +114,11 @@ export const AppProvider = props => {
         [authToken, loggedIn, loggedInUser, loginInfo, sessionVersion]
     );
 
-    return AppContext.Provider({
-        value,
-        children: props.children
-    });
+    return createElement(
+        AppContext.Provider,
+        { value },
+        ...toChildrenArray(props.children)
+    );
 };
 
 export const useAppContext = () => useContext(AppContext);

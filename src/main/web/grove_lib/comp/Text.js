@@ -3,7 +3,7 @@
  * Framework text primitive with a small controlled visual vocabulary.
  */
 
-import { createElement } from "../Grove.js";
+import { createElement } from "../GroveAdapter.js";
 
 const lookClass = look =>
     `grove-text-${String(look || "body")

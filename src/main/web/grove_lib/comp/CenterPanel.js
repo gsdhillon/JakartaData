@@ -5,19 +5,23 @@ import {
     useMemo,
     useRef,
     useState
-} from "../Grove.js";
+} from "../GroveAdapter.js";
+import { toChildrenArray } from "../GroveComponents.js";
 import { Button } from "./Button.js";
 import { CenterPanelContext } from "./CenterPanelContext.js";
 import { Div } from "./Div.js";
 import { AppErrorToasts } from "./AppError.js";
 import { Text } from "./Text.js";
 
-const pageContent = props =>
-    props.content !== undefined
+const pageContent = props => {
+    const children = toChildrenArray(props.children);
+
+    return props.content !== undefined
         ? props.content
-        : props.children && props.children.length
-            ? props.children[0]
+        : children.length
+            ? children[0]
             : null;
+};
 
 export const CenterPanel = (props = {}) => {
     const {

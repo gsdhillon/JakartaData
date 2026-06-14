@@ -5,11 +5,15 @@
  */
 
 import {
-    appendClassName,
     createElement,
     useMemo,
     useRef
-} from "../Grove.js";
+} from "../GroveAdapter.js";
+import {
+    appendClassName,
+    vnodeChildren,
+    withVNodeChildren
+} from "../GroveComponents.js";
 import { Div } from "./Div.js";
 import { temporalValue } from "./Instant.js";
 import {
@@ -80,6 +84,19 @@ const bindFormVNode = (vnode, data) => {
     }
 
     const props = vnode.props || {};
+    const textareaLengthFor = props["data-grove-textarea-length-for"];
+
+    if (
+        textareaLengthFor &&
+        Object.prototype.hasOwnProperty.call(data, textareaLengthFor)
+    ) {
+        return withVNodeChildren(
+            vnode,
+            props,
+            [`[len: ${String(data[textareaLengthFor] ?? "").length}]`]
+        );
+    }
+
     const isField =
         (
             formFieldTypes.has(vnode.type) ||
@@ -100,13 +117,13 @@ const bindFormVNode = (vnode, data) => {
             }
         : props;
 
-    return {
-        ...vnode,
-        props: nextProps,
-        children: (vnode.children || []).map(child =>
+    return withVNodeChildren(
+        vnode,
+        nextProps,
+        vnodeChildren(vnode).map(child =>
             bindFormVNode(child, data)
         )
-    };
+    );
 };
 
 const isNonEditableField = (props, editableFields) =>
@@ -129,7 +146,7 @@ const containsNonEditableField = (vnode, editableFields) => {
     const props = vnode.props || {};
 
     return isNonEditableField(props, editableFields) ||
-        (vnode.children || []).some(child =>
+        vnodeChildren(vnode).some(child =>
             containsNonEditableField(child, editableFields)
         );
 };
@@ -157,11 +174,12 @@ const filterNonEditableFields = (vnode, editableFields) => {
         return null;
     }
 
-    return {
-        ...vnode,
-        children: (vnode.children || [])
+    return withVNodeChildren(
+        vnode,
+        props,
+        vnodeChildren(vnode)
             .map(child => filterNonEditableFields(child, editableFields))
-    };
+    );
 };
 
 const toSlotChildren = slot =>
@@ -231,13 +249,13 @@ const bindActionToForm = (vnode, formId) => {
             }
             : props;
 
-    return {
-        ...vnode,
-        props: nextProps,
-        children: (vnode.children || []).map(child =>
+    return withVNodeChildren(
+        vnode,
+        nextProps,
+        vnodeChildren(vnode).map(child =>
             bindActionToForm(child, formId)
         )
-    };
+    );
 };
 
 /**
@@ -304,29 +322,34 @@ export const Form = (props = {}, ...children) => {
                 bindFormVNode(child, data)
             )
             : visibleFormChildren;
+    const handleDataEvent = event => {
+        if (!onDataChange || !event.target.name) {
+            return;
+        }
+
+        if (isRadioInput(event.target) && !event.target.checked) {
+            return;
+        }
+
+        const fieldName = event.target.name;
+
+        onDataChange(currentData => ({
+            ...currentData,
+            [fieldName]: valueFromFormTarget(event.target)
+        }));
+    };
 
     return createElement(
         "form",
         {
             ...renderedFormProps,
             id: formId,
+            onInput(event) {
+                handleDataEvent(event);
+            },
             onChange(event) {
                 onChange?.(event);
-
-                if (!onDataChange || !event.target.name) {
-                    return;
-                }
-
-                if (isRadioInput(event.target) && !event.target.checked) {
-                    return;
-                }
-
-                const fieldName = event.target.name;
-
-                onDataChange(currentData => ({
-                    ...currentData,
-                    [fieldName]: valueFromFormTarget(event.target)
-                }));
+                handleDataEvent(event);
             }
         },
         ...boundChildren

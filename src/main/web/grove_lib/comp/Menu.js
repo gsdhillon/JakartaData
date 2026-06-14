@@ -4,7 +4,7 @@
  * @email gsdhillon@gmail.com
  */
 
-import { createElement } from "../Grove.js";
+import { createElement } from "../GroveAdapter.js";
 import { Button } from "./Button.js";
 import { Div } from "./Div.js";
 

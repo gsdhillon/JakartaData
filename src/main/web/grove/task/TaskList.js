@@ -7,7 +7,7 @@ import {
     useEffect,
     useMemo,
     useState
-} from "../../grove_lib/Grove.js";
+} from "../../grove_lib/GroveComponents.js";
 import { useAuth } from "../core/AppContext.js";
 import TaskForm from "./TaskForm.js";
 import {

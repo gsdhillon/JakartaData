@@ -8,7 +8,7 @@ import {
     createElement,
     useEffect,
     useState
-} from "../Grove.js";
+} from "../GroveAdapter.js";
 import { Div } from "./Div.js";
 import { Text } from "./Text.js";
 

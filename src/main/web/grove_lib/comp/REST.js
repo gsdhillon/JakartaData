@@ -26,7 +26,7 @@ import {
     useContext,
     useEffect,
     useState
-} from "../Grove.js";
+} from "../GroveAdapter.js";
 import { Button } from "./Button.js";
 import { Div } from "./Div.js";
 import {

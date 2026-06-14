@@ -3,7 +3,7 @@
  * Header row for forms and cards.
  */
 
-import { createElement } from "../Grove.js";
+import { createElement } from "../GroveAdapter.js";
 import { Div } from "./Div.js";
 import { Text } from "./Text.js";
 

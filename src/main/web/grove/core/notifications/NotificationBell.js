@@ -2,7 +2,7 @@ import {
     createElement,
     useEffect,
     useState
-} from "../../../grove_lib/Grove.js";
+} from "../../../grove_lib/GroveComponents.js";
 import {
     deleteAllNotifications,
     deleteNotification,

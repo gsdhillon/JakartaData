@@ -5,12 +5,16 @@
  */
 
 import {
-    appendClassName,
     createElement,
     useEffect,
     useMemo,
     useState
-} from "../Grove.js";
+} from "../GroveAdapter.js";
+import {
+    appendClassName,
+    vnodeChildren,
+    withVNodeChildren
+} from "../GroveComponents.js";
 import { Button } from "./Button.js";
 import {
     useCenterPanel,
@@ -642,7 +646,6 @@ const cloneActionForMenu = (vnode, closeMenu) => {
         ...props,
         id: undefined
     };
-
     if (typeof props.onClick === "function") {
         nextProps.onClick = event => {
             props.onClick(event);
@@ -650,13 +653,11 @@ const cloneActionForMenu = (vnode, closeMenu) => {
         };
     }
 
-    return {
-        ...vnode,
-        props: nextProps,
-        children: (vnode.children || []).map(child =>
-            cloneActionForMenu(child, closeMenu)
-        )
-    };
+    const children = vnodeChildren(vnode).map(child =>
+        cloneActionForMenu(child, closeMenu)
+    );
+
+    return withVNodeChildren(vnode, nextProps, children);
 };
 
 const Table = (props = {}) => {

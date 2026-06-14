@@ -1,5 +1,6 @@
 package com.grove.task;
 
+import com.grove.core.ValidationRules;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -37,7 +38,7 @@ public class TaskAction {
     private String status = STATUS_PENDING;
 
     @NotBlank(message = "Action description can not be blank!")
-    @Size(min = 2, max = 500, message = "Action description must be between 2 and 500 characters!")
+    @Size(min = 2, max = ValidationRules.TASK_ACTION_DESC_MAX_LENGTH, message = "Action description must be between 2 and 2000 characters!")
     @Lob
     @Column(name = "action_desc", columnDefinition = "TEXT", nullable = false)
     private String desc;

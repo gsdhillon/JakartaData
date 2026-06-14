@@ -2,7 +2,7 @@ import {
     Button,
     createElement,
     Table
-} from "../../grove_lib/Grove.js";
+} from "../../grove_lib/GroveComponents.js";
 
 const columns = [
     { key: "id", label: "Id" },

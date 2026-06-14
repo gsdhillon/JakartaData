@@ -42,13 +42,6 @@ const ensureGroveStyles = () => {
 
 ensureGroveStyles();
 
-export const appendClassName = (props = {}, className) => ({
-    ...props,
-    className: props.className
-        ? `${className} ${props.className}`
-        : className
-});
-
 /**
  * Creates a virtual DOM element.
  * @param {string|Function} tagName - The type of the element (e.g., 'div', 'span', or a component function).
@@ -56,12 +49,19 @@ export const appendClassName = (props = {}, className) => ({
  * @param {...(string|Object|Array)} children - Child elements or text nodes.
  * @returns {Object} A virtual DOM node object.
  */
-export const createElement = (tagName, props = {}, ...children) => ({
-    type: tagName,
-    props: props || {},
-    key: props?.key || null,
-    children: children.flat()
-});
+export const createElement = (tagName, props = {}, ...children) => {
+    const resolvedChildren = children.flat();
+
+    return {
+        type: tagName,
+        props: {
+            ...(props || {}),
+            children: resolvedChildren
+        },
+        key: props?.key || null,
+        children: resolvedChildren
+    };
+};
 
 export const createElementIf = (condition, tagName, props = {}, ...children) => {
     return condition ? createElement(tagName, props, ...children) : null;
@@ -1516,57 +1516,6 @@ const global = typeof window === "undefined"
             .find(element => element.name === activeState.name);
     }
 
-    // --- Public API ---
-    /**
-     * Creates an application instance for a given root DOM element.
-     * Provides methods for mounting, updating, and component registration.
-     * @param {HTMLElement} rootElement - The DOM element to mount the application to.
-     * @returns {Object} An application instance with rendering and component management capabilities.
-     */
-    export function createApp(rootElement) {
-        const renderer = new Renderer(rootElement);
-
-        return {
-            renderer,
-            /**
-             * Mounts the root component of the application.
-             * @param {Function} appFn - The root component function.
-             * @param {Object} [data={}] - Initial data for the root component.
-             */
-            mount(appFn, data = {}) {
-                renderer.mount(appFn, data);
-            },
-            /**
-             * Triggers a synchronous update of the application.
-             */
-            update() {
-                renderer.update();
-            },
-            /**
-             * Schedules an update to be performed concurrently.
-             */
-            concurrentUpdate() {
-                renderer.concurrentUpdate();
-            },
-            /**
-             * Registers a component function with a string type.
-             * @param {string} type - The string name for the component.
-             * @param {Function} componentFn - The component function.
-             */
-            register(type, componentFn) {
-                ComponentRegistry[type] = componentFn;
-            },
-            /**
-             * Resolves a registered component by its string type.
-             * @param {string} type - The string name of the component.
-             * @returns {Function|undefined} The component function, or undefined if not found.
-             */
-            resolve(type) {
-                return ComponentRegistry[type];
-            }
-        };
-    }
-
     /**
      * Creates a root renderer for a given DOM element, primarily for simple vnode rendering.
      * @param {HTMLElement} rootElement - The DOM element to render into.
@@ -1603,151 +1552,5 @@ const global = typeof window === "undefined"
      */
     global.GroveDOM = {
         createRoot,
-        createApp,
         Renderer // Expose Renderer class for advanced use or inspection
     };
-
-// --- Hash Router Helpers ---
-// Small client-side router utilities live here instead of a separate GroveRouters.js
-// barrel, so Grove's public API is exported from one place.
-const normalizeHashPath = path => {
-    const value = String(path || "/").trim();
-    const withoutHash = value.startsWith("#")
-        ? value.slice(1)
-        : value;
-    const normalized = withoutHash.startsWith("/")
-        ? withoutHash
-        : `/${withoutHash}`;
-
-    return normalized.length > 1
-        ? normalized.replace(/\/+$/, "")
-        : "/";
-};
-
-export const getHashPath = () =>
-    normalizeHashPath(window.location.hash.slice(1) || "/");
-
-export const navigateHash = path => {
-    const nextPath = normalizeHashPath(path);
-    const nextHash = `#${nextPath}`;
-
-    if (window.location.hash === nextHash) {
-        window.dispatchEvent(new Event("hashchange"));
-        return;
-    }
-
-    window.location.hash = nextHash;
-};
-
-export const useHashPath = () => {
-    const [path, setPath] = useState(getHashPath());
-
-    useEffect(() => {
-        const syncPath = () => setPath(getHashPath());
-
-        window.addEventListener("hashchange", syncPath);
-        syncPath();
-
-        return () => window.removeEventListener("hashchange", syncPath);
-    }, []);
-
-    return path;
-};
-
-const matchHashRoute = (routes, path) =>
-    (routes || []).find(route =>
-        normalizeHashPath(route.path) === path
-    );
-
-const resolveRouteElement = element =>
-    typeof element === "function"
-        ? createElement(element)
-        : element;
-
-export const HashRouter = (props = {}) => {
-    const path = useHashPath();
-    const route = matchHashRoute(props.routes, path)
-        || matchHashRoute(props.routes, props.defaultPath || "/")
-        || null;
-
-    if (!route) {
-        return resolveRouteElement(props.fallback) ?? null;
-    }
-
-    if (typeof route.render === "function") {
-        return route.render({ path });
-    }
-
-    return resolveRouteElement(route.element) ?? resolveRouteElement(props.fallback) ?? null;
-};
-
-export const HashLink = (props = {}, ...children) => {
-    const {
-        href,
-        path = href,
-        ...linkProps
-    } = props;
-    const targetPath = normalizeHashPath(path);
-
-    return createElement(
-        "a",
-        {
-            ...linkProps,
-            href: `#${targetPath}`
-        },
-        ...children
-    );
-};
-
-export const HashNavLink = (props = {}, ...children) => {
-    const path = useHashPath();
-    const {
-        activeClassName = "active",
-        className = "",
-        href,
-        path: routePath = href,
-        ...linkProps
-    } = props;
-    const targetPath = normalizeHashPath(routePath);
-    const isActive = path === targetPath;
-    const linkClassName = [
-        className,
-        isActive ? activeClassName : ""
-    ]
-        .filter(Boolean)
-        .join(" ");
-
-    return HashLink(
-        {
-            ...linkProps,
-            className: linkClassName,
-            path: targetPath
-        },
-        ...children
-    );
-};
-
-export * from "./comp/Button.js";
-export * from "./comp/AppShell.js";
-export * from "./comp/AppError.js";
-export * from "./comp/CenterPanel.js";
-export * from "./comp/CenterPanelContext.js";
-export * from "./comp/Div.js";
-export * from "./comp/Form.js";
-export * from "./comp/FormHeader.js";
-export * from "./comp/Footer.js";
-export * from "./comp/Header.js";
-export * from "./comp/Input.js";
-export * from "./comp/Instant.js";
-export * from "./comp/Label.js";
-export * from "./comp/LocalDate.js";
-export * from "./comp/LocalDateTime.js";
-export * from "./comp/Menu.js";
-export * from "./comp/OptBoolean.js";
-export * from "./comp/Page.js";
-export * from "./comp/Photo.js";
-export * from "./comp/REST.js";
-export * from "./comp/Select.js";
-export * from "./comp/Table.js";
-export * from "./comp/Text.js";
-export * from "./comp/TextArea.js";

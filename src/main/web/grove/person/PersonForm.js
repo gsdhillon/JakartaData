@@ -11,7 +11,7 @@ import {
     useEffect,
     useMemo,
     useState
-} from "../../grove_lib/Grove.js";
+} from "../../grove_lib/GroveComponents.js";
 import { OptBoolean } from "../../grove_lib/comp/OptBoolean.js";
 import { normalizePerson } from "./PersonService.js";
 

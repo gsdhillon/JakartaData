@@ -9,7 +9,7 @@ import {
     useEffect,
     useMemo,
     useState
-} from "../../../grove_lib/Grove.js";
+} from "../../../grove_lib/GroveComponents.js";
 import { useAuth } from "../AppContext.js";
 import UserLoginErrorList from "./UserLoginErrorList.js";
 import {

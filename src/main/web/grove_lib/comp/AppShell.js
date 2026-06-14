@@ -9,7 +9,7 @@ import {
     useEffect,
     useMemo,
     useState
-} from "../Grove.js";
+} from "../GroveAdapter.js";
 import { AppErrorToasts } from "./AppError.js";
 import { CenterPanel } from "./CenterPanel.js";
 import { Div } from "./Div.js";

@@ -15,7 +15,7 @@ import {
     useEffect,
     useMemo,
     useState
-} from "../../grove_lib/Grove.js";
+} from "../../grove_lib/GroveComponents.js";
 import PersonTable from "../person/PersonTable.js";
 import { findAllPersons } from "../person/PersonService.js";
 import { normalizeTask } from "./TaskService.js";
@@ -96,7 +96,6 @@ const MemberListPage = props =>
 
 const PickPersonPage = props => {
     const [selectedIds, setSelectedIds] = useState(props.initialSelectedIds || []);
-    const selectedSet = new Set(selectedIds.map(id => String(id)));
     const togglePerson = useCallback(person => {
         setSelectedIds(current => {
             const currentSet = new Set(current.map(id => String(id)));
@@ -108,22 +107,6 @@ const PickPersonPage = props => {
             return [...current, person.id];
         });
     }, []);
-    const renderPersonActions = useCallback(
-        person => [
-            Button({
-                className: "task-picker-select-button",
-                icon: selectedSet.has(String(person.id)) ? "check-square" : "square",
-                label: selectedSet.has(String(person.id)) ? "Selected" : "Select",
-                look: selectedSet.has(String(person.id)) ? "pm" : "sc",
-                name: "togglePerson",
-                type: "button",
-                onClick() {
-                    togglePerson(person);
-                }
-            })
-        ],
-        [selectedIds, togglePerson]
-    );
     const toolbarActions = useMemo(
         () => Div(
             { className: "grove-form-actions" },
@@ -155,10 +138,8 @@ const PickPersonPage = props => {
                 selectedPersonIds: selectedIds,
                 selectionMode: "multiple",
                 showExport: false,
-                showSelectionColumn: false,
                 showToolbarUtilities: false,
                 title: "Pick Members",
-                renderActions: renderPersonActions,
                 onToggleSelected: togglePerson
             }
         )

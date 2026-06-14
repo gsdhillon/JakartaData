@@ -4,10 +4,8 @@
  * @email gsdhillon@gmail.com
  */
 
-import {
-    appendClassName,
-    createElement
-} from "../Grove.js";
+import { createElement } from "../GroveAdapter.js";
+import { appendClassName } from "../GroveComponents.js";
 
 const iconClassName = icon =>
     String(icon).includes(" ")
